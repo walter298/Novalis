@@ -1,0 +1,14 @@
+{
+    "Version": "1.1",
+    "Data": {
+        "Source": "c:\\users\\walter\\desktop\\c++_projects\\novalis_v3\\novalis_v3\\src\\editors\\renderobjeditor.ixx",
+        "ProvidedModule": "RenderObjEditor",
+        "ImportedModules": [
+            "Game",
+            "RenderObj",
+            "EventHandler",
+            "Editor_Util"
+        ],
+        "ImportedHeaderUnits": []
+    }
+}

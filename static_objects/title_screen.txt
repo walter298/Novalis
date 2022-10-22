@@ -1,0 +1,8 @@
+SPRITE_SHEET {
+images/title_scene/title_screen_unhovered.png 
+images/title_scene/title_screen_hovered.png 
+}
+
+RENDER {
+0_0_2560_1440
+}

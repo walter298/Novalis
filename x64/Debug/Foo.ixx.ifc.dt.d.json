@@ -1,0 +1,10 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\walter\\desktop\\c++_projects\\novalis_v3\\novalis_v3\\src\\editors\\foo.ixx",
+        "ProvidedModule": "Foo",
+        "Includes": [],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "Version": "1.1",
+    "Data": {
+        "Source": "c:\\users\\walter\\desktop\\c++_projects\\novalis_v3\\novalis_v3\\src\\editors\\sceneeditor.ixx",
+        "ProvidedModule": "SceneEditor",
+        "ImportedModules": [
+            "Game",
+            "Scene",
+            "RenderObj"
+        ],
+        "ImportedHeaderUnits": []
+    }
+}

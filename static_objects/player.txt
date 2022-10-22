@@ -1,0 +1,38 @@
+SPRITE_SHEET {
+images/player/standing_left.png
+images/player/running_left_1.png
+images/player/running_left_2.png
+images/player/running_left_3.png
+images/player/running_left_4.png
+images/player/running_left_5.png
+images/player/running_left_6.png
+images/player/running_left_7.png
+images/player/running_left_8.png
+images/player/running_left_9.png
+images/player/running_left_10.png
+images/player/running_left_11.png
+images/player/running_left_12.png
+images/player/running_left_13.png
+images/player/running_left_14.png
+images/player/standing_right.png
+images/player/running_right_1.png
+images/player/running_right_2.png
+images/player/running_right_3.png
+images/player/running_right_4.png
+images/player/running_right_5.png
+images/player/running_right_6.png
+images/player/running_right_7.png
+images/player/running_right_8.png
+images/player/running_right_9.png
+images/player/running_right_10.png
+images/player/running_right_11.png
+images/player/running_right_12.png
+images/player/running_right_13.png
+images/player/running_right_14.png
+}
+SCREEN_RES {
+0_0_500_500
+}
+COLLISION {
+1754_689_40_308
+}

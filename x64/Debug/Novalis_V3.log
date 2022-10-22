@@ -1,0 +1,10 @@
+﻿  Scanning sources for module dependencies...
+  SceneEditor.ixx
+  Scene.ixx
+  Compiling...
+  Scene.ixx
+C:\Users\Walter\Desktop\C++_Projects\Novalis_V3\Novalis_V3\src\Scene.ixx(8,20): warning C5201: a module declaration can appear only at the start of a translation unit unless a global module fragment is used
+  SceneEditor.ixx
+C:\Users\Walter\Desktop\C++_Projects\Novalis_V3\Novalis_V3\src\editors\SceneEditor.ixx(9,26): warning C5201: a module declaration can appear only at the start of a translation unit unless a global module fragment is used
+  main.cpp
+  Novalis_V3.vcxproj -> C:\Users\Walter\Desktop\C++_Projects\Novalis_V3\x64\Debug\Novalis_V3.exe

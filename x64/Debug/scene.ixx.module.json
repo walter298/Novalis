@@ -1,0 +1,14 @@
+{
+    "Version": "1.1",
+    "Data": {
+        "Source": "c:\\users\\walter\\desktop\\c++_projects\\novalis_v3\\novalis_v3\\src\\scene.ixx",
+        "ProvidedModule": "Scene",
+        "ImportedModules": [
+            "RenderObj",
+            "Data_Util",
+            "Game",
+            "EventHandler"
+        ],
+        "ImportedHeaderUnits": []
+    }
+}

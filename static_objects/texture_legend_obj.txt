@@ -1,0 +1,7 @@
+SPRITE_SHEET {
+images/novalis_images/editors/texture_legend.png
+}
+
+RENDER {
+0_0_1400_800
+}

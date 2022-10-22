@@ -1,0 +1,15 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\walter\\desktop\\c++_projects\\novalis_v3\\novalis_v3\\src\\editors\\bar.ixx",
+        "ProvidedModule": "Bar",
+        "Includes": [],
+        "ImportedModules": [
+            {
+                "Name": "Foo",
+                "BMI": "C:\\Users\\Walter\\Desktop\\C++_Projects\\Novalis_V3\\Novalis_V3\\x64\\Debug\\Foo.ixx.ifc"
+            }
+        ],
+        "ImportedHeaderUnits": []
+    }
+}

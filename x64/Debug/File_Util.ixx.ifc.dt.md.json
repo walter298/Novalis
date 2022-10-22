@@ -1,0 +1,11 @@
+{
+    "Version": "1.1",
+    "Data": {
+        "Source": "c:\\users\\walter\\desktop\\c++_projects\\novalis_v3\\novalis_v3\\src\\file_util.ixx",
+        "ProvidedModule": "File_Util",
+        "ImportedModules": [
+            "Error_Stack"
+        ],
+        "ImportedHeaderUnits": []
+    }
+}
