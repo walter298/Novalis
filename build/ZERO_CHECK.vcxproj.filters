@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\C++_Projects_V2\Novalis\Novalis\build\CMakeFiles\8f234c720e172c754d1a42b2f738ec4b\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{46115EEF-DB2A-36B7-8B5A-59A74F3DCFC9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+D:/C++_Projects_V2/Novalis/Novalis/build/CMakeFiles/Novalis.dir
+D:/C++_Projects_V2/Novalis/Novalis/build/CMakeFiles/ALL_BUILD.dir
+D:/C++_Projects_V2/Novalis/Novalis/build/CMakeFiles/ZERO_CHECK.dir

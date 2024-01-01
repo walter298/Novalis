@@ -1,0 +1,10 @@
+^D:\C++_PROJECTS_V2\NOVALIS\NOVALIS\BUILD\CMAKEFILES\8F234C720E172C754D1A42B2F738EC4B\GENERATE.STAMP.RULE
+setlocal
+D:\Cmake\bin\cmake.exe -SD:/C++_Projects_V2/Novalis/Novalis -BD:/C++_Projects_V2/Novalis/Novalis/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/C++_Projects_V2/Novalis/Novalis/build/Novalis.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
