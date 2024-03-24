@@ -29,6 +29,7 @@ namespace nv {
 			
 			Texture m_xBtn;
 			Sprite m_sprite;
+			RectEditor m_spriteRectEditor;
 
 			TexturePtrs& m_textures = m_sprite.m_textures;
 			

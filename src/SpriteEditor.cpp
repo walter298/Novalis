@@ -23,7 +23,7 @@ void SpriteEditor::showSpriteOptions(EditorRenderer& renderer) {
 	ImGui::SetNextWindowPos(spriteOptionsPos);
 	ImGui::SetNextWindowSize(spriteOptionsSize);
 	ImGui::Begin("Sprite Options");
-	//editRect(m_sprite.ren);
+	//m_spriteRectEditor.edit();
 	if (ImGui::Button("Save Sprite", btnSize)) {
 		auto savedPath = saveFile(L"Save Sprite");
 		if (savedPath) {
