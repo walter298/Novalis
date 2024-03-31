@@ -104,7 +104,7 @@ namespace nv {
 		std::optional<std::vector<std::string>> openFilePaths();
 		std::optional<std::string> saveFile(std::wstring openMessage);
 		
-		void loadImages(std::vector<std::string>& imagePaths, TexturePtrs& textures, Renderer& renderer);
+		void loadImages(std::vector<std::string>& imagePaths, detail::Textures& textures, Renderer& renderer);
 
 		template<typename T>
 		constexpr auto centerPos(T l1, T l2) {
@@ -141,7 +141,7 @@ namespace nv {
 		public:
 			Rect* rect = nullptr;
 			void drag(const Coord& mousePos);
-			void edit();
+			void edit(bool showingColor = true);
 		};
 	}
 }

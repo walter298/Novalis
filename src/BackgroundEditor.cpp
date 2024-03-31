@@ -10,8 +10,7 @@ void BackgroundEditor::openBackground(EditorRenderer& renderer) {
 			m_background = std::move(newBackground);
 			m_background.m_x = BACKGROUND_X;
 			m_background.m_y = BACKGROUND_Y;
-		}
-		catch (nlohmann::json::exception e) {
+		} catch (nlohmann::json::exception e) {
 			std::cerr << e.what() << '\n';
 		}
 	}
@@ -48,7 +47,7 @@ void BackgroundEditor::showOptions(EditorRenderer& renderer) {
 	}
 	if (ImGui::Button("Clear Images", btnSize)) {
 		m_texturePaths.clear();
-		m_background.m_textures.clear();
+		m_background.m_textures->clear();
 	}
 	if (ImGui::Button("Open Background", btnSize)) {
 		openBackground(renderer);
@@ -69,6 +68,7 @@ void BackgroundEditor::showOptions(EditorRenderer& renderer) {
 }
 
 BackgroundEditor::BackgroundEditor(EditorRenderer& renderer) {
+	m_background.m_textures = std::make_shared<std::vector<Texture>>();
 	renderer.setBackground(&m_background);
 
 	m_background.m_x = BACKGROUND_X;

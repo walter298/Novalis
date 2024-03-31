@@ -18,12 +18,13 @@
 #include <imgui_impl_sdlrenderer2.h>
 
 #include "Camera.h"
-#include "Sprite.h"
 #include "GlobalMacros.h"
+#include "MultitextureSprite.h"
+#include "Sprite.h"
 
 namespace nv {
 	class Renderer {
-	protected:
+	protected: //EditorRenderer inherits Renderer
 		SDL_Renderer* m_renderer;
 		
 		Background* m_background = nullptr;
@@ -31,7 +32,18 @@ namespace nv {
 		template<typename T>
 		using Layers = FlatOrderedMap<int, plf::hive<T*>>;
 
-		Layers<Sprite> m_objects;
+		Layers<MultitextureSprite> m_multiSprites;
+		Layers<Sprite> m_sprites;
+
+		template<typename Sprites>
+		void removeSpriteImpl(Sprites& sprites, const ID& ID, int layer) {
+			auto& spriteHive = m_sprites.at(layer);
+			auto spritePos = ranges::find_if(spriteHive,
+				[&ID](const Sprite* const obj) { return obj->getID() == ID; }
+			);
+			assert(spritePos != spriteHive.end());
+			spriteHive.erase(spritePos);
+		}
 	public:
 		Renderer(SDL_Renderer* renderer); 
 		Renderer(const Renderer&) = delete;
@@ -46,8 +58,12 @@ namespace nv {
 		void clear() noexcept;
 
 		void setBackground(Background* background) noexcept;
-		void addObj(Sprite* obj, int layer);
-		void removeObj(const ID& ID, int layer);
+
+		void addSprite(Sprite* obj, int layer);
+		void removeSprite(const Sprite* const sprite, int layer);
+
+		void addSprite(MultitextureSprite* sprite, int layer);
+		void removeSprite(const MultitextureSprite* const sprite, int layer);
 
 		void render() noexcept; 
 	};

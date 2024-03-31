@@ -8,6 +8,7 @@
 #include <ranges>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #undef min
@@ -19,132 +20,12 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "Rect.h"
 #include "DataUtil.h"
 #include "ID.h"
+#include "Namespace.h"
+#include "Texture.h"
 
 namespace nv {
-	struct Texture {
-		SDL_Texture* raw = nullptr;
-
-		Texture() = default;
-		explicit Texture(SDL_Texture* texture) noexcept;
-
-		Texture(const Texture&)            = delete;
-		Texture& operator=(const Texture&) = delete;
-
-		Texture(Texture&&) noexcept            = default;
-		Texture& operator=(Texture&&) noexcept = default;
-
-		~Texture() noexcept;
-	};
-
-	using TexturePtr = std::shared_ptr<Texture>;
-	using TexturePtrs = std::vector<TexturePtr>;
-	//class RenderObj {
-	//protected:
-	//	std::string m_name;
-	//	ID m_ID;
-	//public:
-	//	const std::string& getName() const noexcept;
-	//	const ID& getID() const noexcept;
-	//	virtual void render(SDL_Renderer* renderer) = 0;
-	//};
-	//using RenderObjPtr = StackPtr<RenderObj>;
-
-	//class Sprite : public RenderObj {
-	//private:
-	//	std::vector<TexturePtr> m_spriteSheet;
-
-	//	size_t m_spriteIndex = 0;
-
-	//	SDL_Texture* m_currentSprite = nullptr;
-
-	//	using CollisionBoxes = std::vector<std::vector<Rect>>;
-	//	using RenderBoxes    = std::vector<Rect>;
-
-	//	CollisionBoxes m_collisionBoxes;
-	//	std::vector<Rect> m_renderBoxes;
-
-	//	Rect m_ren, m_world;
-	//public:
-	//	Sprite() = default;
-	//	Sprite(SDL_Renderer* renderer, std::string path);
-
-	//	inline SDL_Texture* getSprite() {
-	//		return m_currentSprite;
-	//	}
-
-	//	inline Rect& getRen() {
-	//		return m_ren;
-	//	}
-
-	//	inline Rect& getWorld() {
-	//		return m_world;
-	//	}
-
-	//	inline void renMove(int dx, int dy) noexcept {
-	//		m_ren.move(dx, dy);
-	//	}
-
-	//	inline void worldMove(int dx, int dy) noexcept {
-	//		m_world.move(dx, dy);
-	//	}
-
-	//	void Coord(int dx, int dy) noexcept;
-
-	//	inline void setRenPos(int x, int y) noexcept {
-	//		m_ren.setPos(x, y);
-	//	}
-
-	//	inline void setWorldPos(int x, int y) noexcept {
-	//		m_world.setPos(x, y);
-	//	}
-
-	//	inline void renScale(int dw, int dh) noexcept {
-	//		m_ren.scale(dw, dh);
-	//	}
-
-	//	inline void worldScale(int dw, int dh) noexcept {
-	//		m_world.scale(dw, dh);
-	//	}
-
-	//	inline void setRenSize(int w, int h) noexcept {
-	//		m_ren.setSize(w, h);
-	//	}
-
-	//	inline void setWorldSize(int w, int h) noexcept {
-	//		m_world.setSize(w, h);
-	//	}
-
-	//	inline void scale(int dw, int dh) noexcept {
-	//		renScale(dw, dh);
-	//		worldScale(dw, dh);
-	//	}
-
-	//	inline void changeTexture(size_t idx) {
-	//		m_currentSprite = m_spriteSheet[idx]->raw;
-	//		m_ren = m_renderBoxes[idx];
-	//	}
-
-	//	void render(SDL_Renderer* renderer) noexcept override;
-	//};
-
-	//using SpritePtr = std::unique_ptr<Sprite>;
-
-	//struct Background : public RenderObj {
-	//private:
-	//	std::vector<nv::Rect> m_rens;
-	//	std::vector<TexturePtr> m_backgrounds;
-	//public:
-	//	Background() = default;
-	//	Background(SDL_Renderer* renderer, std::string absFilePath);
-
-	//	void render(SDL_Renderer* renderer) noexcept override;
-
-	//	void renMove(int dx, int dy) noexcept;
-	//};
-
 	//enum class FontType {
 	//	WorkSans,
 	//	Libertine,
@@ -200,24 +81,17 @@ namespace nv {
 		class BackgroundEditor; //friend of Background
 	}
 
-	enum class SpriteType {
-		Sprite,
-		Background
-	};
-
 	namespace detail {
-		void parseImages(nlohmann::json& j, SDL_Renderer* renderer, TexturePtrs& textures);
+		using Textures = std::shared_ptr<std::vector<Texture>>; //alias is used by sprite and background
+		void loadTextures(json& j, SDL_Renderer* renderer, Textures& textures);
 	}
 
-	class Sprite {
+	class Sprite : public IDObj {
 	private:
-		TexturePtrs m_textures;
-		ID m_ID;
+		detail::Textures m_textures{ nullptr };
 		std::string m_name;
 		size_t m_currTexGroupIdx = 0;
-		double m_angle = 0.0;
-		SDL_Point m_rotationPoint{ 0, 0 };
-		SDL_RendererFlip m_flip = SDL_FLIP_NONE;
+		TexturePos m_pos;
 	public:
 		Sprite() = default;
 		Sprite(SDL_Renderer* renderer, const std::string& path, const std::string& name = "");
@@ -225,13 +99,13 @@ namespace nv {
 		Rect ren;
 		Rect world;
 
-		const ID& getID() const noexcept;
 		const std::string& getName() const noexcept;
 		
 		void changeTexture(size_t texIdx) noexcept;
 		void flip(SDL_RendererFlip flip);
 		void rotate(double angle, int x, int y) noexcept;
 		void render(SDL_Renderer* renderer) const noexcept;
+		void renMove(int dx, int dy) noexcept;
 
 		friend class editor::SceneEditor;
 		friend class editor::SpriteEditor;
@@ -241,9 +115,9 @@ namespace nv {
 
 	class Background;
 
-	class Background {
+	class Background : public IDObj {
 	private:
-		TexturePtrs m_textures;
+		detail::Textures m_textures;
 		int m_x = 0;
 		int m_y = 0;
 		int m_width = 0;

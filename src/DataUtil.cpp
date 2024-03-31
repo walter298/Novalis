@@ -19,14 +19,11 @@ void from_json(const nlohmann::json& j, SDL_Rect& r) {
 	std::tie(r.x, r.y, r.w, r.h) = j.get<Quad<int>>();
 }
 
-void nv::to_json(json& j, const Rect& r) {
-	j["sdl_rect"] = r.rect;
-	j["color"]    = r.color;
+void to_json(nlohmann::json& j, const SDL_Point& p) {
+	j = std::tie(p.x, p.y);
 }
-
-void nv::from_json(const json& j, Rect& r) {
-	r.rect = j.at("sdl_rect").get<SDL_Rect>();
-	r.color = j.at("color").get<SDL_Color>();
+void from_json(const nlohmann::json& j, SDL_Point& p) {
+	std::tie(p.x, p.y) = j.get<std::tuple<int, int>>();
 }
 
 const std::string& nv::workingDirectory() {

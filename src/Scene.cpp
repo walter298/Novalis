@@ -25,7 +25,7 @@ nv::Scene::Scene(const std::string& absFilePath, Instance& instance) : renderer{
 		sprite.ren.setSize(world.rect.w, world.rect.h);
 
 		auto layer = jsonData.at("sprites").at(name).at("layer").get<int>();
-		renderer.addObj(&sprite, layer);
+		renderer.addSprite(&sprite, layer);
 	}
 	sceneFile.close();
 }

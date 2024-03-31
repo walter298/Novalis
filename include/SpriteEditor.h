@@ -31,7 +31,7 @@ namespace nv {
 			Sprite m_sprite;
 			RectEditor m_spriteRectEditor;
 
-			TexturePtrs& m_textures = m_sprite.m_textures;
+			detail::Textures& m_textures = m_sprite.m_textures;
 			
 			std::vector<std::string> m_texturePaths;
 

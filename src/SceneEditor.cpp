@@ -86,7 +86,7 @@ void SceneEditor::insertSprite(EditorRenderer& renderer, const ImVec2& mousePos)
 
 			/*m_currSpriteW = m_selectedSprite->ren.rect.w;
 			m_currSpriteH = m_selectedSprite->ren.rect.h;*/
-			renderer.addObj(m_selectedSprite, m_selectedSpriteData->layer);
+			renderer.addSprite(m_selectedSprite, m_selectedSpriteData->layer);
 		}
 		catch (nlohmann::json::exception e) {
 			std::cerr << e.what() << '\n';
@@ -145,12 +145,12 @@ void SceneEditor::editSelectedSprite(EditorRenderer& renderer) {
 	
 	const int layerBeforeEdited = m_selectedSpriteData->layer;
 	if (ImGui::InputInt("Layer", &m_selectedSpriteData->layer)) {
-		renderer.removeObj(m_selectedSprite->getID(), layerBeforeEdited);
-		renderer.addObj(m_selectedSprite, m_selectedSpriteData->layer);
+		renderer.removeSprite(m_selectedSprite, layerBeforeEdited);
+		renderer.addSprite(m_selectedSprite, m_selectedSpriteData->layer);
 	}
 
 	if (ImGui::Button("Remove")) {
-		renderer.removeObj(m_selectedSprite->getID(), m_selectedSpriteData->layer);
+		renderer.removeSprite(m_selectedSprite, m_selectedSpriteData->layer);
 		
 		const auto spriteName = m_selectedSprite->getName();
 		auto spriteIt = std::ranges::find_if(

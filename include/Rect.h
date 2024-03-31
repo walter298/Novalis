@@ -7,6 +7,9 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_rect.h>
 
+#include "DataUtil.h"
+#include "Namespace.h"
+
 namespace nv {
 	struct Rect {
 		SDL_Rect rect{ 0, 0, 0, 0 };
@@ -26,6 +29,9 @@ namespace nv {
 
 		void setRenderColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) noexcept;
 	};
+
+	void to_json(json& j, const Rect& r);
+	void from_json(const json& j, Rect& r);
 
 	using RectPtr = std::shared_ptr<Rect>;
 }

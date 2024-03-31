@@ -10,30 +10,33 @@
 #include <map>
 #include <numeric>
 #include <optional>
-#include <regex>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <variant>
 #include <vector>
 
-#include <plf_hive.h>
-
 #include <boost/container/flat_map.hpp>
+#include <boost/pfr.hpp>
+
+#include <plf_hive.h>
 
 #include <nlohmann/json.hpp>
 
 #include <SDL2/SDL.h>
 
 #include "Rect.h"
-
 #include "GlobalMacros.h"
+#include "Namespace.h"
 
 void to_json(nlohmann::json& j, const SDL_Color& c);
 void from_json(const nlohmann::json& j, SDL_Color& c);
 
 void to_json(nlohmann::json& j, const SDL_Rect& c);
 void from_json(const nlohmann::json& j, SDL_Rect& c);
+
+void to_json(nlohmann::json& j, const SDL_Point& p);
+void from_json(const nlohmann::json& j, SDL_Point& p);
 
 namespace std {
 	namespace chrono {
@@ -47,12 +50,36 @@ namespace std {
 		}
 	}
 }
-namespace nv {
-	using nlohmann::json;
-	using namespace std::literals;
 
-	void to_json(json& j, const Rect& r);
-	void from_json(const json& j, Rect& r);
+namespace nv {
+	template<typename T>
+	concept Aggregate = std::is_aggregate_v<T>;
+
+	namespace detail {
+		template<Aggregate Aggr, size_t... Idxs>
+		void assignEachAggrMember(const json& j, Aggr& aggr, std::index_sequence<Idxs...> idxs) {
+			using ParsedTuple = std::tuple<typename pfr::tuple_element_t<Idxs, Aggr>...>;
+			auto parsedTuple = j.get<ParsedTuple>();
+			((pfr::get<Idxs>(aggr) = std::get<Idxs>(parsedTuple)), ...);
+		}
+	}
+
+	template<Aggregate Aggr>
+	void from_json(const json& j, Aggr& aggr) {
+		detail::assignEachAggrMember(j, aggr, std::make_index_sequence<pfr::tuple_size_v<Aggr>>());
+	}
+
+	namespace detail {
+		template<Aggregate Aggr, size_t... Idxs>
+		auto feedJsonAggregate(json& j, const Aggr& aggr, std::index_sequence<Idxs...> idxs) {
+			j = std::tie((pfr::get<Idxs>(aggr), ...));
+		}
+	}
+
+	template<Aggregate Aggr>
+	void to_json(json& j, const Aggr& aggr) {
+		detail::feedJsonAggregate(j, aggr, std::make_index_sequence<pfr::tuple_size_v<Aggr>>());
+	}
 
 	template<std::integral... Nums>
 	void parseUnderscoredNums(const std::string& line, Nums&... nums)
@@ -116,41 +143,7 @@ namespace nv {
 	template<typename T, typename U>
 	using FlatOrderedMap = boost::container::flat_map<T, U>;
 
-	//template<typename 
-	//template<typename T>
-	//class ArrayQueue {
-	//private:
-	//	std::vector<T> m_buff;
-	//	size_t m_frontIdx = 0;
-	//	size_t m_backIdx = 1;
-
-	//	void reallocIfFull() {
-	//		if (m_backIdx == m_frontIdx) {
-	//			m_buff.resize(m_buff.size() * 2);
-	//		}
-	//	}
-	//public:
-	//	void pop() {
-	//		m_frontIdx = (m_frontIdx + 1) % m_buff.size();
-	//	}
-	//	template<typename... Args>
-	//	void emplace(Args&&... args)
-	//		noexcept(std::is_nothrow_constructible_v<T, Args...>)
-	//		//requires(std::is_copy_constructible_from_v<T, Args...>)
-	//	{
-	//		reallocIfFull();
-	//		m_buff[m_backIdx] = T{ std::forward<Args>(args...) };
-	//	}
-	//	void push(const T& t) noexcept(std::is_nothrow_copy_assignable_v<T>) {
-	//		reallocIfFull();
-	//		m_buff[m_backIdx] = t;
-	//	}
-	//	void push(T&& t) noexcept(std::is_nothrow_move_assignable_v<T>) {
-	//		reallocIfFull();
-	//		m_buff[m_backIdx] = std::move(t);
-	//	}
-	//};
-
+	//convenience routine for plf::hive
 	template<typename T>
 	decltype(auto) getBack(T& container) {
 		return *(std::prev(container.end()));

@@ -24,7 +24,7 @@ void EditorRenderer::render(ImGuiIO& io) noexcept {
 		m_background->render(m_renderer);
 	}
 	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
-	for (const auto& [layer, sprites] : m_objects) {
+	for (const auto& [layer, sprites] : m_sprites) {
 		for (const auto& obj : sprites) {
 			obj->render(m_renderer);
 		}
@@ -131,19 +131,17 @@ std::optional<std::string> nv::editor::saveFile(std::wstring openMessage) {
 	return std::nullopt;
 }
 
-void nv::editor::loadImages(std::vector<std::string>& imagePaths, TexturePtrs& textures, Renderer& renderer) {
+void nv::editor::loadImages(std::vector<std::string>& imagePaths, detail::Textures& textures, Renderer& renderer) {
 	auto spritePaths = openFilePaths();
 	if (spritePaths) {
 		auto spritesToAddC = spritePaths->size();
 
-		if (textures.capacity() < spritesToAddC) {
-			textures.reserve(spritesToAddC);
+		if (textures->capacity() < spritesToAddC) {
+			textures->reserve(spritesToAddC);
 		}
 		
 		for (const auto& path : *spritePaths) {
-			textures.push_back(
-				std::make_shared<Texture>(IMG_LoadTexture(renderer.get(), path.c_str()))
-			);
+			textures->emplace_back(IMG_LoadTexture(renderer.get(), path.c_str()));
 			imagePaths.push_back(path);
 		}
 	}
@@ -167,11 +165,14 @@ void nv::editor::RectEditor::drag(const Coord& mousePos) {
 	}
 }
 
-void nv::editor::RectEditor::edit() {
+void nv::editor::RectEditor::edit(bool showingColor) {
+	if (rect == nullptr) {
+		return;
+	}
 	ImGui::SliderInt("Width", &rect->rect.w, 0, NV_SCREEN_WIDTH);
 	ImGui::SliderInt("Height", &rect->rect.h, 0, NV_SCREEN_HEIGHT);
 
-	if (ImGui::ColorEdit4("Color", m_floatColors.data())) {
+	if (showingColor && ImGui::ColorEdit4("Color", m_floatColors.data())) {
 		rect->setRenderColor(
 			static_cast<Uint8>(m_floatColors[0] * 255),
 			static_cast<Uint8>(m_floatColors[1] * 255),

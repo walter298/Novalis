@@ -34,3 +34,13 @@ void nv::Rect::render(SDL_Renderer* renderer) noexcept {
 void nv::Rect::setRenderColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) noexcept {
 	color.r = r, color.g = g, color.b = b, color.a = a;
 }
+
+void nv::to_json(json& j, const Rect& r) {
+	j["sdl_rect"] = r.rect;
+	j["color"] = r.color;
+}
+
+void nv::from_json(const json& j, Rect& r) {
+	r.rect = j.at("sdl_rect").get<SDL_Rect>();
+	r.color = j.at("color").get<SDL_Color>();
+}

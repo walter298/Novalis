@@ -7,37 +7,44 @@ nv::Renderer::Renderer(SDL_Renderer* renderer)
 
 void nv::Renderer::move(int dx, int dy) noexcept {
 	m_background->ren.move(dx, dy);
-	for (auto& [layer, sprites] : m_objects) {
-		for (auto& sprite : sprites) {
-			sprite->ren.move(dx, dy);
+
+	auto moveSprites = [dx, dy](auto& sprites) {
+		for (auto& [layer, sprites] : sprites) {
+			for (auto& sprite : sprites) {
+				sprite->renMove(dx, dy);
+			}
 		}
-	}
+	};
+	moveSprites(m_sprites);
+	moveSprites(m_multiSprites);
 }
 
 void nv::Renderer::clear() noexcept {
-	m_objects.clear();
+	m_sprites.clear();
 }
 
 void nv::Renderer::setBackground(Background* background) noexcept {
 	m_background = background;
 }
 
-void nv::Renderer::addObj(Sprite* sprite, int layer) {
-	m_objects[layer].insert(sprite);
+void nv::Renderer::addSprite(Sprite* sprite, int layer) {
+	m_sprites[layer].insert(sprite);
+}
+void nv::Renderer::removeSprite(const Sprite* const sprite, int layer) {
+	removeSpriteImpl(m_sprites, sprite->getID(), layer);
 }
 
-void nv::Renderer::removeObj(const ID& ID, int layer) {
-	auto objPos = std::ranges::find_if(m_objects.at(layer),
-		[&ID](const Sprite* obj) { return obj->getID() == ID; }
-	);
-	assert(objPos != m_objects.at(layer).end());
-	m_objects.at(layer).erase(objPos);
+void nv::Renderer::addSprite(MultitextureSprite* sprite, int layer) {
+	m_multiSprites[layer].insert(sprite);
+}
+void nv::Renderer::removeSprite(const MultitextureSprite* const sprite, int layer) {
+	removeSpriteImpl(m_multiSprites, sprite->getID(), layer);
 }
 
 void nv::Renderer::render() noexcept {
 	SDL_RenderClear(m_renderer);
 	m_background->render(m_renderer);
-	for (auto& [layer, objs] : m_objects) {
+	for (auto& [layer, objs] : m_sprites) {
 		for (auto& obj : objs) {
 			obj->render(m_renderer);
 		}

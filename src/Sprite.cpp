@@ -1,22 +1,11 @@
 #include "Sprite.h"
 
-nv::Texture::Texture(SDL_Texture* tex) noexcept 
-	: raw(tex) {}
-
-nv::Texture::~Texture() noexcept {
-	SDL_DestroyTexture(raw);
-}
-
-void nv::detail::parseImages(nlohmann::json& json, SDL_Renderer* renderer,
-	TexturePtrs& textures)
-{
+void nv::detail::loadTextures(json& json, SDL_Renderer* renderer, Textures& textures) {
 	auto imagePaths = json.at("texture_paths").get<std::vector<std::string>>();
-	textures.reserve(imagePaths.size());
-
-	for (const auto& path : imagePaths) {
-		textures.push_back(
-			std::make_shared<Texture>(IMG_LoadTexture(renderer, path.c_str()))
-		);
+	textures = std::make_shared<std::vector<Texture>>();
+	textures->reserve(imagePaths.size());
+	for (const auto& [idx, path] : views::enumerate(imagePaths)) {
+		textures->emplace_back(IMG_LoadTexture(renderer, path.c_str()));
 	}
 }
 
@@ -31,45 +20,42 @@ nv::Sprite::Sprite(SDL_Renderer* renderer, const std::string& path, const std::s
 	file.close(); //not exception safe
 
 	ren = json.at("ren");
-	detail::parseImages(json, renderer, m_textures);
+	detail::loadTextures(json, renderer, m_textures);
 }
 
 const std::string& nv::Sprite::getName() const noexcept {
 	return m_name;
 }
-const nv::ID& nv::Sprite::getID() const noexcept {
-	return m_ID;
-}
 
 void nv::Sprite::changeTexture(size_t texIdx) noexcept {
-	assert(texIdx < m_textures.size());
+	assert(texIdx < m_textures->size());
 	m_currTexGroupIdx = texIdx;
 }
 
 void nv::Sprite::flip(SDL_RendererFlip flip) {
-	m_flip = flip;
+	m_pos.flip = flip;
 }
 
 void nv::Sprite::rotate(double angle, int x, int y) noexcept {
-	m_angle = angle;
-	m_rotationPoint = { x, y };
+	m_pos.angle = angle;
+	m_pos.rotationPoint = { x, y };
 }
 
 void nv::Sprite::render(SDL_Renderer* renderer) const noexcept {
-	SDL_RenderCopyEx(renderer, m_textures[m_currTexGroupIdx]->raw, nullptr, &ren.rect, m_angle, &m_rotationPoint, m_flip);
+	SDL_RenderCopyEx(renderer, (*(m_textures))[m_currTexGroupIdx].raw, nullptr, &ren.rect, m_pos.angle, &m_pos.rotationPoint, m_pos.flip);
+}
+
+void nv::Sprite::renMove(int dx, int dy) noexcept {
+	ren.move(dx, dy);
 }
 
 nv::Background::Background(SDL_Renderer* renderer, const std::string& path) {
 	std::ifstream file{ path };
 	assert(file.is_open());
-
-	std::cout << path << '\n';
 	auto json = nlohmann::json::parse(file);
-
 	file.close();
 
-	detail::parseImages(json, renderer, m_textures);
-
+	detail::loadTextures(json, renderer, m_textures);
 	m_width = json.at("width").get<int>();
 	m_height = json.at("height").get<int>();
 	m_horizTexC = json.at("horizontal_texture_c").get<int>();
@@ -79,7 +65,7 @@ void nv::Background::render(SDL_Renderer* renderer) const noexcept {
 	int currX = 0;
 	int currY = 0;
 
-	for (const auto& tex : m_textures) {
+	for (const auto& tex : *m_textures) {
 		Rect currRen{ ren.rect.x + (currX * m_width), ren.rect.y + (currY * m_height), m_width, m_height };
 
 		bool currXWasZero = currX == 0;
@@ -88,7 +74,7 @@ void nv::Background::render(SDL_Renderer* renderer) const noexcept {
 		if (!currXWasZero && currX == 0) {
 			currY++;
 		}
-		SDL_RenderCopy(renderer, tex->raw, nullptr, &currRen.rect);
+		SDL_RenderCopy(renderer, tex.raw, nullptr, &currRen.rect);
 	}
 }
 
