@@ -43,7 +43,7 @@ std::optional<std::string> nv::fileExtension(const std::string& fileName) {
 	return std::accumulate(dotPos, fileName.end(), ""s);
 }
 
-std::string nv::fileName(const std::string& filePath) {
+std::string_view nv::fileName(std::string_view filePath) {
 	auto dotIdx = filePath.find_last_of('.');
 	assert(dotIdx != std::string::npos && dotIdx + 1 < filePath.size());
 	return filePath.substr(dotIdx + 1);

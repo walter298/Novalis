@@ -13,9 +13,9 @@ void nv::editor::runEditors() {
 	ImGui_ImplSDLRenderer2_Init(instance.getRawRenderer());
 
 	bool running = true;
-	EditorRenderer renderer{ instance.getRawRenderer() };
+	Renderer renderer{ instance.getRawRenderer() };
 	EditorDest currDest = EditorDest::Home;
-
+	Texture m_xBtn{ IMG_LoadTexture(renderer.get(), relativePath("Cosmic_Encounter/src/novalis/assets/x_btn.png").c_str()) };
 	while (running) {
 		if (currDest == EditorDest::None) {
 			continue;
@@ -30,12 +30,6 @@ void nv::editor::runEditors() {
 			currDest = runEditor(io, renderer, spriteEditor);
 			break;
 		}
-		case EditorDest::Background:
-		{
-			BackgroundEditor backgroundEditor{ renderer };
-			currDest = runEditor(io, renderer, backgroundEditor);
-			break;
-		}
 		case EditorDest::Scene:
 		{
 			SceneEditor sceneEditor{ renderer };
@@ -48,6 +42,8 @@ void nv::editor::runEditors() {
 		}
 		renderer.clear();
 	}
+
+	renderer.clear();
 
 	ImGui_ImplSDLRenderer2_Shutdown();
 	ImGui_ImplSDL2_Shutdown();

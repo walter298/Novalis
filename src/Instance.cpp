@@ -7,7 +7,7 @@ void nv::Instance::quit() {
 
 	Text::closeFonts();*/
 
-	TTF_Quit();
+	//TTF_Quit();
 	IMG_Quit();
 	Mix_Quit();
 
@@ -22,7 +22,7 @@ nv::Instance::Instance(std::string windowTitle)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || //returns zero on sucess
 		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) != 0 ||
-		TTF_Init() != 0 || 
+		//TTF_Init() != 0 || 
 		IMG_Init(IMG_INIT_JPG & IMG_INIT_PNG) != 0)
 	{
 		quit();
@@ -70,8 +70,8 @@ void nv::Instance::loadObjsFromDir(std::string absDirPath) {
 			if (fileExt) {
 				auto& ext = *fileExt;
 				if (ext == ".nv_sprite") {
-					Sprite sprite{ m_SDLRenderer, currPath };
-					m_spriteMap[sprite.getName()] = std::move(sprite);
+					/*Sprite sprite{ m_SDLRenderer, currPath };
+					m_spriteMap[sprite.getName()] = std::move(sprite);*/
 				} 
 			}
 		} else {
