@@ -79,8 +79,8 @@ void nv::Renderer::renderWithImGui(ImGuiIO& io) {
 		static_cast<Uint8>(color.x * 255), static_cast<Uint8>(color.y * 255),
 		static_cast<Uint8>(color.z * 255), static_cast<Uint8>(color.w * 255));
 	SDL_RenderClear(m_renderer);
-	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 	renderCopyObjs();
 	SDL_ShowCursor(showingCursor);
+	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 	SDL_RenderPresent(m_renderer);
 }

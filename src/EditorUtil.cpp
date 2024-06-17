@@ -104,12 +104,12 @@ void nv::editor::loadImages(std::vector<std::string>& imagePaths, plf::hive<Text
 	}
 }
 
-nv::editor::TextureDataAndPath::TextureDataAndPath(std::string_view path, SDL_Texture* tex, TextureData pos)
+nv::editor::TextureObjectAndPath::TextureObjectAndPath(std::string_view path, SDL_Texture* tex, TextureData pos)
 	: path{ path }, TextureObject{ std::make_shared<Texture>(tex), std::move(pos) }
 {
 }
 
-nv::editor::TextureDataAndPath::TextureDataAndPath(std::string_view path, TexturePtr texPtr, TextureData texData) 
+nv::editor::TextureObjectAndPath::TextureObjectAndPath(std::string_view path, TexturePtr texPtr, TextureData texData) 
 	: path{ path }, TextureObject{ std::move(texPtr), std::move(texData) }
 {
 }

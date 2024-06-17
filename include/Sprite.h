@@ -20,7 +20,7 @@ namespace nv {
 		static constexpr std::string_view textureRenPairsJkey = "textures_and_rens";
 		static constexpr std::string_view textureCountJkey = "texture_size";
 		
-		Layers<TextureObject, std::vector> m_textureLayers;
+		Layers<TextureObject, std::vector<TextureObject>> m_textureLayers;
 		int m_currLayer = 0;
 
 		Sprite() = default;
@@ -61,6 +61,8 @@ namespace nv {
 
 		bool containsCoord(int x, int y) const noexcept;
 		bool containsCoord(SDL_Point p) const noexcept;
+
+		void setOpacity(Uint8 opacity);
 
 		void render(SDL_Renderer* renderer) const noexcept;
 

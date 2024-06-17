@@ -8,11 +8,11 @@ namespace nv {
 	namespace editor {
 		class SpriteEditor {
 		private:
-			Layers<TextureDataAndPath> m_textures;
+			Layers<TextureObjectAndPath> m_textures;
 			int m_currLayer = 0;
 			int m_currLayoutLayer = 0;
 
-			ObjectEditor<TextureDataAndPath> m_texDataEditor;
+			ObjectEditor<TextureObjectAndPath> m_texDataEditor;
 			
 			void open(Renderer& renderer);
 			void save();

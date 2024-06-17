@@ -57,7 +57,6 @@ namespace nv {
 		template<Aggregate Aggr, size_t... Idxs>
 		void assignEachAggrMember(const json& j, Aggr& aggr, std::index_sequence<Idxs...> idxs) {
 			using ParsedAggr = std::tuple<pfr::tuple_element_t<Idxs, Aggr>...>;
-			std::println("Parsing: {}", typeid(ParsedAggr).name());
 			auto parsedTuple = j.get<ParsedAggr>();
 			((pfr::get<Idxs>(aggr) = std::move(std::get<Idxs>(parsedTuple))), ...);
 		}
@@ -112,8 +111,8 @@ namespace nv {
 		int y = 0;
 	};
 
-	template<typename Obj>
-	concept RenderObject = requires(Obj obj) {
+	template<typename Object>
+	concept RenderObject = requires(Object obj) {
 		obj.move(1, -1);
 		obj.move(SDL_Point{});
 		obj.scale(1, -1);
@@ -123,11 +122,17 @@ namespace nv {
 		obj.render(SDL_CreateRenderer(nullptr, -1, SDL_RENDERER_ACCELERATED));
 	};
 
-	template<typename Obj>
-	concept RotatableObj = requires(Obj obj) {
+	template<typename Object>
+	concept RotatableObject = requires(Object obj) {
 		{ obj } -> RenderObject;
 		obj.rotate(0.0, SDL_Point{});
 		obj.setRotationCenter();
+	};
+
+	template<typename Object>
+	concept SizeableObject = requires(Object obj) {
+		obj.setSize(500, 500);
+		obj.setSize(SDL_Point{ 500, 500 });
 	};
 
 	template<typename Range>
@@ -137,7 +142,7 @@ namespace nv {
 	template<size_t Idx, typename T>
 	constexpr decltype(auto) get(T&& t) {
 		if constexpr (std::is_aggregate_v<std::remove_cvref_t<T>>) {
-			return boost::pfr::get<Idx>(std::forward<T>(t)); //aggregate case
+			return pfr::get<Idx>(std::forward<T>(t)); //aggregate case
 		} else {
 			return std::get<Idx>(std::forward<T>(t)); //tuple case
 		}
@@ -182,15 +187,15 @@ namespace nv {
 	};
 
 	namespace detail {
-		template<size_t MemberIdx, typename Func, typename TiedStructs, size_t... TupleIdxs>
-		constexpr bool iterateStructMembers(Func f, TiedStructs tuples, std::index_sequence<TupleIdxs...>) {
-			auto tiedMembers = std::tie(get<MemberIdx>(get<TupleIdxs>(std::forward<TiedStructs>(tuples))...));
+		template<size_t MemberIdx, typename Func, typename TiedStructs, size_t... StructIdxs>
+		constexpr bool iterateStructMembers(Func f, TiedStructs tiedStructs, std::index_sequence<StructIdxs...>) {
+			auto tiedMembers = std::tie(get<MemberIdx>(get<StructIdxs>(std::forward<TiedStructs>(tiedStructs)))...);
 			return std::apply(f, tiedMembers);
 		}
 
 		template<typename Func, typename TiedStructs, size_t... MemberIdxs>
-		constexpr bool iterateStructsImpl(Func f, TiedStructs tuples, std::index_sequence<MemberIdxs...>) {
-			return ((iterateStructMembers<MemberIdxs>(f, tuples, std::make_index_sequence<memberCount<TiedStructs>()>())) || ...);
+		constexpr bool iterateStructsImpl(Func f, TiedStructs tiedStructs, std::index_sequence<MemberIdxs...>) {
+			return ((iterateStructMembers<MemberIdxs>(f, tiedStructs, std::make_index_sequence<memberCount<TiedStructs>()>())) || ...);
 		}
 	}
 
@@ -202,8 +207,8 @@ namespace nv {
 	inline constexpr bool STAY_IN_LOOP = false;
 	inline constexpr bool BREAK_FROM_LOOP = true;
 
-	template<typename T, template<typename> typename Container = plf::hive>
-	using Layers = FlatOrderedMap<int, Container<T>>;
+	template<typename T, typename Container = plf::hive<T>>
+	using Layers = FlatOrderedMap<int, Container>;
 
 	std::string writeCloneID(std::string_view str);
 };

@@ -140,14 +140,16 @@ namespace nv {
 			using ObjectHives = std::tuple<ObjectHiveData<Objects>...>;
 			ObjectHives m_objHiveData;
 
+			int m_w = 0;
+			int m_h = 0;
 			int m_scale = 0;
 			float m_angle = 0.0; //should be double, but ImGui frustratingly only supports InputFloat
 			SDL_Point m_rotationPoint{ 0, 0 };
 
 			bool m_editingObj = false;
 
-			template<RenderObject Obj>
-			void edit(ObjectHiveData<Obj>& objHiveData, SDL_Point mousePos) {
+			template<RenderObject Object>
+			void edit(ObjectHiveData<Object>& objHiveData, SDL_Point mousePos) {
 				auto& [objs, selectedObjIt, layer, isSelected] = objHiveData;
 				auto& obj = *selectedObjIt;
 
@@ -161,6 +163,18 @@ namespace nv {
 				ImGui::SetNextWindowSize({ 300, 200 });
 				ImGui::Begin("Object");
 
+				ImGui::Text("Size");
+
+				//setting size
+				if constexpr (SizeableObject<Object>) {
+					if (ImGui::InputInt("width", &m_w)) {
+						obj.setSize(m_w, m_h);
+					}
+					if (ImGui::InputInt("height", &m_h)) {
+						obj.setSize(m_w, m_h);
+					}
+				}
+
 				//scaling texture
 				int oldScale = m_scale;
 				if (ImGui::SliderInt("Scale", &m_scale, 0, 1500)) {
@@ -168,15 +182,17 @@ namespace nv {
 					obj.scale(deltaScale, deltaScale);
 				}
 				
-				ImGui::Text("Rotation");
-				if (ImGui::SliderFloat("Angle", &m_angle, 0.0f, 360.0f)) {
-					obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-				}
-				if (ImGui::InputInt("x", &m_rotationPoint.x)) {
-					obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-				}
-				if (ImGui::InputInt("y", &m_rotationPoint.y)) {
-					obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+				if constexpr (RotatableObject<Object>) {
+					ImGui::Text("Rotation");
+					if (ImGui::SliderFloat("Angle", &m_angle, 0.0f, 360.0f)) {
+						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+					}
+					if (ImGui::InputInt("Rotation x", &m_rotationPoint.x)) {
+						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+					}
+					if (ImGui::InputInt("Rotation y", &m_rotationPoint.y)) {
+						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+					}
 				}
 				
 				if (ImGui::Button("Delete")) {
@@ -216,7 +232,7 @@ namespace nv {
 			}
 		public:
 			ObjectEditor(Renderer& renderer, ImVec2 optionsPos) 
-				: m_objOptionsPos{ optionsPos }, m_renderer { renderer }
+				: m_objOptionsPos{ optionsPos }, m_renderer{ renderer }
 			{
 				iterateStructs([this](auto& objHiveData) {
 					objHiveData = { nullptr, {}, 0, false };
@@ -254,9 +270,9 @@ namespace nv {
 			}
 		};
 
-		struct TextureDataAndPath : public TextureObject {
-			TextureDataAndPath(std::string_view path, SDL_Texture* tex, TextureData texData);
-			TextureDataAndPath(std::string_view path, TexturePtr texPtr, TextureData texData);
+		struct TextureObjectAndPath : public TextureObject {
+			TextureObjectAndPath(std::string_view path, SDL_Texture* tex, TextureData texData);
+			TextureObjectAndPath(std::string_view path, TexturePtr texPtr, TextureData texData);
 			std::string path;
 		};
 

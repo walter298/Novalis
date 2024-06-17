@@ -7,7 +7,6 @@
 #include <ranges>
 #include <string>
 #include <thread>
-#include <unordered_map>
 #include <vector>
 
 #include <nlohmann/json.hpp>
@@ -18,39 +17,21 @@
 #include "Sprite.h"
 
 namespace nv {
-	namespace editor {
-		class SceneEditor;
-	}
+	struct Scene {
+		using SpriteData  = std::vector<std::pair<std::string, std::vector<Layers<TextureData, std::vector<TextureData>>>>>;
+		using TextureData = std::pair<std::string, std::vector<TextureData>>;
 
-	class Scene {
-	public:
-		enum class EndReason {
-			QuitGame,
-			NextScene
-		};
-	private:
-		EndReason m_endReason = EndReason::QuitGame;
-		bool m_running = false;
+		bool running = false;
 
-		using SpriteMap = std::unordered_map<std::string, Sprites>;
-		SpriteMap m_sprites;
-	public:
+		Layers<Sprite> sprites;
+		Layers<Texture> textures;
+
 		EventHandler eventHandler;
 		Renderer renderer;
 
-		Scene() = default;
-		Scene(Instance& instance);
-		Scene(const std::string& path, Instance& instance);
+		Scene(std::string_view path, Instance& instance);
 
-		Sprite& sprite(const std::string& name);
-		Sprites& spriteClones(const std::string& name);
-
-		EndReason endReason() const noexcept;
-		void endScene(EndReason end) noexcept;
-
-		void execute();
-
-		friend class editor::SceneEditor;
+		void operator()();
 	};
 }
 

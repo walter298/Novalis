@@ -1,61 +1,43 @@
 #include "Scene.h"
 
-nv::Scene::Scene(nv::Instance& instance) 
-	: renderer{ instance.getRawRenderer() } {
-}
-
-nv::Scene::Scene(const std::string& absFilePath, Instance& instance) : renderer{ instance.getRawRenderer() } {
-	std::ifstream sceneFile{ absFilePath };
+nv::Scene::Scene(std::string_view absFilePath, Instance& instance) : renderer{ instance.getRawRenderer() } {
+	std::ifstream sceneFile{ absFilePath.data() };
 	assert(sceneFile.is_open());
 
 	auto jsonData = json::parse(sceneFile);
 
-	//renderer.addObj(instance.getBackground(jsonData["background"].get<std::string>()), 0);
+	//load sprites
+	//auto spriteData = jsonData["sprite_names"].get<SpriteData>();
+	//for (const auto& [spriteName, layers] : spriteData) {
+	//	auto layers = spriteName;
+	//}
+	//auto objectNames = jsonData["sprites"].get<std::vector<std::string>>();
+	//for (const auto& name : objectNames) {
+	//	//auto sprite = instance.getSprite(name);
 
-	auto objectNames = jsonData["sprites"].get<std::vector<std::string>>();
-	for (const auto& name : objectNames) {
-		auto sprite = instance.getSprite(name);
+	//	auto ren = jsonData.at("sprites").at(name).at("layer").get<Rect>();
+	//	/*sprite.pos.ren.setPos(ren.rect.x, ren.rect.y);
+	//	sprite.pos.ren.setSize(ren.rect.w, ren.rect.h);
 
-		auto ren = jsonData.at("sprites").at(name).at("layer").get<Rect>();
-		/*sprite.pos.ren.setPos(ren.rect.x, ren.rect.y);
-		sprite.pos.ren.setSize(ren.rect.w, ren.rect.h);
+	//	auto world = jsonData.at("sprites")[name]["world"].get<Rect>();
+	//	sprite.pos.world.setPos(world.rect.x, world.rect.y);
+	//	sprite.pos.ren.setSize(world.rect.w, world.rect.h);*/
 
-		auto world = jsonData.at("sprites")[name]["world"].get<Rect>();
-		sprite.pos.world.setPos(world.rect.x, world.rect.y);
-		sprite.pos.ren.setSize(world.rect.w, world.rect.h);*/
-
-		auto layer = jsonData.at("sprites").at(name).at("layer").get<int>();
-		renderer.add(&sprite, layer);
-	}
+	//	auto layer = jsonData.at("sprites").at(name).at("layer").get<int>();
+	//	//renderer.add(&sprite, layer);
+	//}
 	sceneFile.close();
 }
 
-nv::Sprite& nv::Scene::sprite(const std::string& name) {
-	return *m_sprites.at(name).begin();
-}
+void nv::Scene::operator()() {
+	running = true;
 
-nv::Sprites& nv::Scene::spriteClones(const std::string& name) {
-	return m_sprites.at(name);
-}
-
-void nv::Scene::endScene(Scene::EndReason endReason) noexcept {
-	m_endReason = endReason;
-	m_running = false;
-}
-
-nv::Scene::EndReason nv::Scene::endReason() const noexcept {
-	return m_endReason;
-}
-
-void nv::Scene::execute() {
-	m_running = true;
-
-	eventHandler.addQuitEvent([this] { m_running = false; });
+	eventHandler.addQuitEvent([this] { running = false; });
 
 	constexpr auto FPS = 180;
 	constexpr auto waitTime = 1000ms / FPS;
 
-	while (m_running) {
+	while (running) {
 		auto endTime = std::chrono::system_clock::now() + waitTime;
 
 		eventHandler();

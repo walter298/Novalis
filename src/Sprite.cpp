@@ -63,6 +63,14 @@ bool nv::Sprite::containsCoord(SDL_Point p) const noexcept {
 	return containsCoord(p.x, p.y);
 }
 
+void nv::Sprite::setOpacity(Uint8 opacity) {
+	for (auto& [layer, textures] : m_textureLayers) {
+		for (auto& tex : textures) {
+			tex.setOpacity(opacity);
+		}
+	}
+}
+
 void nv::Sprite::render(SDL_Renderer* renderer) const noexcept {
 	if constexpr (true) {
 		if (!m_textureLayers.contains(m_currLayer)) {

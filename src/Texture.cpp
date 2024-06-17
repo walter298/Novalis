@@ -48,6 +48,15 @@ void nv::TextureObject::move(SDL_Point change) noexcept {
 	move(change.x, change.y);
 }
 
+void nv::TextureObject::setSize(int w, int h) noexcept {
+	texData.ren.setSize(w, h);
+	texData.world.setSize(w, h);
+}
+
+void nv::TextureObject::setSize(SDL_Point p) {
+	setSize(p.x, p.y);
+}
+
 void nv::TextureObject::scale(int dx, int dy) noexcept {
 	texData.ren.scale(dx, dy);
 	texData.world.scale(dx, dy);

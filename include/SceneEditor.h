@@ -7,10 +7,13 @@ namespace nv {
 	namespace editor {
 		class SceneEditor {
 		private:
-			Layers<Sprite> m_sprites;
+			Layers<Sprite> m_spriteLayers;
+			Layers<TextureObject> m_textureLayers;
+			Layers<TextureObjectAndPath> m_localTextureLayers;
+
 			Layers<Rect> m_rects;
 			
-			ObjectEditor<TextureObject, Sprite> m_objEditor;
+			ObjectEditor<TextureObject, TextureObjectAndPath, Sprite> m_objEditor;
 
 			int m_currLayer = 0;
 
@@ -18,23 +21,23 @@ namespace nv {
 			ImVec2 m_rightClickWinPos{ 0.0f, 0.0f };
 
 			template<RenderObject Obj>
-			void insertObjFromFile(Renderer& renderer, plf::hive<Obj>& objects) {
+			void insertObjFromFile(Renderer& renderer, plf::hive<Obj>& objs) {
 				auto path = openFilePath();
 				if (path) {
 					try {
 						auto spriteName = fileName(*path);
-						objects.emplace(*path, renderer.get());
+						objs.emplace(*path, renderer.get());
+						renderer.add(&getBack(objs), m_currLayer);
 					} catch (std::exception e) {
 						std::println("{}", e.what());
 					}
 				}
 			}
-
-			void showRightClickOptions(Renderer& renderer, const Coord& mousePos);
-
+			void createTexture(Renderer& renderer) noexcept;
+			void showRightClickOptions(Renderer& renderer) noexcept;
+			void save() noexcept;
+			void showSceneOptions() noexcept;
 			void moveCamera(Renderer& renderer) noexcept;
-
-			//void save();
 		public:
 			SceneEditor(Renderer& renderer);
 			EditorDest operator()(Renderer& renderer);
