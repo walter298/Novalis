@@ -2,11 +2,14 @@
 #define DATA_UTIL_H
 
 #include <chrono>
+#include <deque>
 #include <filesystem>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include <boost/container/flat_map.hpp>
+#include <boost/optional.hpp>
 #include <boost/pfr.hpp>
 
 #include <plf_hive.h>
@@ -24,6 +27,7 @@ void from_json(const nlohmann::json& j, SDL_Rect& c);
 void to_json(nlohmann::json& j, const SDL_Point& p);
 void from_json(const nlohmann::json& j, SDL_Point& p);
 
+//json (de)serialization for chrono types
 namespace std {
 	namespace chrono {
 		template<typename Rep, typename Period>
@@ -38,10 +42,10 @@ namespace std {
 }
 
 namespace nv {
-	namespace chrono    = std::chrono;
-	namespace ranges    = std::ranges;
-	namespace views     = std::views;
-	namespace pfr       = boost::pfr;
+	namespace chrono = std::chrono;
+	namespace ranges = std::ranges;
+	namespace views = std::views;
+	namespace pfr = boost::pfr;
 	namespace boost_con = boost::container;
 
 	//class aliases
@@ -80,7 +84,7 @@ namespace nv {
 	}
 
 	const std::string& workingDirectory();
-	
+
 	inline std::string objectPath(std::string relativePath) {
 		return workingDirectory() + std::string("static_objects/") + relativePath;
 	}
@@ -99,7 +103,29 @@ namespace nv {
 
 	template<typename T, typename U>
 	using FlatOrderedMap = boost::container::flat_map<T, U>;
+}
 
+//boost::container::flat_map json (de)serialization
+namespace boost {
+	namespace container {
+		template<typename Key, typename Value>
+		void to_json(nlohmann::json& j, const flat_map<Key, Value>& bmap) {
+			j = std::vector<std::pair<Key, Value>>();
+			for (const auto& [key, value] : bmap) {
+				j.emplace_back(key, value);
+			}
+		}
+		template<typename Key, typename Value>
+		void from_json(const nlohmann::json& j, flat_map<Key, Value>& bmap) {
+			auto keyValuePairs = j.get<std::vector<std::pair<Key, Value>>>();
+			for (auto& [key, value] : keyValuePairs) {
+				bmap.emplace(std::move(key), std::move(value));
+			}
+		}
+	}
+}
+
+namespace nv {
 	//convenience routine for plf::hive
 	template<typename T>
 	decltype(auto) getBack(T& container) {
@@ -207,10 +233,10 @@ namespace nv {
 	inline constexpr bool STAY_IN_LOOP = false;
 	inline constexpr bool BREAK_FROM_LOOP = true;
 
-	template<typename T, typename Container = plf::hive<T>>
-	using Layers = FlatOrderedMap<int, Container>;
-
 	std::string writeCloneID(std::string_view str);
+
+	template<typename T>
+	using Layers = std::vector<std::vector<T>>;
 };
 
 #endif

@@ -1,18 +1,25 @@
 #include "SpriteEditor.h"
 
-#include <print>
-
 using nv::editor::SpriteEditor;
 
-void nv::editor::SpriteEditor::open(Renderer& renderer) {
+void nv::editor::SpriteEditor::open(SDL_Renderer* renderer) {
 	auto filePath = openFilePath();
 	if (filePath) {
 		try {
-			Sprite::loadTextureData(*filePath, renderer.get(), [&, this](auto texPath, int layer, auto texPtr, auto texData) {
-				auto& texLayer = m_textures[layer];
-				texLayer.emplace(texPath, std::move(texPtr), std::move(texData));
-				renderer.add(&getBack(texLayer), layer);
-			});
+			m_texLayers.clear();
+
+			std::ifstream file{ *filePath };
+			auto json = json::parse(file);
+			auto texJsonData = json.get<Sprite::JsonFormat>();
+			m_texLayers.reserve(texJsonData.size());
+
+			for (auto& texLayer : texJsonData) {
+				auto& back = m_texLayers.emplace_back();
+				back.reserve(texLayer.size());
+				for (auto& [texPath, texData] : texLayer) {
+					back.emplace_back(texPath, std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, texPath.c_str())), std::move(texData));
+				}
+			}
 		} catch (json::exception e) {
 			std::println("{}", e.what());
 		}
@@ -22,42 +29,39 @@ void nv::editor::SpriteEditor::open(Renderer& renderer) {
 void nv::editor::SpriteEditor::save() {
 	auto filename = saveFile(L"Save Texture");
 	if (filename) {
-		Sprite::JsonFormat jsonFormat;
-		for (const auto& [layer, textures] : m_textures) {
-			for (const auto& tex : textures) {
-				auto& value = jsonFormat[tex.path];
-				value.first = layer;
-				value.second.push_back(tex.texData);
+		Sprite::JsonFormat spriteJson;
+		for (const auto& texLayer : m_texLayers) {
+			auto& currDataLayer = spriteJson.emplace_back();
+			for (const auto& tex : texLayer) {
+				currDataLayer.emplace_back(tex.path, tex.texData);
 			}
 		}
 		std::ofstream file{ *filename };
-		json j = jsonFormat;
-		file << j.dump(2);
+		file << json{ spriteJson }.dump(2);
 		file.close();
 	}
 } 
 
-void nv::editor::SpriteEditor::insertTextures(Renderer& renderer) {
+void nv::editor::SpriteEditor::insertTextures(SDL_Renderer* renderer) {
 	auto texPaths = openFilePaths();
 	if (texPaths) {
 		TextureData defaultPos;
 		defaultPos.ren.setPos(400, 400);
 		defaultPos.ren.setSize(300, 300);
 		for (const auto& texPath : *texPaths) {
-			m_textures[m_currLayer].emplace(
+			m_texLayers[m_currLayer].emplace_back(
 				texPath,
-				IMG_LoadTexture(renderer.get(), texPath.c_str()),
+				std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, texPath.c_str())),
 				defaultPos
 			);
-			renderer.add(&getBack(m_textures[m_currLayer]), m_currLayer);
 			defaultPos.ren.rect.x += 300;
 		}
 	}
 }
 
 void nv::editor::SpriteEditor::setIdenticalLayout() {
-	auto& texsToMove = m_textures[m_currLayer];
-	auto& targetTexs = m_textures[m_currLayoutLayer];
+	auto& texsToMove = m_texLayers[m_currLayer];
+	auto& targetTexs = m_texLayers[m_currLayoutLayer];
 
 	if (texsToMove.size() != targetTexs.size()) {
 		std::println("Error: cannot model layout of layers with different # of textures");
@@ -68,7 +72,7 @@ void nv::editor::SpriteEditor::setIdenticalLayout() {
 	}
 }
 
-void SpriteEditor::showSpriteOptions(Renderer& renderer) {
+void SpriteEditor::showSpriteOptions(SDL_Renderer* renderer) {
 	static constexpr ImVec2 layerOptionPos{ 0.0f, 0.0f };
 	static constexpr ImVec2 layerOptionsSize{ 200.0f, 200.0f };
 
@@ -77,10 +81,17 @@ void SpriteEditor::showSpriteOptions(Renderer& renderer) {
 
 	ImGui::Begin("Layer");
 
+	int intLayer = static_cast<int>(m_currLayer);
+
 	//select layer
-	if (ImGui::InputInt("Layer", &m_currLayer)) {
-		m_texDataEditor.reseat(&m_textures[m_currLayer], m_currLayer);
-		makeOneLayerMoreVisible(m_textures, m_currLayer, 100);
+	if (ImGui::InputInt("Layer", &intLayer)) {
+		m_currLayer = static_cast<size_t>(intLayer);
+		if (m_currLayer >= m_texLayers.size()) {
+			m_texLayers.emplace_back();
+			m_currLayer = m_texLayers.size() - 1;
+		}
+		m_texDataEditor.reseat(&m_texLayers[m_currLayer], m_currLayer);
+		makeOneLayerMoreVisible(m_texLayers, m_currLayer, 100);
 	}
 
 	//insert textures
@@ -104,14 +115,18 @@ void SpriteEditor::showSpriteOptions(Renderer& renderer) {
 	ImGui::End();
 }
 
-SpriteEditor::SpriteEditor(Renderer& renderer) noexcept
-	: m_texDataEditor{ renderer, { 0, 500 } }
+SpriteEditor::SpriteEditor(SDL_Renderer* renderer) noexcept
+	: m_renderer{ renderer }, m_texDataEditor { { 0, 500 } }, m_texLayers{ 1 }
 {
-	m_texDataEditor.reseat(&m_textures[m_currLayer], m_currLayer);
+	m_texDataEditor.reseat(&m_texLayers[m_currLayer], m_currLayer);
 }
 
-nv::editor::EditorDest SpriteEditor::operator()(Renderer& renderer) {
-	showSpriteOptions(renderer);
+nv::editor::EditorDest SpriteEditor::imguiRender() {
+	showSpriteOptions(m_renderer);
 	m_texDataEditor();
 	return EditorDest::None;
+}
+
+void nv::editor::SpriteEditor::sdlRender() noexcept {
+	renderCopy(m_renderer, m_texLayers);
 }

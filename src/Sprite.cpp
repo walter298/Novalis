@@ -1,24 +1,29 @@
 #include "Sprite.h"
 
 nv::Sprite::Sprite(std::string_view path, SDL_Renderer* renderer) noexcept {
-	loadTextureData(path, renderer, [this](auto texPath, int layer, auto texPtr, auto texData) {
-		m_textureLayers[layer].emplace_back(std::move(texPtr), std::move(texData));
-	});
-}
+	std::ifstream file{ path.data() };
+	auto json = json::parse(file);
+	auto texJsonData = json.get<JsonFormat>();
+	texObjLayers.reserve(texJsonData.size()); 
 
-void nv::Sprite::setLayer(int layer) noexcept {
-	m_currLayer = layer;
+	for (auto& texLayer : texJsonData) {
+		auto& back = texObjLayers.emplace_back();
+		back.reserve(texLayer.size());
+		for (auto& [texPath, texData] : texLayer) {
+			back.emplace_back(std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, texPath.c_str())), std::move(texData));
+		}
+	}
 }
 
 nv::TextureData& nv::Sprite::texData(size_t texIdx) {
-	return m_textureLayers[m_currLayer][texIdx].texData;
+	return texObjLayers[currLayer][texIdx].texData;
 }
 
 void nv::Sprite::setPos(int destX, int destY) noexcept {
-	for (auto& [layer, textures] : m_textureLayers) {
-		auto [x, y] = textures[0].getPos();
+	for (auto& texLayer : texObjLayers) {
+		auto [x, y] = texLayer[0].getPos();
 		SDL_Point change{ destX - x, destY - y };
-		for (auto& tex : textures) {
+		for (auto& tex : texLayer) {
 			tex.move(change);
 		}
 	}
@@ -29,7 +34,7 @@ void nv::Sprite::setPos(SDL_Point p) noexcept {
 }
 
 void nv::Sprite::move(int x, int y) noexcept {
-	for (auto& texData : m_textureLayers.at(m_currLayer)) {
+	for (auto& texData : texObjLayers.at(currLayer)) {
 		texData.move(x, y);
 	}
 }
@@ -39,7 +44,7 @@ void nv::Sprite::move(SDL_Point p) noexcept {
 }
 
 void nv::Sprite::scale(int x, int y) noexcept {
-	for (auto& texData : m_textureLayers.at(m_currLayer)) {
+	for (auto& texData : texObjLayers.at(currLayer)) {
 		texData.scale(x, y);
 	}
 }
@@ -54,7 +59,7 @@ void nv::Sprite::rotate(double angle, SDL_Point p) {}
 void nv::Sprite::setRotationCenter() noexcept {}
 
 bool nv::Sprite::containsCoord(int x, int y) const noexcept {
-	return ranges::any_of(m_textureLayers.at(m_currLayer), [&](const auto& texData) { 
+	return ranges::any_of(texObjLayers.at(currLayer), [&](const auto& texData) { 
 		return texData.containsCoord(x, y);
 	});
 }
@@ -64,20 +69,15 @@ bool nv::Sprite::containsCoord(SDL_Point p) const noexcept {
 }
 
 void nv::Sprite::setOpacity(Uint8 opacity) {
-	for (auto& [layer, textures] : m_textureLayers) {
-		for (auto& tex : textures) {
+	for (auto& texLayer : texObjLayers) {
+		for (auto& tex : texLayer) {
 			tex.setOpacity(opacity);
 		}
 	}
 }
 
 void nv::Sprite::render(SDL_Renderer* renderer) const noexcept {
-	if constexpr (true) {
-		if (!m_textureLayers.contains(m_currLayer)) {
-			return;
-		}
-	}
-	for (const auto& texData : m_textureLayers.at(m_currLayer)) {
+	for (const auto& texData : texObjLayers.at(currLayer)) {
 		texData.render(renderer);
 	}
 }

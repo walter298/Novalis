@@ -1,5 +1,7 @@
 #pragma once
 
+#include <deque>
+
 #include <hash_table7.hpp>
 
 #include "EditorUtil.h"
@@ -8,20 +10,23 @@ namespace nv {
 	namespace editor {
 		class SpriteEditor {
 		private:
-			Layers<TextureObjectAndPath> m_textures;
-			int m_currLayer = 0;
+			SDL_Renderer* m_renderer;
+
+			Layers<TextureObjectAndPath> m_texLayers;
+			size_t m_currLayer = 0;
 			int m_currLayoutLayer = 0;
 
 			ObjectEditor<TextureObjectAndPath> m_texDataEditor;
 			
-			void open(Renderer& renderer);
+			void open(SDL_Renderer* renderer);
 			void save();
-			void insertTextures(Renderer& renderer);
+			void insertTextures(SDL_Renderer* renderer);
 			void setIdenticalLayout();
-			void showSpriteOptions(Renderer& renderer);
+			void showSpriteOptions(SDL_Renderer* renderer);
 		public:
-			SpriteEditor(Renderer& renderer) noexcept;
-			EditorDest operator()(Renderer& renderer);
+			SpriteEditor(SDL_Renderer* renderer) noexcept;
+			EditorDest imguiRender();
+			void sdlRender() noexcept;
 		};
 	}
 }

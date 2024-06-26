@@ -2,49 +2,26 @@
 
 #include <fstream>
 #include <string_view>
-#include <vector>
 
 #include <SDL2/SDL_image.h>
 
 #include "DataUtil.h"
-#include "ID.h"
 #include "Texture.h"
 
 namespace nv {
-	namespace editor {
-		class SpriteEditor;
-	}
-
-	class Sprite {
-	private:
+	struct Sprite {
 		static constexpr std::string_view textureRenPairsJkey = "textures_and_rens";
 		static constexpr std::string_view textureCountJkey = "texture_size";
 		
-		Layers<TextureObject, std::vector<TextureObject>> m_textureLayers;
-		int m_currLayer = 0;
+		using TextureLayers = std::vector<std::vector<TextureObject>>;
+		TextureLayers texObjLayers;
+		int currLayer = 0;
+
+		using JsonFormat = std::vector<std::vector<std::pair<std::string, TextureData>>>;
 
 		Sprite() = default;
-	public:
-		using JsonFormat = std::unordered_map<std::string, std::pair<int, std::vector<TextureData>>>;
-
-		template<std::invocable<std::string_view, int, TexturePtr, TextureData> InsertFunc>
-		static void loadTextureData(std::string_view jsonPath, SDL_Renderer* renderer, InsertFunc insert) {
-			std::ifstream file{ jsonPath.data() };
-			auto json = json::parse(file);
-			auto texMap = json.get<JsonFormat>();
-			for (auto& [texPath, texData] : texMap) {
-				auto& [layer, texDataElems] = texData;
-				auto tex = std::make_shared<Texture>(IMG_LoadTexture(renderer, texPath.c_str()));
-				for (auto& texDataElem : texDataElems) {
-					insert(texPath, layer, tex, std::move(texDataElem));
-				}
-			}
-		}
-
 		Sprite(std::string_view path, SDL_Renderer* renderer) noexcept;
-
-		void setLayer(int layer) noexcept; 
-
+		
 		TextureData& texData(size_t texIdx);
 
 		void setPos(int destX, int destY) noexcept;
@@ -65,8 +42,6 @@ namespace nv {
 		void setOpacity(Uint8 opacity);
 
 		void render(SDL_Renderer* renderer) const noexcept;
-
-		friend class editor::SpriteEditor;
 	};
 
 	using Sprites = std::vector<Sprite>;

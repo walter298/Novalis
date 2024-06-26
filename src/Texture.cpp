@@ -2,15 +2,15 @@
 
 #include <print>
 
-nv::Texture::Texture(SDL_Texture* tex) noexcept
+nv::TextureDestructorWrapper::TextureDestructorWrapper(SDL_Texture* tex) noexcept
 	: raw(tex) {}
 
-nv::Texture::~Texture() noexcept {
+nv::TextureDestructorWrapper::~TextureDestructorWrapper() noexcept {
 	SDL_DestroyTexture(raw);
 }
 
 nv::TextureObject::TextureObject(TexturePtr tex, TextureData texData) 
-	: tex{ std::move(tex) }, texData{ std::move(texData) } 
+	: tex{ std::move(tex) }, texData{std::move(texData)}
 {
 }
 
@@ -18,8 +18,8 @@ nv::TextureObject::TextureObject(std::string_view jsonPath, SDL_Renderer* render
 	std::ifstream jsonFile{ jsonPath.data() };
 	assert(jsonFile.is_open());
 	auto json = json::parse(jsonFile);
-	texData = json.get<TextureData>();
-	tex = std::make_shared<Texture>(IMG_LoadTexture(renderer, json["texture_path"].get<std::string>().c_str()));
+	texData   = json.get<TextureData>();
+	tex       = std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, json["texture_path"].get<std::string>().c_str()));
 }
 
 void nv::TextureObject::setOpacity(Uint8 opacity) noexcept {

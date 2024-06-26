@@ -1,75 +1,43 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <chrono>
-#include <map>
 #include <string>
 #include <filesystem>
-#include <print>
-
-#include <boost/container/flat_map.hpp>
-
-#undef min
-#undef max
-
-#include <plf_hive.h>
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer2.h>
 
-#include "Camera.h"
 #include "DataUtil.h"
-#include "Sprite.h"
 
 namespace nv {
-	class Renderer {
-	private:
-		SDL_Renderer* m_renderer;
-		
-		Layers<Sprite*> m_sprites;
-		Layers<Rect*> m_rects;
-		Layers<TextureObject*> m_textures;
+	template<RenderObject... Objects>
+	void renderCopy(SDL_Renderer* renderer, const Layers<Objects>&... objLayers) {
+		auto renderImpl = [&](const auto& layers) {
+			for (const auto& layer : layers) {
+				for (const auto& object : layer) {
+					object.render(renderer);
+				}
+			}
+		};
+		((renderImpl(objLayers)), ...);
+	}
 
-		template<typename Sprites, typename Obj>
-		void removeObjImpl(Sprites& objs, const Obj* const targetObj) {
-			auto objPos = ranges::find_if(objs,
-				[&](const Obj* const obj) { return obj == targetObj; }
-			);
-			assert(objPos != objs.end());
-			objs.erase(objPos);
+	namespace editor {
+		template<RenderObject... Objects>
+		void renderWithImGui(ImGuiIO& io, SDL_Renderer* renderer, const Layers<Objects>&... objLayers) {
+			static constexpr ImVec4 color{ 0.45f, 0.55f, 0.60f, 1.00f };
+			ImGui::Render();
+			SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+			SDL_SetRenderDrawColor(renderer,
+				//unfortunately SDL uses ints for screen pixels and ImGui uses floats 
+				static_cast<Uint8>(color.x * 255), static_cast<Uint8>(color.y * 255),
+				static_cast<Uint8>(color.z * 255), static_cast<Uint8>(color.w * 255));
+			SDL_RenderClear(renderer);
+			renderCopy(renderer, objLayers...);
+			ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+			SDL_RenderPresent(renderer);
 		}
-
-		void renderCopyObjs();
-	public:
-		static constexpr int MIN_BOTTOM_LAYER = -1000;
-		static constexpr int MAX_TOP_LAYER = 1000;
-
-		bool showingCursor = true;
-
-		Renderer(SDL_Renderer* renderer); 
-		Renderer(const Renderer&) = delete;
-		Renderer(Renderer&&)      = delete;
-
-		inline SDL_Renderer* get() {
-			return m_renderer;
-		}
-
-		void move(int dx, int dy) noexcept;
-
-		void clear() noexcept;
-
-		void add(Sprite* obj, int layer);
-		void erase(const Sprite* const sprite, int layer);
-
-		void add(Rect* rect, int layer);
-		void removeRect(Rect* rect, int layer);
-
-		void add(TextureObject* texData, int layer);
-		void erase(const TextureObject* const texData, int layer);
-
-		void render() noexcept; 
-		void renderWithImGui(ImGuiIO& io);
-	};
+	}
 }
 
 #endif

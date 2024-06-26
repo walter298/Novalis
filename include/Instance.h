@@ -1,31 +1,24 @@
 #ifndef INSTANCE_H
 #define INSTANCE_H
 
-#include "Arena.h"
-#include "Renderer.h"
-#include "Texture.h"
-
 #include "Sound.h"
+#include "Sprite.h"
+#include "Texture.h"
 
 namespace nv {
 	class Instance {
 	private:
-		//Arena m_arena;
-		std::unordered_map<std::string, std::vector<Texture>> m_textures;
-
+		std::unordered_map<std::string, TextureDestructorWrapper> m_textures;
 		void quit();
 	public:
-		SDL_Window* window;
-		SDL_Renderer* renderer;
+		SDL_Window* window     = nullptr;
+		SDL_Renderer* renderer = nullptr;
 
-		Instance(std::string windowTitle);
-		~Instance();
+		SDL_Texture* getTexture(std::string_view str);
 
-		//key is not string_view because you can't index string_view into map where key is std::string
-		const std::vector<Texture>& getTextures(const std::string& key) const; 
-		
-		SDL_Window* getRawWindow() noexcept;
-		SDL_Renderer* getRawRenderer() noexcept;
+		Instance(std::string_view windowTitle);
+		Instance(Instance&&) = delete;
+		~Instance() noexcept;
 	};
 }
 

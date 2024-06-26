@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include <algorithm>
+#include <deque>
 #include <fstream>
 #include <memory>
 #include <ranges>
@@ -13,23 +14,30 @@
 
 #include "Event.h"
 #include "Instance.h"
-#include "Button.h"
-#include "Sprite.h"
+
+#include "Renderer.h"
 
 namespace nv {
-	struct Scene {
-		using SpriteData  = std::vector<std::pair<std::string, std::vector<Layers<TextureData, std::vector<TextureData>>>>>;
-		using TextureData = std::pair<std::string, std::vector<TextureData>>;
+	class Scene {
+	private:
+		SDL_Renderer* m_renderer;
+		void loadSpriteClones(const json& j, SDL_Renderer* renderer);
+	public:
+		template<typename T>
+		using IDMap = std::vector<std::pair<std::string, std::vector<T>>>;
+
+		using SpriteCloneData = std::pair<int, std::vector<std::vector<TextureData>>>;
+		//using SpriteData  = IDMap<SpriteCloneData>;
+		using TextureData = IDMap<TextureData>;
 
 		bool running = false;
 
 		Layers<Sprite> sprites;
-		Layers<Texture> textures;
+		Layers<TextureObject> textures;
 
 		EventHandler eventHandler;
-		Renderer renderer;
-
-		Scene(std::string_view path, Instance& instance);
+		
+		Scene(std::string_view path, SDL_Renderer* renderer);
 
 		void operator()();
 	};

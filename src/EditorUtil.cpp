@@ -88,28 +88,23 @@ std::optional<std::string> nv::editor::saveFile(std::wstring openMessage) {
 	return std::nullopt;
 }
 
-void nv::editor::loadImages(std::vector<std::string>& imagePaths, plf::hive<Texture>& textures, Renderer& renderer) {
-	auto spritePaths = openFilePaths();
-	if (spritePaths) {
-		auto spritesToAddC = spritePaths->size();
+//void nv::editor::loadImages(std::vector<std::string>& imagePaths, plf::hive<Texture>& textures, Renderer& renderer) {
+//	auto spritePaths = openFilePaths();
+//	if (spritePaths) {
+//		auto spritesToAddC = spritePaths->size();
+//
+//		if (textures.capacity() < spritesToAddC) {
+//			textures.reserve(spritesToAddC);
+//		}
+//		
+//		for (const auto& path : *spritePaths) {
+//			//textures.emplace(IMG_LoadTexture(renderer.get(), path.c_str()));
+//			//imagePaths.push_back(path);
+//		}
+//	}
+//}
 
-		if (textures.capacity() < spritesToAddC) {
-			textures.reserve(spritesToAddC);
-		}
-		
-		for (const auto& path : *spritePaths) {
-			textures.emplace(IMG_LoadTexture(renderer.get(), path.c_str()));
-			imagePaths.push_back(path);
-		}
-	}
-}
-
-nv::editor::TextureObjectAndPath::TextureObjectAndPath(std::string_view path, SDL_Texture* tex, TextureData pos)
-	: path{ path }, TextureObject{ std::make_shared<Texture>(tex), std::move(pos) }
-{
-}
-
-nv::editor::TextureObjectAndPath::TextureObjectAndPath(std::string_view path, TexturePtr texPtr, TextureData texData) 
-	: path{ path }, TextureObject{ std::move(texPtr), std::move(texData) }
+nv::editor::TextureObjectAndPath::TextureObjectAndPath(std::string_view path, TexturePtr tex, TextureData pos)
+	: path{ path }, TextureObject{ std::move(tex), std::move(pos) }
 {
 }
