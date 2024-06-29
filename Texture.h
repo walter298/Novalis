@@ -8,22 +8,22 @@
 #include "Rect.h"
 
 namespace nv {
-	struct Texture {
+	struct TextureDestructorWrapper {
 		SDL_Texture* raw = nullptr;
 
-		Texture() = default;
-		explicit Texture(SDL_Texture* texture) noexcept;
+		TextureDestructorWrapper() = default;
+		explicit TextureDestructorWrapper(SDL_Texture* texture) noexcept;
 
-		Texture(const Texture&) = delete;
-		Texture& operator=(const Texture&) = delete;
+		TextureDestructorWrapper(const TextureDestructorWrapper&) = delete;
+		TextureDestructorWrapper& operator=(const TextureDestructorWrapper&) = delete;
 
-		Texture(Texture&&) noexcept = default;
-		Texture& operator=(Texture&&) noexcept = default;
+		TextureDestructorWrapper(TextureDestructorWrapper&&) noexcept = default;
+		TextureDestructorWrapper& operator=(TextureDestructorWrapper&&) noexcept = default;
 
-		~Texture() noexcept;
+		~TextureDestructorWrapper() noexcept;
 	};
 
-	using TexturePtr = std::shared_ptr<Texture>;
+	using TexturePtr = std::shared_ptr<TextureDestructorWrapper>;
 
 	struct TextureData {
 		Rect ren;
@@ -36,8 +36,7 @@ namespace nv {
 	struct TextureObject {
 		TextureObject() = default;
 		TextureObject(TexturePtr texPtr, TextureData texData);
-		TextureObject(std::string_view jsonPath, SDL_Renderer* renderer);
-
+		
 		TexturePtr tex;
 		TextureData texData;
 		
@@ -51,6 +50,9 @@ namespace nv {
 		void move(int dx, int dy) noexcept;
 		void move(SDL_Point change) noexcept;
 
+		void setSize(int w, int h) noexcept;
+		void setSize(SDL_Point p);
+
 		void scale(int dx, int dy) noexcept;
 		void scale(SDL_Point change) noexcept;
 
@@ -62,7 +64,4 @@ namespace nv {
 
 		void render(SDL_Renderer* renderer) const noexcept;
 	};
-
-	/*void from_json(const json& j, TexturePos& pos);
-	void to_json(json& j, const TexturePos& pos);*/
 }

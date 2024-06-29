@@ -1,9 +1,11 @@
 #ifndef DATA_UTIL_H
 #define DATA_UTIL_H
 
+#include <algorithm> //equal_range
 #include <chrono>
 #include <deque>
 #include <filesystem>
+#include <ranges> //viewable_range
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -236,7 +238,26 @@ namespace nv {
 	std::string writeCloneID(std::string_view str);
 
 	template<typename T>
-	using Layers = std::vector<std::vector<T>>;
+	using Layers = boost_con::flat_map<int, std::vector<T>>;
+
+	template<ranges::viewable_range Range, typename Func>
+	void forEachEqualRange(Range& range, Func f) {
+		auto it = ranges::begin(range);
+		while (it != ranges::end(range)) {
+			auto equalRange = ranges::equal_range(it, ranges::end(range), *it);
+			f(equalRange);
+			it = ranges::end(equalRange);
+		}
+	}
+	template<ranges::viewable_range Range, typename Func, typename EqualityPred>
+	void forEachEqualRange(Range& range, Func f, EqualityPred pred) {
+		auto it = ranges::begin(range);
+		while (it != ranges::end(range)) {
+			auto equalRange = ranges::equal_range(it, ranges::end(range), *it, pred);
+			f(equalRange);
+			it = ranges::end(equalRange);
+		}
+	}
 };
 
 #endif

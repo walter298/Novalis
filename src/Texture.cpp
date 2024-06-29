@@ -14,14 +14,6 @@ nv::TextureObject::TextureObject(TexturePtr tex, TextureData texData)
 {
 }
 
-nv::TextureObject::TextureObject(std::string_view jsonPath, SDL_Renderer* renderer) {
-	std::ifstream jsonFile{ jsonPath.data() };
-	assert(jsonFile.is_open());
-	auto json = json::parse(jsonFile);
-	texData   = json.get<TextureData>();
-	tex       = std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, json["texture_path"].get<std::string>().c_str()));
-}
-
 void nv::TextureObject::setOpacity(Uint8 opacity) noexcept {
 	SDL_SetTextureAlphaMod(tex->raw, opacity);
 }

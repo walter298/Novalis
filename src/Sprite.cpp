@@ -1,29 +1,14 @@
 #include "Sprite.h"
 
-nv::Sprite::Sprite(std::string_view path, SDL_Renderer* renderer) noexcept {
-	std::ifstream file{ path.data() };
-	auto json = json::parse(file);
-	auto texJsonData = json.get<JsonFormat>();
-	texObjLayers.reserve(texJsonData.size()); 
-
-	for (auto& texLayer : texJsonData) {
-		auto& back = texObjLayers.emplace_back();
-		back.reserve(texLayer.size());
-		for (auto& [texPath, texData] : texLayer) {
-			back.emplace_back(std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, texPath.c_str())), std::move(texData));
-		}
-	}
-}
-
 nv::TextureData& nv::Sprite::texData(size_t texIdx) {
 	return texObjLayers[currLayer][texIdx].texData;
 }
 
 void nv::Sprite::setPos(int destX, int destY) noexcept {
-	for (auto& texLayer : texObjLayers) {
-		auto [x, y] = texLayer[0].getPos();
+	for (auto& [layer, texObjs] : texObjLayers) {
+		auto [x, y] = texObjs[0].getPos();
 		SDL_Point change{ destX - x, destY - y };
-		for (auto& tex : texLayer) {
+		for (auto& tex : texObjs) {
 			tex.move(change);
 		}
 	}
@@ -69,9 +54,9 @@ bool nv::Sprite::containsCoord(SDL_Point p) const noexcept {
 }
 
 void nv::Sprite::setOpacity(Uint8 opacity) {
-	for (auto& texLayer : texObjLayers) {
-		for (auto& tex : texLayer) {
-			tex.setOpacity(opacity);
+	for (auto& [layer, texObjs] : texObjLayers) {
+		for (auto& texObj : texObjs) {
+			texObj.setOpacity(opacity);
 		}
 	}
 }

@@ -99,8 +99,7 @@ namespace nv {
 			}
 			else if constexpr (std::invocable<Func, MouseMotionEvent>) {
 				return m_mouseMotionEvents;
-			}
-			else {
+			} else {
 				return m_keyboardEvents;
 			}
 		}

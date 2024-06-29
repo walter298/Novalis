@@ -8,9 +8,7 @@
 #include <print>
 #include <string>
 #include <thread> //sleep
-
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/mpl.hpp>
+#include <unordered_set>
 
 #include <Windows.h>
 #include <ShlObj.h>
@@ -103,8 +101,6 @@ namespace nv {
 		std::optional<std::vector<std::string>> openFilePaths();
 		std::optional<std::string> saveFile(std::wstring openMessage);
 
-		/*void loadImages(std::vector<std::string>& imagePaths, plf::hive<Texture>& textures, Renderer& renderer);*/
-
 		template<typename T>
 		constexpr auto centerPos(T l1, T l2) {
 			return (l1 - l2) / 2;
@@ -133,14 +129,14 @@ namespace nv {
 			ImVec2 m_objOptionsPos;
 
 			template<RenderObject Object>
-			struct ObjectLayersData {
-				std::vector<Object>* objHive;
+			struct ObjectLayerData {
+				std::vector<Object>* objLayer = nullptr;
 				std::vector<Object>::iterator selectedObjIt;
 				size_t layer = 0;
 				bool isSelected = false;
 			};
 			
-			using ObjectLayers = std::tuple<ObjectLayersData<Objects>...>;
+			using ObjectLayers = std::tuple<ObjectLayerData<Objects>...>;
 			ObjectLayers m_objLayers;
 
 			int m_w = 0;
@@ -152,8 +148,8 @@ namespace nv {
 			bool m_editingObj = false;
 
 			template<RenderObject Object>
-			void edit(ObjectLayersData<Object>& objHiveData, SDL_Point mousePos) {
-				auto& [objs, selectedObjIt, layer, isSelected] = objHiveData;
+			void edit(ObjectLayerData<Object>& objLayerData, SDL_Point mousePos) {
+				auto& [objs, selectedObjIt, layer, isSelected] = objLayerData;
 				auto& obj = *selectedObjIt;
 
 				if (obj.containsCoord(mousePos)) {
@@ -216,7 +212,7 @@ namespace nv {
 			/*search through a hive of objects, and if one is hovered over, update the
 			iterator corresponding to the hive*/
 			template<RenderObject Object>
-			bool selectObj(ObjectLayersData<Object>& objHiveData, SDL_Point mousePos) {
+			bool selectObj(ObjectLayerData<Object>& objHiveData, SDL_Point mousePos) {
 				auto& [objs, it, layer, isSelected] = objHiveData;
 				if (objs == nullptr) {
 					return STAY_IN_LOOP;
@@ -235,28 +231,24 @@ namespace nv {
 			ObjectEditor(ImVec2 optionsPos) 
 				: m_objOptionsPos{ optionsPos }
 			{
-				iterateStructs([this](auto& objHiveData) {
-					objHiveData = { nullptr, {}, 0, false };
-					return STAY_IN_LOOP;
-				}, m_objLayers);
 			}
 
 			void operator()() {
 				auto mousePos = convertPair<SDL_Point>(ImGui::GetMousePos());
-				iterateStructs([&, this](auto& objHiveData) {
-					auto& [objs, selectedObjIt, layer, isSelected] = objHiveData;
+				iterateStructs([&, this](auto& objLayerData) {
+					auto& [objs, selectedObjIt, layer, isSelected] = objLayerData;
 					if (objs == nullptr) {
 						return STAY_IN_LOOP;
 					}
 					if (!isSelected) {
 						return STAY_IN_LOOP;
 					}
-					edit(objHiveData, mousePos);
+					edit(objLayerData, mousePos);
 					return BREAK_FROM_LOOP;
 				}, m_objLayers);
 				if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) { //if we have a new clicked 
-					iterateStructs([&](auto& objHiveData) {
-						return selectObj(objHiveData, mousePos);
+					iterateStructs([&](auto& objLayerData) {
+						return selectObj(objLayerData, mousePos);
 					}, m_objLayers);
 				}
 			}
@@ -264,20 +256,21 @@ namespace nv {
 			template<RenderObject Object>
 			void reseat(std::vector<Object>* objLayer, size_t layer) {
 				assert(objLayer != nullptr);
-				std::get<ObjectLayersData<Object>>(m_objLayers) = { objLayer, objLayer->end(), layer, false };
+				std::get<ObjectLayerData<Object>>(m_objLayers) = { objLayer, objLayer->end(), layer, false };
 			}
 		};
 
-		struct TextureObjectAndPath : public TextureObject {
-			TextureObjectAndPath(std::string_view path, TexturePtr tex, TextureData texData);
-			std::string path;
+		//texture object that stores the file path from which it was loaded
+		struct LoadedTextureObject : public TextureObject, SharedIDObject {
+			LoadedTextureObject(std::string_view path, TexturePtr tex, TextureData texData);
+			std::shared_ptr<const std::string> path;
 		};
 
 		template<RenderObject Object>
-		void makeOneLayerMoreVisible(Layers<Object>& objLayers, size_t visibleLayer, Uint8 reducedOpacity) {
+		void makeOneLayerMoreVisible(Layers<Object>& objLayers, int visibleLayer, Uint8 reducedOpacity) {
 			auto reduceOpacity = [&](auto range) {
-				for (auto& layer : range) {
-					for (auto& obj : layer) {
+				for (auto& [layer, objLayer] : range) {
+					for (auto& obj : objLayer) {
 						obj.setOpacity(reducedOpacity);
 					}
 				}

@@ -36,8 +36,7 @@ namespace nv {
 	struct TextureObject {
 		TextureObject() = default;
 		TextureObject(TexturePtr texPtr, TextureData texData);
-		TextureObject(std::string_view jsonPath, SDL_Renderer* renderer);
-
+		
 		TexturePtr tex;
 		TextureData texData;
 		

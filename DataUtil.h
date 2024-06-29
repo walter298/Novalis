@@ -1,12 +1,17 @@
 #ifndef DATA_UTIL_H
 #define DATA_UTIL_H
 
+#include <algorithm> //equal_range
 #include <chrono>
+#include <deque>
 #include <filesystem>
+#include <ranges> //viewable_range
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include <boost/container/flat_map.hpp>
+#include <boost/optional.hpp>
 #include <boost/pfr.hpp>
 
 #include <plf_hive.h>
@@ -24,6 +29,7 @@ void from_json(const nlohmann::json& j, SDL_Rect& c);
 void to_json(nlohmann::json& j, const SDL_Point& p);
 void from_json(const nlohmann::json& j, SDL_Point& p);
 
+//json (de)serialization for chrono types
 namespace std {
 	namespace chrono {
 		template<typename Rep, typename Period>
@@ -38,10 +44,10 @@ namespace std {
 }
 
 namespace nv {
-	namespace chrono    = std::chrono;
-	namespace ranges    = std::ranges;
-	namespace views     = std::views;
-	namespace pfr       = boost::pfr;
+	namespace chrono = std::chrono;
+	namespace ranges = std::ranges;
+	namespace views = std::views;
+	namespace pfr = boost::pfr;
 	namespace boost_con = boost::container;
 
 	//class aliases
@@ -57,7 +63,6 @@ namespace nv {
 		template<Aggregate Aggr, size_t... Idxs>
 		void assignEachAggrMember(const json& j, Aggr& aggr, std::index_sequence<Idxs...> idxs) {
 			using ParsedAggr = std::tuple<pfr::tuple_element_t<Idxs, Aggr>...>;
-			std::println("Parsing: {}", typeid(ParsedAggr).name());
 			auto parsedTuple = j.get<ParsedAggr>();
 			((pfr::get<Idxs>(aggr) = std::move(std::get<Idxs>(parsedTuple))), ...);
 		}
@@ -81,7 +86,7 @@ namespace nv {
 	}
 
 	const std::string& workingDirectory();
-	
+
 	inline std::string objectPath(std::string relativePath) {
 		return workingDirectory() + std::string("static_objects/") + relativePath;
 	}
@@ -100,7 +105,29 @@ namespace nv {
 
 	template<typename T, typename U>
 	using FlatOrderedMap = boost::container::flat_map<T, U>;
+}
 
+//boost::container::flat_map json (de)serialization
+namespace boost {
+	namespace container {
+		template<typename Key, typename Value>
+		void to_json(nlohmann::json& j, const flat_map<Key, Value>& bmap) {
+			j = std::vector<std::pair<Key, Value>>();
+			for (const auto& [key, value] : bmap) {
+				j.emplace_back(key, value);
+			}
+		}
+		template<typename Key, typename Value>
+		void from_json(const nlohmann::json& j, flat_map<Key, Value>& bmap) {
+			auto keyValuePairs = j.get<std::vector<std::pair<Key, Value>>>();
+			for (auto& [key, value] : keyValuePairs) {
+				bmap.emplace(std::move(key), std::move(value));
+			}
+		}
+	}
+}
+
+namespace nv {
 	//convenience routine for plf::hive
 	template<typename T>
 	decltype(auto) getBack(T& container) {
@@ -112,8 +139,8 @@ namespace nv {
 		int y = 0;
 	};
 
-	template<typename Obj>
-	concept RenderObject = requires(Obj obj) {
+	template<typename Object>
+	concept RenderObject = requires(Object obj) {
 		obj.move(1, -1);
 		obj.move(SDL_Point{});
 		obj.scale(1, -1);
@@ -123,11 +150,17 @@ namespace nv {
 		obj.render(SDL_CreateRenderer(nullptr, -1, SDL_RENDERER_ACCELERATED));
 	};
 
-	template<typename Obj>
-	concept RotatableObj = requires(Obj obj) {
+	template<typename Object>
+	concept RotatableObject = requires(Object obj) {
 		{ obj } -> RenderObject;
 		obj.rotate(0.0, SDL_Point{});
 		obj.setRotationCenter();
+	};
+
+	template<typename Object>
+	concept SizeableObject = requires(Object obj) {
+		obj.setSize(500, 500);
+		obj.setSize(SDL_Point{ 500, 500 });
 	};
 
 	template<typename Range>
@@ -137,7 +170,7 @@ namespace nv {
 	template<size_t Idx, typename T>
 	constexpr decltype(auto) get(T&& t) {
 		if constexpr (std::is_aggregate_v<std::remove_cvref_t<T>>) {
-			return boost::pfr::get<Idx>(std::forward<T>(t)); //aggregate case
+			return pfr::get<Idx>(std::forward<T>(t)); //aggregate case
 		} else {
 			return std::get<Idx>(std::forward<T>(t)); //tuple case
 		}
@@ -182,15 +215,15 @@ namespace nv {
 	};
 
 	namespace detail {
-		template<size_t MemberIdx, typename Func, typename TiedStructs, size_t... TupleIdxs>
-		constexpr bool iterateStructMembers(Func f, TiedStructs tuples, std::index_sequence<TupleIdxs...>) {
-			auto tiedMembers = std::tie(get<MemberIdx>(get<TupleIdxs>(std::forward<TiedStructs>(tuples))...));
+		template<size_t MemberIdx, typename Func, typename TiedStructs, size_t... StructIdxs>
+		constexpr bool iterateStructMembers(Func f, TiedStructs tiedStructs, std::index_sequence<StructIdxs...>) {
+			auto tiedMembers = std::tie(get<MemberIdx>(get<StructIdxs>(std::forward<TiedStructs>(tiedStructs)))...);
 			return std::apply(f, tiedMembers);
 		}
 
 		template<typename Func, typename TiedStructs, size_t... MemberIdxs>
-		constexpr bool iterateStructsImpl(Func f, TiedStructs tuples, std::index_sequence<MemberIdxs...>) {
-			return ((iterateStructMembers<MemberIdxs>(f, tuples, std::make_index_sequence<memberCount<TiedStructs>()>())) || ...);
+		constexpr bool iterateStructsImpl(Func f, TiedStructs tiedStructs, std::index_sequence<MemberIdxs...>) {
+			return ((iterateStructMembers<MemberIdxs>(f, tiedStructs, std::make_index_sequence<memberCount<TiedStructs>()>())) || ...);
 		}
 	}
 
@@ -202,10 +235,29 @@ namespace nv {
 	inline constexpr bool STAY_IN_LOOP = false;
 	inline constexpr bool BREAK_FROM_LOOP = true;
 
-	template<typename T, template<typename> typename Container = plf::hive>
-	using Layers = FlatOrderedMap<int, Container<T>>;
-
 	std::string writeCloneID(std::string_view str);
+
+	template<typename T>
+	using Layers = boost_con::flat_map<int, std::vector<T>>;
+
+	template<ranges::viewable_range Range, typename Func>
+	void forEachEqualRange(Range& range, Func f) {
+		auto it = ranges::begin(range);
+		while (it != ranges::end(range)) {
+			auto equalRange = ranges::equal_range(it, ranges::end(range), *it);
+			f(equalRange);
+			it = ranges::end(equalRange);
+		}
+	}
+	template<ranges::viewable_range Range, typename Func, typename EqualityPred>
+	void forEachEqualRange(Range& range, Func f, EqualityPred pred) {
+		auto it = ranges::begin(range);
+		while (it != ranges::end(range)) {
+			auto equalRange = ranges::equal_range(it, ranges::end(range), *it, pred);
+			f(equalRange);
+			it = ranges::end(equalRange);
+		}
+	}
 };
 
 #endif

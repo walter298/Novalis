@@ -8,9 +8,7 @@
 #include <print>
 #include <string>
 #include <thread> //sleep
-
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/mpl.hpp>
+#include <unordered_set>
 
 #include <Windows.h>
 #include <ShlObj.h>
@@ -22,6 +20,7 @@
 #include <hash_table7.hpp>
 
 #include "Instance.h"
+#include "Renderer.h"
 #include "ID.h"
 
 namespace nv {
@@ -47,11 +46,14 @@ namespace nv {
 			}
 		};
 
-		template<typename RenderMethod, typename... Events>
-		EditorDest runEditor(ImGuiIO& io, Renderer& renderer, RenderMethod& showGui)
-			requires std::invocable<RenderMethod, Renderer&> &&
-		std::same_as<std::invoke_result_t<RenderMethod, Renderer&>, EditorDest>
-		{
+		template<typename T>
+		concept Editor = requires(T t) { 
+			{ t.imguiRender() } -> std::same_as<EditorDest>;
+			t.sdlRender(); 
+		};
+
+		template<Editor RenderMethod>
+		EditorDest runEditor(ImGuiIO& io, SDL_Renderer* renderer, RenderMethod& editor) {
 			while (true) {
 				constexpr auto waitTime = 1000ms / 180;
 				const auto endTime = chrono::system_clock::now() + waitTime;
@@ -61,10 +63,8 @@ namespace nv {
 					ImGui_ImplSDL2_ProcessEvent(&evt);
 					if (evt.type == SDL_QUIT) {
 						return EditorDest::Quit;
-					}
-					else if (evt.type == SDL_KEYDOWN) {
+					} else if (evt.type == SDL_KEYDOWN) {
 						if (evt.key.keysym.scancode == SDL_SCANCODE_MINUS) {
-							renderer.clear();
 							return EditorDest::Home;
 						}
 					}
@@ -74,16 +74,20 @@ namespace nv {
 				ImGui_ImplSDL2_NewFrame();
 				ImGui::NewFrame();
 
-				auto dest = showGui(renderer);
-
-				const auto now = chrono::system_clock::now();
-
-				//checks frames, render
-				if (now < endTime) {
-					std::this_thread::sleep_for(endTime - now);
-				}
-
-				renderer.renderWithImGui(io);
+				auto dest = editor.imguiRender();
+				
+				static constexpr ImVec4 color{ 0.45f, 0.55f, 0.60f, 1.00f };
+				ImGui::Render();
+				SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+				SDL_SetRenderDrawColor(renderer,
+					//unfortunately SDL uses ints for screen pixels and ImGui uses floats 
+					static_cast<Uint8>(color.x * 255), static_cast<Uint8>(color.y * 255),
+					static_cast<Uint8>(color.z * 255), static_cast<Uint8>(color.w * 255));
+				
+				SDL_RenderClear(renderer);
+				ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+				editor.sdlRender();
+				SDL_RenderPresent(renderer);
 
 				if (dest != EditorDest::None) {
 					return dest;
@@ -96,8 +100,6 @@ namespace nv {
 		std::optional<std::string> openFilePath();
 		std::optional<std::vector<std::string>> openFilePaths();
 		std::optional<std::string> saveFile(std::wstring openMessage);
-
-		void loadImages(std::vector<std::string>& imagePaths, plf::hive<Texture>& textures, Renderer& renderer);
 
 		template<typename T>
 		constexpr auto centerPos(T l1, T l2) {
@@ -124,31 +126,30 @@ namespace nv {
 		template<RenderObject... Objects>
 		class ObjectEditor {
 		private:
-			Renderer& m_renderer;
-			
 			ImVec2 m_objOptionsPos;
 
 			template<RenderObject Object>
-			struct ObjectHiveData {
-				using HiveType = plf::hive<Object>;
-				HiveType* objHive = nullptr;
-				HiveType::iterator selectedIt;
-				int layer = 0;
+			struct ObjectLayerData {
+				std::vector<Object>* objLayer = nullptr;
+				std::vector<Object>::iterator selectedObjIt;
+				size_t layer = 0;
 				bool isSelected = false;
 			};
 			
-			using ObjectHives = std::tuple<ObjectHiveData<Objects>...>;
-			ObjectHives m_objHiveData;
+			using ObjectLayers = std::tuple<ObjectLayerData<Objects>...>;
+			ObjectLayers m_objLayers;
 
+			int m_w = 0;
+			int m_h = 0;
 			int m_scale = 0;
 			float m_angle = 0.0; //should be double, but ImGui frustratingly only supports InputFloat
 			SDL_Point m_rotationPoint{ 0, 0 };
 
 			bool m_editingObj = false;
 
-			template<RenderObject Obj>
-			void edit(ObjectHiveData<Obj>& objHiveData, SDL_Point mousePos) {
-				auto& [objs, selectedObjIt, layer, isSelected] = objHiveData;
+			template<RenderObject Object>
+			void edit(ObjectLayerData<Object>& objLayerData, SDL_Point mousePos) {
+				auto& [objs, selectedObjIt, layer, isSelected] = objLayerData;
 				auto& obj = *selectedObjIt;
 
 				if (obj.containsCoord(mousePos)) {
@@ -161,6 +162,18 @@ namespace nv {
 				ImGui::SetNextWindowSize({ 300, 200 });
 				ImGui::Begin("Object");
 
+				ImGui::Text("Size");
+
+				//setting size
+				if constexpr (SizeableObject<Object>) {
+					if (ImGui::InputInt("width", &m_w)) {
+						obj.setSize(m_w, m_h);
+					}
+					if (ImGui::InputInt("height", &m_h)) {
+						obj.setSize(m_w, m_h);
+					}
+				}
+
 				//scaling texture
 				int oldScale = m_scale;
 				if (ImGui::SliderInt("Scale", &m_scale, 0, 1500)) {
@@ -168,29 +181,29 @@ namespace nv {
 					obj.scale(deltaScale, deltaScale);
 				}
 				
-				ImGui::Text("Rotation");
-				if (ImGui::SliderFloat("Angle", &m_angle, 0.0f, 360.0f)) {
-					obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-				}
-				if (ImGui::InputInt("x", &m_rotationPoint.x)) {
-					obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-				}
-				if (ImGui::InputInt("y", &m_rotationPoint.y)) {
-					obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+				if constexpr (RotatableObject<Object>) {
+					ImGui::Text("Rotation");
+					if (ImGui::SliderFloat("Angle", &m_angle, 0.0f, 360.0f)) {
+						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+					}
+					if (ImGui::InputInt("Rotation x", &m_rotationPoint.x)) {
+						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+					}
+					if (ImGui::InputInt("Rotation y", &m_rotationPoint.y)) {
+						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
+					}
 				}
 				
 				if (ImGui::Button("Delete")) {
 					objs->erase(selectedObjIt);
-					m_renderer.erase(&obj, layer);
 					selectedObjIt = objs->end();
 					isSelected = false;
 				}
 
 				if (ImGui::Button("Duplicate")) {
-					objs->insert(obj);
-					auto insertedObj = &getBack(*objs);
-					m_renderer.add(insertedObj, layer);
-					insertedObj->setPos(NV_SCREEN_WIDTH / 2, NV_SCREEN_HEIGHT / 2);
+					objs->push_back(obj);
+					objs->back().setPos(NV_SCREEN_WIDTH / 2, NV_SCREEN_HEIGHT / 2);
+					selectedObjIt = objs->end() - 1;
 				}
 
 				ImGui::End();
@@ -199,7 +212,7 @@ namespace nv {
 			/*search through a hive of objects, and if one is hovered over, update the
 			iterator corresponding to the hive*/
 			template<RenderObject Object>
-			bool selectObj(ObjectHiveData<Object>& objHiveData, SDL_Point mousePos) {
+			bool selectObj(ObjectLayerData<Object>& objHiveData, SDL_Point mousePos) {
 				auto& [objs, it, layer, isSelected] = objHiveData;
 				if (objs == nullptr) {
 					return STAY_IN_LOOP;
@@ -215,68 +228,60 @@ namespace nv {
 				return STAY_IN_LOOP;
 			}
 		public:
-			ObjectEditor(Renderer& renderer, ImVec2 optionsPos) 
-				: m_objOptionsPos{ optionsPos }, m_renderer { renderer }
+			ObjectEditor(ImVec2 optionsPos) 
+				: m_objOptionsPos{ optionsPos }
 			{
-				iterateStructs([this](auto& objHiveData) {
-					objHiveData = { nullptr, {}, 0, false };
-					return STAY_IN_LOOP;
-				}, m_objHiveData);
-			}
-
-			~ObjectEditor() {
-				m_renderer.clear();
 			}
 
 			void operator()() {
 				auto mousePos = convertPair<SDL_Point>(ImGui::GetMousePos());
-				iterateStructs([&, this](auto& objHiveData) {
-					auto& [objs, selectedObjIt, layer, isSelected] = objHiveData;
+				iterateStructs([&, this](auto& objLayerData) {
+					auto& [objs, selectedObjIt, layer, isSelected] = objLayerData;
 					if (objs == nullptr) {
 						return STAY_IN_LOOP;
 					}
 					if (!isSelected) {
 						return STAY_IN_LOOP;
 					}
-					edit(objHiveData, mousePos);
+					edit(objLayerData, mousePos);
 					return BREAK_FROM_LOOP;
-				}, m_objHiveData);
+				}, m_objLayers);
 				if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) { //if we have a new clicked 
-					iterateStructs([&](auto& objHiveData) {
-						return selectObj(objHiveData, mousePos);
-					}, m_objHiveData);
+					iterateStructs([&](auto& objLayerData) {
+						return selectObj(objLayerData, mousePos);
+					}, m_objLayers);
 				}
 			}
 			
 			template<RenderObject Object>
-			void reseat(plf::hive<Object>* objs, int layer) {
-				std::get<ObjectHiveData<Object>>(m_objHiveData) = { objs, objs->end(), layer, false };
+			void reseat(std::vector<Object>* objLayer, size_t layer) {
+				assert(objLayer != nullptr);
+				std::get<ObjectLayerData<Object>>(m_objLayers) = { objLayer, objLayer->end(), layer, false };
 			}
 		};
 
-		struct TextureDataAndPath : public TextureObject {
-			TextureDataAndPath(std::string_view path, SDL_Texture* tex, TextureData texData);
-			TextureDataAndPath(std::string_view path, TexturePtr texPtr, TextureData texData);
-			std::string path;
+		//texture object that stores the file path from which it was loaded
+		struct LoadedTextureObject : public TextureObject, SharedIDObject {
+			LoadedTextureObject(std::string_view path, TexturePtr tex, TextureData texData);
+			std::shared_ptr<const std::string> path;
 		};
 
 		template<RenderObject Object>
 		void makeOneLayerMoreVisible(Layers<Object>& objLayers, int visibleLayer, Uint8 reducedOpacity) {
 			auto reduceOpacity = [&](auto range) {
-				for (auto& [layer, objs] : range) {
-					for (auto& obj : objs) {
+				for (auto& [layer, objLayer] : range) {
+					for (auto& obj : objLayer) {
 						obj.setOpacity(reducedOpacity);
 					}
 				}
 			};
-			auto visibleLayerIt = objLayers.find(visibleLayer);
-			auto beforeVisibleLayer = ranges::subrange(objLayers.begin(), visibleLayerIt);
-			auto afterVisibleLayer  = ranges::subrange(ranges::next(visibleLayerIt), objLayers.end());
+			auto beforeVisibleLayer = ranges::subrange(objLayers.begin(), objLayers.begin() + visibleLayer);
+			auto afterVisibleLayer  = ranges::subrange(objLayers.begin() + visibleLayer + 1, objLayers.end());
 			reduceOpacity(beforeVisibleLayer); 
 			reduceOpacity(afterVisibleLayer);
 
-			//set to full opacity in case it was already reduced
-			for (auto& obj : objLayers.at(visibleLayer)) {
+			//set to full opacity in case it was already reduced before we called this function
+			for (auto& obj : objLayers[visibleLayer]) {
 				obj.setOpacity(255);
 			}
 		}
