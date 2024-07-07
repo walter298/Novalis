@@ -9,7 +9,3 @@ nv::ID::ID() noexcept {
 nv::ID::operator int() const noexcept {
 	return m_ID;
 }
-
-nv::ID nv::SharedIDObject::getID() const noexcept {
-	return m_ID;
-}

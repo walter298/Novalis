@@ -11,10 +11,13 @@ namespace nv {
 		operator int() const noexcept;
 	};
  
-	struct SharedIDObject {
+	template<typename T>
+	struct SharedIDObject : public T {
 	private:
 		ID m_ID;
 	public:
-		ID getID() const noexcept;
+		ID getID() const noexcept {
+			return m_ID;
+		}
 	};
 }

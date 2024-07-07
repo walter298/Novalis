@@ -112,10 +112,11 @@ namespace boost {
 	namespace container {
 		template<typename Key, typename Value>
 		void to_json(nlohmann::json& j, const flat_map<Key, Value>& bmap) {
-			j = std::vector<std::pair<Key, Value>>();
+			std::vector<std::pair<Key, Value>> vec;
 			for (const auto& [key, value] : bmap) {
-				j.emplace_back(key, value);
+				vec.emplace_back(key, value);
 			}
+			j = std::move(vec);
 		}
 		template<typename Key, typename Value>
 		void from_json(const nlohmann::json& j, flat_map<Key, Value>& bmap) {
@@ -249,8 +250,8 @@ namespace nv {
 			it = ranges::end(equalRange);
 		}
 	}
-	template<ranges::viewable_range Range, typename Func, typename EqualityPred>
-	void forEachEqualRange(Range& range, Func f, EqualityPred pred) {
+	template<ranges::viewable_range Range, typename Func, typename SortPred>
+	void forEachEqualRange(Range& range, Func f, SortPred pred) {
 		auto it = ranges::begin(range);
 		while (it != ranges::end(range)) {
 			auto equalRange = ranges::equal_range(it, ranges::end(range), *it, pred);
@@ -258,6 +259,9 @@ namespace nv {
 			it = ranges::end(equalRange);
 		}
 	}
+
+	template<typename T>
+	using Subrange = ranges::subrange<typename std::vector<T>::iterator>;
 };
 
 #endif

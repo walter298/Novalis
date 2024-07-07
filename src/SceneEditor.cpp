@@ -2,57 +2,30 @@
 
 using nv::editor::SceneEditor;
 
-nv::Layers<nv::TextureData> nv::editor::SceneEditor::getUniqueObjectData(const LoadedSprite& sprite) {
-	Layers<TextureData> spriteDataLayers;
-	for (const auto& [layer, texObjs] : sprite.texObjLayers) {
-		for (const auto& texObj : texObjs) {
-			spriteDataLayers[layer].push_back(texObj.texData);
-		}
-	}
-	return spriteDataLayers;
-}
-
-nv::TextureData nv::editor::SceneEditor::getUniqueObjectData(const LoadedTextureObject& texObj) {
-	return texObj.texData;
-}
-
 void nv::editor::SceneEditor::loadSprite() {
 	auto filePath = openFilePath();
-	if (filePath) {
-		try {
-			std::ifstream file{ *filePath };
-			auto json = json::parse(file);
-			auto jsonFormat = json.get<Sprite::JsonFormat>();
-			
-			LoadedSprite newSprite;
-			newSprite.texPaths = std::make_shared<LoadedSprite::TexturePaths>();
-			for (auto& [layer, texData] : jsonFormat) {
-				auto& newTexLayer = newSprite.texObjLayers[layer];
-				for (auto& [texPath, texData] : texData) {
-					newTexLayer.emplace_back(
-						std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(m_renderer, texPath.c_str())), 
-						std::move(texData)
-					);
-					newSprite.texPaths->push_back(std::move(texPath));
-				}
-			}
-		} catch (json::exception e) {
-			std::println("{}", e.what());
-		}
-	} 
+	if (!filePath) {
+		return;
+	}
+	try {
+		std::ifstream file{ *filePath };
+		auto json = json::parse(file);
+		m_spriteLayers[m_currLayer].emplace_back(m_renderer, json, m_texMap);
+	} catch (json::exception e) {
+		std::println("{}", e.what());
+	}
 }
 
 void nv::editor::SceneEditor::createTexture() noexcept {
 	auto filename = openFilePath();
 	if (filename) {
-		auto& texLayer = m_localTextureLayers[m_currLayer];
+		auto& texLayer = m_texObjLayers[m_currLayer];
 		texLayer.emplace_back(
 			*filename, 
-			std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(m_renderer, filename->c_str())), 
+			std::make_shared<TextureRAII>(IMG_LoadTexture(m_renderer, filename->c_str())), 
 			TextureData{}
 		);
-		texLayer.back().scale(500, 500);
-		m_objEditor.reseat(&texLayer, m_currLayer);
+		texLayer.back().obj.scale(500, 500);
 	}
 }
 
@@ -76,24 +49,32 @@ void SceneEditor::showRightClickOptions() noexcept {
 
 void nv::editor::SceneEditor::save() noexcept {
 	auto filename = saveFile(L"Save File");
-	if (filename) {
-		json sceneJ;
-		saveObjects(sceneJ, "sprites", m_spriteLayers, &LoadedSprite::texPaths, "texture_paths", "sprite_data");
-		saveObjects(sceneJ, "textures", m_localTextureLayers, &LoadedTextureObject::path, "texture_path", "texture_object_data");
+	if (!filename) {
+		return;
 	}
+
+	json root;
+
+	auto spritesJson = json::array();
+	auto texObjsJson = json::array();
+
+	saveObjects(m_spriteLayers, spritesJson);
+	saveObjects(m_texObjLayers, texObjsJson);
+
+	root["sprites"]         = std::move(spritesJson);
+	root["texture_objects"] = std::move(texObjsJson);
+	
+	std::ofstream file{ *filename };
+	file << root.dump(2);
+	file.close();
 }
 
 void nv::editor::SceneEditor::showSceneOptions() noexcept {
 	ImGui::SetNextWindowPos({ 0, 0 });
-	ImGui::SetNextWindowSize({ 300, 200 });
+	ImGui::SetNextWindowSize({ 150, 100 });
 	ImGui::Begin("Scene");
-	int intLayer = static_cast<int>(m_currLayer);
-	if (ImGui::InputInt("Layer", &intLayer)) {
-		if (intLayer > m_currLayer) {
-			intLayer = m_currLayer + 1;
-		}
+	if (ImGui::InputInt("Layer", &m_currLayer)) {
 		makeOneLayerMoreVisible(m_spriteLayers, m_currLayer, 50);
-		makeOneLayerMoreVisible(m_localTextureLayers, m_currLayer, 50);
 	}
 	if (ImGui::Button("Save")) {
 		save();
@@ -101,14 +82,43 @@ void nv::editor::SceneEditor::showSceneOptions() noexcept {
 	ImGui::End();
 }
 
+void nv::editor::SceneEditor::editLayers() {
+	ImGui::SetNextWindowSize({ 300, 200 });
+	ImGui::SetNextWindowPos({ 0, 160 });
+	switch (m_selectedObjType) {
+	case SelectedObjectType::Sprite:
+		ImGui::Begin("Sprite");
+		edit(m_selectedSpriteData);
+		ImGui::End();
+		break;
+	case SelectedObjectType::Texture:
+		ImGui::Begin("Texture Object");
+		edit(m_selectedTextureData);
+		ImGui::End();
+		break;
+	}
+
+	auto select = [this](auto& objLayer, auto& selectedObjData, SelectedObjectType objType) {
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+			auto selectedObj = selectObj(objLayer, convertPair<SDL_Point>(ImGui::GetMousePos()));
+			if (selectedObj != objLayer.end()) {
+				selectedObjData.obj = &(*selectedObj);
+				selectedObjData.objLayer = &objLayer;
+				selectedObjData.it = selectedObj;
+				m_selectedObjType = objType;
+			}
+		}
+	};
+	select(m_spriteLayers[m_currLayer], m_selectedSpriteData, SelectedObjectType::Sprite);
+	select(m_texObjLayers[m_currLayer], m_selectedTextureData, SelectedObjectType::Texture);
+}
+
 SceneEditor::SceneEditor(SDL_Renderer* renderer)
-	: m_renderer{ renderer }, m_objEditor{ { 0, 0 } }
+	: m_renderer{ renderer }
 { 
 }
 
 nv::editor::EditorDest SceneEditor::imguiRender() {
-	m_objEditor();
-
 	showSceneOptions();
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
 		m_showingRightClickOptions = true;
@@ -117,10 +127,10 @@ nv::editor::EditorDest SceneEditor::imguiRender() {
 	if (m_showingRightClickOptions) {
 		showRightClickOptions();
 	}
-	
+	editLayers();
 	return EditorDest::None;
 }
 
 void nv::editor::SceneEditor::sdlRender() const noexcept {
-	renderCopy(m_renderer, m_spriteLayers, m_localTextureLayers);
+	renderCopy(m_renderer, m_texObjLayers, m_spriteLayers);
 }

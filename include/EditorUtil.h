@@ -8,7 +8,6 @@
 #include <print>
 #include <string>
 #include <thread> //sleep
-#include <unordered_set>
 
 #include <Windows.h>
 #include <ShlObj.h>
@@ -17,7 +16,7 @@
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
 
-#include <hash_table7.hpp>
+#include <hash_set8.hpp>
 
 #include "Instance.h"
 #include "Renderer.h"
@@ -70,25 +69,25 @@ namespace nv {
 					}
 				}
 
+				SDL_RenderClear(renderer);
+				editor.sdlRender();
+				
+				static constexpr ImVec4 color{ 0.45f, 0.55f, 0.60f, 1.00f };
+				
 				ImGui_ImplSDLRenderer2_NewFrame();
 				ImGui_ImplSDL2_NewFrame();
 				ImGui::NewFrame();
 
 				auto dest = editor.imguiRender();
-				
-				static constexpr ImVec4 color{ 0.45f, 0.55f, 0.60f, 1.00f };
+
 				ImGui::Render();
 				SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
 				SDL_SetRenderDrawColor(renderer,
 					//unfortunately SDL uses ints for screen pixels and ImGui uses floats 
 					static_cast<Uint8>(color.x * 255), static_cast<Uint8>(color.y * 255),
 					static_cast<Uint8>(color.z * 255), static_cast<Uint8>(color.w * 255));
-				
-				SDL_RenderClear(renderer);
 				ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
-				editor.sdlRender();
 				SDL_RenderPresent(renderer);
-
 				if (dest != EditorDest::None) {
 					return dest;
 				}
@@ -123,166 +122,139 @@ namespace nv {
 			return Ret{ static_cast<Converted>(pair.x), static_cast<Converted>(pair.y) };
 		}
 
-		template<RenderObject... Objects>
-		class ObjectEditor {
-		private:
-			ImVec2 m_objOptionsPos;
+		template<typename EditedObject>
+		auto selectObj(std::vector<EditedObject>& objs, SDL_Point mousePos) {
+			return ranges::find_if(objs, [&](const auto& editedObj) {
+				return editedObj.obj.containsCoord(mousePos);
+			});
+		}
 
-			template<RenderObject Object>
-			struct ObjectLayerData {
-				std::vector<Object>* objLayer = nullptr;
-				std::vector<Object>::iterator selectedObjIt;
-				size_t layer = 0;
-				bool isSelected = false;
-			};
-			
-			using ObjectLayers = std::tuple<ObjectLayerData<Objects>...>;
-			ObjectLayers m_objLayers;
+		template<RenderObject Object>
+		struct EditedObjectData {
+			Object obj;
+			int scale = 0;
+			int width = 0;
+			int height = 0;
+			double angle = 0;
+			SDL_Point rotationPoint{ 0, 0 };
 
-			int m_w = 0;
-			int m_h = 0;
-			int m_scale = 0;
-			float m_angle = 0.0; //should be double, but ImGui frustratingly only supports InputFloat
-			SDL_Point m_rotationPoint{ 0, 0 };
-
-			bool m_editingObj = false;
-
-			template<RenderObject Object>
-			void edit(ObjectLayerData<Object>& objLayerData, SDL_Point mousePos) {
-				auto& [objs, selectedObjIt, layer, isSelected] = objLayerData;
-				auto& obj = *selectedObjIt;
-
-				if (obj.containsCoord(mousePos)) {
-					auto mouseChange = convertPair<SDL_Point>(ImGui::GetMouseDragDelta());
-					obj.move(mouseChange);
-					ImGui::ResetMouseDragDelta();
-				}
-
-				ImGui::SetNextWindowPos(m_objOptionsPos);
-				ImGui::SetNextWindowSize({ 300, 200 });
-				ImGui::Begin("Object");
-
-				ImGui::Text("Size");
-
-				//setting size
-				if constexpr (SizeableObject<Object>) {
-					if (ImGui::InputInt("width", &m_w)) {
-						obj.setSize(m_w, m_h);
-					}
-					if (ImGui::InputInt("height", &m_h)) {
-						obj.setSize(m_w, m_h);
-					}
-				}
-
-				//scaling texture
-				int oldScale = m_scale;
-				if (ImGui::SliderInt("Scale", &m_scale, 0, 1500)) {
-					int deltaScale = m_scale - oldScale;
-					obj.scale(deltaScale, deltaScale);
-				}
-				
-				if constexpr (RotatableObject<Object>) {
-					ImGui::Text("Rotation");
-					if (ImGui::SliderFloat("Angle", &m_angle, 0.0f, 360.0f)) {
-						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-					}
-					if (ImGui::InputInt("Rotation x", &m_rotationPoint.x)) {
-						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-					}
-					if (ImGui::InputInt("Rotation y", &m_rotationPoint.y)) {
-						obj.rotate(static_cast<double>(m_angle), m_rotationPoint);
-					}
-				}
-				
-				if (ImGui::Button("Delete")) {
-					objs->erase(selectedObjIt);
-					selectedObjIt = objs->end();
-					isSelected = false;
-				}
-
-				if (ImGui::Button("Duplicate")) {
-					objs->push_back(obj);
-					objs->back().setPos(NV_SCREEN_WIDTH / 2, NV_SCREEN_HEIGHT / 2);
-					selectedObjIt = objs->end() - 1;
-				}
-
-				ImGui::End();
-			}
-
-			/*search through a hive of objects, and if one is hovered over, update the
-			iterator corresponding to the hive*/
-			template<RenderObject Object>
-			bool selectObj(ObjectLayerData<Object>& objHiveData, SDL_Point mousePos) {
-				auto& [objs, it, layer, isSelected] = objHiveData;
-				if (objs == nullptr) {
-					return STAY_IN_LOOP;
-				}
-				auto selectedObjIt = ranges::find_if(*objs, [&](const auto& obj) {
-					return obj.containsCoord(mousePos);
-				});
-				if (selectedObjIt != objs->end()) {
-					it = selectedObjIt;
-					isSelected = true;
-					return BREAK_FROM_LOOP;
-				}
-				return STAY_IN_LOOP;
-			}
-		public:
-			ObjectEditor(ImVec2 optionsPos) 
-				: m_objOptionsPos{ optionsPos }
+			template<typename... Args>
+			EditedObjectData(Args&&... args)// requires(std::constructible_from<Object, Args...>)
+				: obj{ std::forward<Args>(args)... }
 			{
 			}
-
-			void operator()() {
-				auto mousePos = convertPair<SDL_Point>(ImGui::GetMousePos());
-				iterateStructs([&, this](auto& objLayerData) {
-					auto& [objs, selectedObjIt, layer, isSelected] = objLayerData;
-					if (objs == nullptr) {
-						return STAY_IN_LOOP;
-					}
-					if (!isSelected) {
-						return STAY_IN_LOOP;
-					}
-					edit(objLayerData, mousePos);
-					return BREAK_FROM_LOOP;
-				}, m_objLayers);
-				if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) { //if we have a new clicked 
-					iterateStructs([&](auto& objLayerData) {
-						return selectObj(objLayerData, mousePos);
-					}, m_objLayers);
-				}
-			}
-			
-			template<RenderObject Object>
-			void reseat(std::vector<Object>* objLayer, size_t layer) {
-				assert(objLayer != nullptr);
-				std::get<ObjectLayerData<Object>>(m_objLayers) = { objLayer, objLayer->end(), layer, false };
-			}
-		};
-
-		//texture object that stores the file path from which it was loaded
-		struct LoadedTextureObject : public TextureObject, SharedIDObject {
-			LoadedTextureObject(std::string_view path, TexturePtr tex, TextureData texData);
-			std::shared_ptr<const std::string> path;
 		};
 
 		template<RenderObject Object>
-		void makeOneLayerMoreVisible(Layers<Object>& objLayers, int visibleLayer, Uint8 reducedOpacity) {
+		struct SelectedObjectData {
+			EditedObjectData<Object>* obj                                     = nullptr;
+			std::vector<EditedObjectData<Object>>* objLayer = nullptr;
+			std::vector<EditedObjectData<Object>>::iterator it;
+		};
+
+		template<RenderObject Object>
+		void edit(SelectedObjectData<Object>& editedObj) {
+			auto mousePos = convertPair<SDL_Point>(ImGui::GetMousePos());
+			if (editedObj.obj->obj.containsCoord(mousePos)) {
+				auto mouseChange = convertPair<SDL_Point>(ImGui::GetMouseDragDelta());
+				editedObj.obj->obj.move(mouseChange);
+				ImGui::ResetMouseDragDelta();
+			}
+
+			ImGui::Text("Size");
+
+			//setting size
+			if constexpr (SizeableObject<Object>) {
+				if (ImGui::InputInt("width", &editedObj.obj->width)) {
+					editedObj.obj->obj.setSize(editedObj.obj->width, editedObj.obj->height);
+				}
+				if (ImGui::InputInt("height", &editedObj.obj->height)) {
+					editedObj.obj->obj.setSize(editedObj.obj->width, editedObj.obj->height);
+				}
+			}
+
+			//scaling texture
+			int oldScale = editedObj.obj->scale;
+			if (ImGui::SliderInt("Scale", &editedObj.obj->scale, 0, 1500)) {
+				int deltaScale = editedObj.obj->scale - oldScale;
+				editedObj.obj->obj.scale(deltaScale, deltaScale);
+			}
+
+			//rotation
+			if constexpr (RotatableObject<Object>) {
+				ImGui::Text("Rotation");
+				auto floatAngle = static_cast<float>(editedObj.obj->angle);
+				if (ImGui::SliderFloat("Angle", &floatAngle, 0.0f, 360.0f)) {
+					editedObj.obj->obj.rotate(static_cast<double>(floatAngle), editedObj.obj->rotationPoint);
+				}
+				if (ImGui::InputInt("Rotation x", &editedObj.obj->rotationPoint.x)) {
+					editedObj.obj->obj.rotate(static_cast<double>(floatAngle), editedObj.obj->rotationPoint);
+				}
+				if (ImGui::InputInt("Rotation y", &editedObj.obj->rotationPoint.y)) {
+					editedObj.obj->obj.rotate(static_cast<double>(floatAngle), editedObj.obj->rotationPoint);
+				}
+				editedObj.obj->angle = static_cast<double>(floatAngle);
+			}
+
+			//duplication 
+			if (ImGui::Button("Duplicate")) {
+				editedObj.objLayer->push_back(*editedObj.obj);
+				editedObj.obj = &editedObj.objLayer->back();
+				editedObj.it = std::prev(editedObj.objLayer->end());
+			}
+
+			//deletion
+			if (ImGui::Button("Delete")) {
+				editedObj.objLayer->erase(editedObj.it);
+				editedObj.obj = nullptr;
+			}
+		}
+
+		template<RenderObject Object>
+		void makeOneLayerMoreVisible(Layers<EditedObjectData<Object>>& objLayers, int visibleLayer, Uint8 reducedOpacity) {
 			auto reduceOpacity = [&](auto range) {
 				for (auto& [layer, objLayer] : range) {
-					for (auto& obj : objLayer) {
-						obj.setOpacity(reducedOpacity);
+					for (auto& editedObj : objLayer) {
+						editedObj.obj.setOpacity(reducedOpacity);
 					}
 				}
 			};
-			auto beforeVisibleLayer = ranges::subrange(objLayers.begin(), objLayers.begin() + visibleLayer);
-			auto afterVisibleLayer  = ranges::subrange(objLayers.begin() + visibleLayer + 1, objLayers.end());
-			reduceOpacity(beforeVisibleLayer); 
-			reduceOpacity(afterVisibleLayer);
-
+			
 			//set to full opacity in case it was already reduced before we called this function
-			for (auto& obj : objLayers[visibleLayer]) {
-				obj.setOpacity(255);
+			for (auto& editedObj : objLayers[visibleLayer]) {
+				editedObj.obj.setOpacity(255);
+			}
+
+			auto visibleLayerIt = objLayers.find(visibleLayer);
+			auto beforeVisibleLayer = ranges::subrange(objLayers.begin(), visibleLayerIt);
+			auto afterVisibleLayer = ranges::subrange(std::next(visibleLayerIt), objLayers.end());
+			reduceOpacity(beforeVisibleLayer);
+			reduceOpacity(afterVisibleLayer);
+		}
+		
+		template<RenderObject... Objects>
+		void renderCopy(SDL_Renderer* renderer, const Layers<EditedObjectData<Objects>>&... objLayers) {
+			auto renderImpl = [&](const auto& layers) {
+				for (const auto& [layer, objLayer] : layers) {
+					for (const auto& editedObj : objLayer) {
+						editedObj.obj.render(renderer);
+					}
+				}
+			};
+			((renderImpl(objLayers)), ...);
+		}
+
+		template<RenderObject Object>
+		void saveObjects(const Layers<EditedObjectData<Object>>& objLayers, json& objLayersRoot) {
+			for (const auto& [layer, objs] : objLayers) {
+				auto& newLayerJson = objLayersRoot.emplace_back();
+				newLayerJson["layer"] = layer;
+				
+				auto& objsJson = newLayerJson["objects"];
+				objsJson = json::array();
+				for (const auto& editedObj : objs) {
+					editedObj.obj.save(objsJson.emplace_back());
+				}
 			}
 		}
 	}

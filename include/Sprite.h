@@ -9,14 +9,22 @@
 #include "Texture.h"
 
 namespace nv {
-	struct Sprite {
+	class Scene;
+	namespace editor { 
+		class SceneEditor; 
+		class SpriteEditor;
+	}
+
+	class Sprite {
+	private:
+		Layers<TextureObject> m_texObjLayers;
+		int m_currLayer = 0;
+	public:
+		Sprite(SDL_Renderer* renderer, const json& json, TextureMap& texMap);
+
 		using JsonFormat = Layers<std::pair<std::string, TextureData>>;
 
-		using TextureLayers = Layers<TextureObject>;
-		TextureLayers texObjLayers;
-		int currLayer = 0;
-
-		TextureData& texData(size_t texIdx);
+		TextureData& getTexData(size_t texIdx);
 
 		void setPos(int destX, int destY) noexcept;
 		void setPos(SDL_Point p) noexcept;
@@ -36,7 +44,10 @@ namespace nv {
 		void setOpacity(Uint8 opacity);
 
 		void render(SDL_Renderer* renderer) const noexcept;
-	};
 
-	using Sprites = std::vector<Sprite>;
+		void save(json& json) const;
+
+		friend class editor::SceneEditor;
+		friend class editor::SpriteEditor;
+	};
 }

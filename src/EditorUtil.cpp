@@ -70,15 +70,11 @@ std::optional<std::string> nv::editor::saveFile(std::wstring openMessage) {
 	ofn.lpstrDefExt = L"txt";
 	ofn.lpstrFileTitle = szInitialFileName; // Initial file name
 
-	// Display the Save dialog
 	if (GetSaveFileName(&ofn)) {
-		// Save the file
 		HANDLE hFile = CreateFile(ofn.lpstrFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFile != INVALID_HANDLE_VALUE) {
-			// Replace this with the data you want to save in the file
-			const char* dataToSave = "This is an example content to save in the file.";
 			DWORD dwBytesWritten;
-			WriteFile(hFile, dataToSave, strlen(dataToSave), &dwBytesWritten, NULL);
+			WriteFile(hFile, "", strlen(""), &dwBytesWritten, NULL);
 			CloseHandle(hFile);
 			std::wstring wpath = szFile;
 			std::ranges::replace(wpath, L'\\', L'/');
@@ -86,9 +82,4 @@ std::optional<std::string> nv::editor::saveFile(std::wstring openMessage) {
 		}
 	}
 	return std::nullopt;
-}
-
-nv::editor::LoadedTextureObject::LoadedTextureObject(std::string_view path, TexturePtr tex, TextureData pos)
-	: path{ std::make_shared<std::string>(path) }, TextureObject{ std::move(tex), std::move(pos) }
-{
 }

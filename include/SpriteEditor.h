@@ -1,8 +1,6 @@
 #pragma once
 
-#include <deque>
-
-#include <hash_table7.hpp>
+#include <unordered_map>
 
 #include "EditorUtil.h"
 
@@ -12,12 +10,13 @@ namespace nv {
 		private:
 			SDL_Renderer* m_renderer;
 
-			Layers<LoadedTextureObject> m_texLayers;
+			Layers<EditedObjectData<TextureObject>> m_texLayers;
+			SelectedObjectData<TextureObject> m_selectedTexObj;
+			bool m_isTexSelected = false;
+
 			int m_currLayer = 0;
 			int m_currLayoutLayer = 0;
 
-			ObjectEditor<LoadedTextureObject> m_texDataEditor;
-			
 			void open(SDL_Renderer* renderer);
 			void save();
 			void insertTextures(SDL_Renderer* renderer);

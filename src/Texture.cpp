@@ -2,20 +2,41 @@
 
 #include <print>
 
-nv::TextureDestructorWrapper::TextureDestructorWrapper(SDL_Texture* tex) noexcept
-	: raw(tex) {}
-
-nv::TextureDestructorWrapper::~TextureDestructorWrapper() noexcept {
-	SDL_DestroyTexture(raw);
-}
-
-nv::TextureObject::TextureObject(TexturePtr tex, TextureData texData) 
-	: tex{ std::move(tex) }, texData{std::move(texData)}
+nv::TextureRAII::TextureRAII(SDL_Texture* tex) noexcept
+	: raw(tex) 
 {
 }
 
+nv::TextureRAII::~TextureRAII() noexcept {
+	SDL_DestroyTexture(raw);
+}
+
+nv::TextureObject::TextureObject(std::string_view path, TexturePtr texPtr, TextureData texData) 
+	: texPath{ std::make_shared<std::string>(path) }, m_texVariant{ std::move(texPtr) }, texData{ std::move(texData) }
+{
+	tex = std::get<TexturePtr>(m_texVariant)->raw;
+}
+
+nv::TextureObject::TextureObject(std::string_view texPath, SDL_Texture* rawTex, TextureData texData)
+	: texPath{ std::make_shared<std::string>(texPath) }, m_texVariant { std::move(rawTex) }, texData{ std::move(texData) }
+{
+	tex = rawTex;
+}
+
+nv::TextureObject::TextureObject(SDL_Renderer* renderer, const json& json, TextureMap& texMap) {
+	auto texPath = json["texture_path"].get<std::string>();
+	auto texPathIt = texMap.find(texPath);
+	if (texPathIt != texMap.end()) {
+		tex = texPathIt->second.raw;
+	} else {
+		tex = IMG_LoadTexture(renderer, texPath.c_str());
+		texMap.emplace(std::piecewise_construct, std::forward_as_tuple(std::move(texPath)), std::forward_as_tuple(tex));
+	}
+	texData = json["texture_object_data"].get<TextureData>();
+}
+
 void nv::TextureObject::setOpacity(Uint8 opacity) noexcept {
-	SDL_SetTextureAlphaMod(tex->raw, opacity);
+	SDL_SetTextureAlphaMod(tex, opacity);
 }
 
 void nv::TextureObject::setPos(int x, int y) noexcept {
@@ -64,8 +85,12 @@ void nv::TextureObject::rotate(double angle, SDL_Point rotationPoint) noexcept {
 }
 
 void nv::TextureObject::render(SDL_Renderer* renderer) const noexcept {
-	SDL_RenderDrawPoint(renderer, texData.rotationPoint.x, texData.rotationPoint.y);
-	SDL_RenderCopyEx(renderer, tex->raw, nullptr, &texData.ren.rect, texData.angle, &texData.rotationPoint, texData.flip);
+	SDL_RenderCopyEx(renderer, tex, nullptr, &texData.ren.rect, texData.angle, &texData.rotationPoint, texData.flip);
+}
+
+void nv::TextureObject::save(json& json) const {
+	json["texture_path"] = *texPath;
+	json["texture_object_data"] = texData;
 }
 
 void nv::TextureObject::setRotationCenter() noexcept {

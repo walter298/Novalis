@@ -2,28 +2,28 @@
 
 #include <fstream>
 #include <string_view>
+#include <unordered_map>
+#include <variant>
 
 #include <SDL2/SDL_image.h>
 
 #include "Rect.h"
 
 namespace nv {
-	struct TextureDestructorWrapper {
+	struct TextureRAII {
 		SDL_Texture* raw = nullptr;
 
-		TextureDestructorWrapper() = default;
-		explicit TextureDestructorWrapper(SDL_Texture* texture) noexcept;
+		TextureRAII() = default;
+		explicit TextureRAII(SDL_Texture* texture) noexcept;
 
-		TextureDestructorWrapper(const TextureDestructorWrapper&) = delete;
-		TextureDestructorWrapper& operator=(const TextureDestructorWrapper&) = delete;
+		TextureRAII(const TextureRAII&)            = delete;
+		TextureRAII& operator=(const TextureRAII&) = delete;
 
-		TextureDestructorWrapper(TextureDestructorWrapper&&) noexcept = default;
-		TextureDestructorWrapper& operator=(TextureDestructorWrapper&&) noexcept = default;
-
-		~TextureDestructorWrapper() noexcept;
+		~TextureRAII() noexcept;
 	};
 
-	using TexturePtr = std::shared_ptr<TextureDestructorWrapper>;
+	using TextureMap = std::unordered_map<std::string, TextureRAII>;
+	using TexturePtr = std::shared_ptr<TextureRAII>;
 
 	struct TextureData {
 		Rect ren;
@@ -33,11 +33,16 @@ namespace nv {
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 	};
 
-	struct TextureObject {
-		TextureObject() = default;
-		TextureObject(TexturePtr texPtr, TextureData texData);
-		
-		TexturePtr tex;
+	class TextureObject {
+	private:
+		std::variant<TexturePtr, SDL_Texture*> m_texVariant;
+	public:
+		TextureObject(std::string_view texPath, TexturePtr texPtr, TextureData texData);
+		TextureObject(std::string_view texPath, SDL_Texture* rawTex, TextureData texData);
+		TextureObject(SDL_Renderer* renderer, const json& json, TextureMap& texMap);
+
+		std::shared_ptr<const std::string> texPath = nullptr;
+		SDL_Texture* tex = nullptr;
 		TextureData texData;
 		
 		void setOpacity(Uint8 opacity) noexcept;
@@ -63,5 +68,7 @@ namespace nv {
 		bool containsCoord(SDL_Point p) const noexcept;
 
 		void render(SDL_Renderer* renderer) const noexcept;
+
+		void save(json& json) const;
 	};
 }

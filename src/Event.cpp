@@ -42,11 +42,11 @@ void nv::EventHandler::operator()() noexcept {
 
 	runEvents(m_periodicEvents);
 
-	while (true) {
-		bool stop = false;
-		SDL_PollEvent(&m_SDLEvt);
-
+	while (SDL_PollEvent(&m_SDLEvt)) {
 		switch (m_SDLEvt.type) {
+		case SDL_QUIT:
+			runEvents(m_quitEvents);
+			break;
 		case SDL_KEYDOWN || SDL_KEYUP:
 			m_keymap[m_SDLEvt.key.keysym.scancode] = static_cast<bool>(m_SDLEvt.key.state);
 			break;

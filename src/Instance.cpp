@@ -10,17 +10,6 @@ void nv::Instance::quit() {
 	SDL_Quit();
 }
 
-SDL_Texture* nv::Instance::getTexture(std::string_view str) {
-	auto texIt = m_textures.find(str.data());
-	if (texIt != m_textures.end()) {
-		return texIt->second.raw;
-	} 
-	auto newTex = IMG_LoadTexture(renderer, str.data());
-	assert(newTex != nullptr);
-	m_textures.emplace(str.data(), newTex);
-	return newTex;
-}
-
 nv::Instance::Instance(std::string_view windowTitle) {
 	auto exitWithError = [this] {
 		std::println("{}", SDL_GetError());

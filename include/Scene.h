@@ -1,15 +1,6 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include <algorithm>
-#include <deque>
-#include <fstream>
-#include <memory>
-#include <ranges>
-#include <string>
-#include <thread>
-#include <vector>
-
 #include <nlohmann/json.hpp>
 
 #include "Event.h"
@@ -21,14 +12,8 @@ namespace nv {
 	class Scene {
 	private:
 		SDL_Renderer* m_renderer;
-		void loadSpriteClones(const json& j, SDL_Renderer* renderer);
+		TextureMap m_texMap;
 	public:
-		template<typename T>
-		using IDMap = std::vector<std::pair<std::string, std::vector<T>>>;
-
-		using SpriteCloneData = std::pair<int, Layers<TextureData>>;
-		//using SpriteData  = IDMap<SpriteCloneData>;
-		
 		bool running = false;
 
 		Layers<Sprite> sprites;

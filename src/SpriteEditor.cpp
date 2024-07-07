@@ -1,5 +1,7 @@
 #include "SpriteEditor.h"
 
+#include <fstream>
+
 using nv::editor::SpriteEditor;
 
 void nv::editor::SpriteEditor::open(SDL_Renderer* renderer) {
@@ -14,11 +16,10 @@ void nv::editor::SpriteEditor::open(SDL_Renderer* renderer) {
 			m_texLayers.reserve(texJsonData.size());
 
 			for (auto& [layer, texObjs] : texJsonData) {
-				m_texLayers.emplace();
-				auto& back = getBack(m_texLayers).second;
-				back.reserve(texObjs.size());
+				auto& currTexLayer = m_texLayers[layer];
+				currTexLayer.reserve(texObjs.size());
 				for (auto& [texPath, texData] : texObjs) {
-					back.emplace_back(texPath, std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, texPath.c_str())), std::move(texData));
+					currTexLayer.emplace_back(texPath, std::make_shared<TextureRAII>(IMG_LoadTexture(renderer, texPath.c_str())), std::move(texData));
 				}
 			}
 		} catch (json::exception e) {
@@ -28,20 +29,27 @@ void nv::editor::SpriteEditor::open(SDL_Renderer* renderer) {
 }
 
 void nv::editor::SpriteEditor::save() {
+
 	auto filename = saveFile(L"Save Texture");
-	if (filename) {
-		Sprite::JsonFormat spriteJson;
-		for (const auto& [layer, texObjs] : m_texLayers) {
-			spriteJson.emplace();
-			auto& currDataLayer = getBack(spriteJson).second;
-			for (const auto& tex : texObjs) {
-				currDataLayer.emplace_back(*tex.path, tex.texData);
-			}
-		}
-		std::ofstream file{ *filename };
-		file << json{ spriteJson }.dump(2);
-		file.close();
+	if (!filename) {
+		return;
 	}
+
+	Sprite::JsonFormat texObjsJson;
+	for (const auto& [layer, texObjs] : m_texLayers) {
+		for (const auto& editedObj : texObjs) {
+			texObjsJson[layer].emplace_back(*editedObj.obj.texPath, editedObj.obj.texData);
+		}
+	}
+
+	json json;
+	json["texture_object_layers"] = std::move(texObjsJson);
+
+	//write json
+	std::ofstream file{ *filename };
+	assert(file.is_open());
+	file << json.dump(2);
+	file.close();
 } 
 
 void nv::editor::SpriteEditor::insertTextures(SDL_Renderer* renderer) {
@@ -50,14 +58,19 @@ void nv::editor::SpriteEditor::insertTextures(SDL_Renderer* renderer) {
 		TextureData defaultPos;
 		defaultPos.ren.setPos(400, 400);
 		defaultPos.ren.setSize(300, 300);
+		auto& currLayer = m_texLayers[m_currLayer];
 		for (const auto& texPath : *texPaths) {
-			m_texLayers[m_currLayer].emplace_back(
-				texPath,
-				std::make_shared<TextureDestructorWrapper>(IMG_LoadTexture(renderer, texPath.c_str())),
+			currLayer.emplace_back(
+				texPath, //todo: make texPath part of TextureObject constructor
+				std::make_shared<TextureRAII>(IMG_LoadTexture(renderer, texPath.c_str())),
 				defaultPos
 			);
 			defaultPos.ren.rect.x += 300;
 		}
+		m_selectedTexObj.obj      = &currLayer.back();
+		m_selectedTexObj.objLayer = &currLayer;
+		m_selectedTexObj.it       = std::prev(currLayer.end());
+		m_isTexSelected           = true;
 	}
 }
 
@@ -70,7 +83,7 @@ void nv::editor::SpriteEditor::setIdenticalLayout() {
 		return;
 	}
 	for (auto [texToMove, targetTex] : views::zip(texsToMove, targetTexs)) {
-		texToMove.setPos(targetTex.getPos());
+		texToMove.obj.setPos(targetTex.obj.getPos());
 	}
 }
 
@@ -85,7 +98,6 @@ void SpriteEditor::showSpriteOptions(SDL_Renderer* renderer) {
 
 	//select layer
 	if (ImGui::InputInt("Layer", &m_currLayer)) {
-		m_texDataEditor.reseat(&m_texLayers[m_currLayer], m_currLayer);
 		makeOneLayerMoreVisible(m_texLayers, m_currLayer, 100);
 	}
 
@@ -111,13 +123,31 @@ void SpriteEditor::showSpriteOptions(SDL_Renderer* renderer) {
 }
 
 SpriteEditor::SpriteEditor(SDL_Renderer* renderer) noexcept
-	: m_renderer{ renderer }, m_texDataEditor { { 0, 500 } }
+	: m_renderer{ renderer } //m_texDataEditor { { 0, 500 } }
 {
 }
 
 nv::editor::EditorDest SpriteEditor::imguiRender() {
 	showSpriteOptions(m_renderer);
-	m_texDataEditor();
+	auto& currLayer = m_texLayers[m_currLayer];
+	if (currLayer.empty()) {
+		return EditorDest::None;
+	}
+	if (m_isTexSelected) {
+		edit(m_selectedTexObj);
+		if (m_selectedTexObj.obj == nullptr) { //if we deleted a texture object
+			m_isTexSelected = false;
+		}
+	} 
+	if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+		auto selectedObj = selectObj(currLayer, convertPair<SDL_Point>(ImGui::GetMousePos()));
+		if (selectedObj != currLayer.end()) {
+			m_selectedTexObj.obj      = &(*selectedObj);
+			m_selectedTexObj.objLayer = &currLayer;
+			m_selectedTexObj.it       = selectedObj;
+			m_isTexSelected = true;
+		} 
+	}
 	return EditorDest::None;
 }
 
