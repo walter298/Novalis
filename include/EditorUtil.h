@@ -15,12 +15,13 @@
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
+#include <imgui_stdlib.h>
 
 #include <hash_set8.hpp>
 
-#include "Instance.h"
 #include "Renderer.h"
 #include "ID.h"
+#include "Text.h"
 
 namespace nv {
 	namespace editor {
@@ -137,19 +138,31 @@ namespace nv {
 			int height = 0;
 			double angle = 0;
 			SDL_Point rotationPoint{ 0, 0 };
+			std::string name{ "name" };
 
 			template<typename... Args>
-			EditedObjectData(Args&&... args)// requires(std::constructible_from<Object, Args...>)
+			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Object, Args...>)
 				: obj{ std::forward<Args>(args)... }
 			{
+				if constexpr (SizeableObject<Object>) {
+					auto size = obj.getSize();
+					width = size.x;
+					height = size.y;
+				}
 			}
 		};
 
 		template<RenderObject Object>
 		struct SelectedObjectData {
-			EditedObjectData<Object>* obj                                     = nullptr;
+			EditedObjectData<Object>* obj                   = nullptr;
 			std::vector<EditedObjectData<Object>>* objLayer = nullptr;
 			std::vector<EditedObjectData<Object>>::iterator it;
+
+			void resetToLastElement(std::vector<EditedObjectData<Object>>* newObjLayer) {
+				obj      = &newObjLayer->back();
+				objLayer = newObjLayer;
+				it       = std::prev(std::end(*newObjLayer));
+			}
 		};
 
 		template<RenderObject Object>
@@ -159,6 +172,14 @@ namespace nv {
 				auto mouseChange = convertPair<SDL_Point>(ImGui::GetMouseDragDelta());
 				editedObj.obj->obj.move(mouseChange);
 				ImGui::ResetMouseDragDelta();
+			}
+
+			//if we are editing text
+			if constexpr (std::same_as<Object, Text>) {
+				std::string temp = editedObj.obj->obj.value().data();
+				if (ImGui::InputText("Value", &temp)) {
+					editedObj.obj->obj = temp;
+				}
 			}
 
 			ImGui::Text("Size");
@@ -196,11 +217,17 @@ namespace nv {
 				editedObj.obj->angle = static_cast<double>(floatAngle);
 			}
 
+			if (ImGui::InputText("Name", &editedObj.obj->name)) {
+				return;
+			}
+
 			//duplication 
-			if (ImGui::Button("Duplicate")) {
-				editedObj.objLayer->push_back(*editedObj.obj);
-				editedObj.obj = &editedObj.objLayer->back();
-				editedObj.it = std::prev(editedObj.objLayer->end());
+			if constexpr (std::copyable<Object>) {
+				if (ImGui::Button("Duplicate")) {
+					editedObj.objLayer->push_back(*editedObj.obj);
+					editedObj.obj = &editedObj.objLayer->back();
+					editedObj.it = std::prev(editedObj.objLayer->end());
+				}
 			}
 
 			//deletion
@@ -233,11 +260,11 @@ namespace nv {
 		}
 		
 		template<RenderObject... Objects>
-		void renderCopy(SDL_Renderer* renderer, const Layers<EditedObjectData<Objects>>&... objLayers) {
+		void renderCopy(const Layers<EditedObjectData<Objects>>&... objLayers) {
 			auto renderImpl = [&](const auto& layers) {
 				for (const auto& [layer, objLayer] : layers) {
 					for (const auto& editedObj : objLayer) {
-						editedObj.obj.render(renderer);
+						editedObj.obj.render();
 					}
 				}
 			};
@@ -253,9 +280,23 @@ namespace nv {
 				auto& objsJson = newLayerJson["objects"];
 				objsJson = json::array();
 				for (const auto& editedObj : objs) {
-					editedObj.obj.save(objsJson.emplace_back());
+					auto& objJson = objsJson.emplace_back();
+					editedObj.obj.save(objJson);
+					objJson["name"] = editedObj.name;
 				}
 			}
+		}
+
+		template<RenderObject... Objects>
+		void cameraMove(int dx, int dy, Layers<EditedObjectData<Objects>>&... objLayers) {
+			auto moveImpl = [&](auto& layers) {
+				for (auto& [layer, objLayer] : layers) {
+					for (auto& objData : objLayer) {
+						objData.obj.move(dx, dy);
+					}
+				}
+			};
+			((moveImpl(objLayers)), ...);
 		}
 	}
 }

@@ -9,13 +9,13 @@
 #include "Texture.h"
 
 namespace nv {
-	class Scene;
+	struct Scene;
 	namespace editor { 
 		class SceneEditor; 
 		class SpriteEditor;
 	}
 
-	class Sprite {
+	class Sprite : public NamedObject {
 	private:
 		Layers<TextureObject> m_texObjLayers;
 		int m_currLayer = 0;
@@ -43,7 +43,7 @@ namespace nv {
 
 		void setOpacity(Uint8 opacity);
 
-		void render(SDL_Renderer* renderer) const noexcept;
+		void render() const noexcept;
 
 		void save(json& json) const;
 

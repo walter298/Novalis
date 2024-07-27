@@ -5,11 +5,34 @@
 
 namespace nv {
 	template<RenderObject... Objects>
-	void renderCopy(SDL_Renderer* renderer, const Layers<Objects>&... objLayers) {
+	void renderCopy(const Layers<Objects>&... objLayers) {
 		auto renderImpl = [&](const auto& layers) {
 			for (const auto& [layer, objLayer] : layers) {
 				for (const auto& obj : objLayer) {
-					obj.render(renderer);
+					obj.render();
+				}
+			}
+		};
+		((renderImpl(objLayers)), ...);
+	}
+	template<RenderObject... Objects>
+	void renderCopyRefs(const Layers<std::reference_wrapper<Objects>>&... objLayers) {
+		auto renderImpl = [&](const auto& layers) {
+			for (const auto& [layer, objLayer] : layers) {
+				for (const auto& obj : objLayer) {
+					obj.get().render();
+				}
+			}
+		};
+		((renderImpl(objLayers)), ...);
+	}
+
+	template<RenderObject... Objects>
+	void cameraMove(int dx, int dy, const Layers<Objects>&... objLayers) {
+		auto renderImpl = [&](const auto& layers) {
+			for (const auto& [layer, objLayer] : layers) {
+				for (const auto& obj : objLayer) {
+					obj.move(dx, dy);
 				}
 			}
 		};

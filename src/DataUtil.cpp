@@ -1,5 +1,7 @@
 #include "DataUtil.h"
 
+#include <fstream>
+
 template<std::integral T>
 using Quad = std::tuple<T, T, T, T>;
 
@@ -36,7 +38,7 @@ const std::string& nv::workingDirectory() {
 }
 
 std::optional<std::string> nv::fileExtension(const std::string& fileName) {
-	auto dotPos = std::ranges::find(fileName, '.');
+	auto dotPos = ranges::find(fileName, '.');
 	if (dotPos == fileName.end()) {
 		return std::nullopt;
 	}
@@ -44,11 +46,21 @@ std::optional<std::string> nv::fileExtension(const std::string& fileName) {
 }
 
 std::string_view nv::fileName(std::string_view filePath) {
-	auto dotIdx = filePath.find_last_of('.');
-	assert(dotIdx != std::string::npos && dotIdx + 1 < filePath.size());
-	return filePath.substr(dotIdx + 1);
+	auto slashIdx = filePath.find_last_of('\\');
+	auto dotIdx   = filePath.find_last_of('.');
+	return filePath.substr(slashIdx + 1, dotIdx - slashIdx - 1);
 }
 
 std::string nv::writeCloneID(std::string_view str) {
 	return "clone_"s + str.data();
+}
+
+nlohmann::json nv::parseFile(std::string_view filename) {
+	std::ifstream file{ filename.data() };
+	assert(file.is_open());
+	return json::parse(file);
+}
+
+const std::string& nv::NamedObject::getName() const noexcept {
+	return m_name;
 }

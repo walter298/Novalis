@@ -1,5 +1,7 @@
 #include "EditorApp.h"
 
+#include "Instance.h"
+
 void nv::editor::runEditors() {
 	Instance instance{ "Novalis" };
 	

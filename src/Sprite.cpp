@@ -7,10 +7,10 @@ nv::Sprite::Sprite(SDL_Renderer* renderer, const json& json, TextureMap& texMap)
 			auto texIt = texMap.find(texPath);
 			if (texIt == texMap.end()) {
 				auto tex = IMG_LoadTexture(renderer, texPath.c_str());
-				m_texObjLayers[layer].emplace_back(texPath, tex, texData);
-				texMap.emplace(std::piecewise_construct, std::forward_as_tuple(texPath), std::forward_as_tuple(tex));
+				m_texObjLayers[layer].emplace_back(renderer, texPath, tex, texData);
+				texMap.emplace(std::piecewise_construct, std::forward_as_tuple(texPath), std::forward_as_tuple(tex, SDL_DestroyTexture));
 			} else {
-				m_texObjLayers[layer].emplace_back(texPath, texIt->second.raw, texData);
+				m_texObjLayers[layer].emplace_back(renderer, texPath, texIt->second.get(), texData);
 			}
 		}
 	}
@@ -77,9 +77,9 @@ void nv::Sprite::setOpacity(Uint8 opacity) {
 	}
 }
 
-void nv::Sprite::render(SDL_Renderer* renderer) const noexcept {
+void nv::Sprite::render() const noexcept {
 	for (const auto& texData : m_texObjLayers.at(m_currLayer)) {
-		texData.render(renderer);
+		texData.render();
 	}
 }
 
@@ -87,7 +87,7 @@ void nv::Sprite::save(json& json) const {
 	Sprite::JsonFormat jsonFormat;
 	for (const auto& [layer, texObjs] : m_texObjLayers) {
 		for (const auto& texObj : texObjs) {
-			jsonFormat[layer].emplace_back(*texObj.texPath, texObj.texData);
+			jsonFormat[layer].emplace_back(texObj.getTexPath(), texObj.texData);
 		}
 	}
 	json["texture_object_layers"] = std::move(jsonFormat);

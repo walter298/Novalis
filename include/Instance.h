@@ -1,14 +1,13 @@
 #ifndef INSTANCE_H
 #define INSTANCE_H
 
-#include "Sound.h"
-#include "Sprite.h"
-#include "Texture.h"
+#include <string_view>
+
+#include <SDL2/SDL.h>
 
 namespace nv {
 	class Instance {
 	private:
-		TextureMap m_textures;
 		void quit();
 	public:
 		SDL_Window* window     = nullptr;

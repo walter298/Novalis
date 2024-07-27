@@ -10,20 +10,13 @@
 #include "Rect.h"
 
 namespace nv {
-	struct TextureRAII {
-		SDL_Texture* raw = nullptr;
-
-		TextureRAII() = default;
-		explicit TextureRAII(SDL_Texture* texture) noexcept;
-
-		TextureRAII(const TextureRAII&)            = delete;
-		TextureRAII& operator=(const TextureRAII&) = delete;
-
-		~TextureRAII() noexcept;
-	};
+	using TextureRAII = std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)>;
+	TextureRAII loadTexture(SDL_Renderer* renderer, std::string_view texPath) noexcept;
 
 	using TextureMap = std::unordered_map<std::string, TextureRAII>;
-	using TexturePtr = std::shared_ptr<TextureRAII>;
+
+	using SharedTexture = std::shared_ptr<SDL_Texture>;
+	SharedTexture loadSharedTexture(SDL_Renderer* renderer, std::string_view texPath) noexcept;
 
 	struct TextureData {
 		Rect ren;
@@ -33,16 +26,19 @@ namespace nv {
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 	};
 
-	class TextureObject {
+	class TextureObject : public NamedObject {
 	private:
-		std::variant<TexturePtr, SDL_Texture*> m_texVariant;
+		SDL_Renderer* m_renderer;
+		std::variant<SharedTexture, SDL_Texture*> m_texVariant;
+		SDL_Texture* m_tex = nullptr;
+		std::shared_ptr<const std::string> m_texPath = nullptr;
 	public:
-		TextureObject(std::string_view texPath, TexturePtr texPtr, TextureData texData);
-		TextureObject(std::string_view texPath, SDL_Texture* rawTex, TextureData texData);
+		TextureObject(SDL_Renderer* renderer, std::string_view texPath, SharedTexture texPtr, TextureData texData);
+		TextureObject(SDL_Renderer* renderer, std::string_view texPath, SDL_Texture* rawTex, TextureData texData);
 		TextureObject(SDL_Renderer* renderer, const json& json, TextureMap& texMap);
+		
+		const std::string& getTexPath() const noexcept;
 
-		std::shared_ptr<const std::string> texPath = nullptr;
-		SDL_Texture* tex = nullptr;
 		TextureData texData;
 		
 		void setOpacity(Uint8 opacity) noexcept;
@@ -58,6 +54,8 @@ namespace nv {
 		void setSize(int w, int h) noexcept;
 		void setSize(SDL_Point p);
 
+		SDL_Point getSize() const noexcept;
+
 		void scale(int dx, int dy) noexcept;
 		void scale(SDL_Point change) noexcept;
 
@@ -67,7 +65,7 @@ namespace nv {
 		bool containsCoord(int x, int y) const noexcept;
 		bool containsCoord(SDL_Point p) const noexcept;
 
-		void render(SDL_Renderer* renderer) const noexcept;
+		void render() const noexcept;
 
 		void save(json& json) const;
 	};

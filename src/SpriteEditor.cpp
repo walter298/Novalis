@@ -1,5 +1,7 @@
 #include "SpriteEditor.h"
 
+#include "Sprite.h"
+
 #include <fstream>
 
 using nv::editor::SpriteEditor;
@@ -19,7 +21,7 @@ void nv::editor::SpriteEditor::open(SDL_Renderer* renderer) {
 				auto& currTexLayer = m_texLayers[layer];
 				currTexLayer.reserve(texObjs.size());
 				for (auto& [texPath, texData] : texObjs) {
-					currTexLayer.emplace_back(texPath, std::make_shared<TextureRAII>(IMG_LoadTexture(renderer, texPath.c_str())), std::move(texData));
+					currTexLayer.emplace_back(renderer, texPath, loadSharedTexture(renderer, texPath), std::move(texData));
 				}
 			}
 		} catch (json::exception e) {
@@ -29,7 +31,6 @@ void nv::editor::SpriteEditor::open(SDL_Renderer* renderer) {
 }
 
 void nv::editor::SpriteEditor::save() {
-
 	auto filename = saveFile(L"Save Texture");
 	if (!filename) {
 		return;
@@ -38,7 +39,7 @@ void nv::editor::SpriteEditor::save() {
 	Sprite::JsonFormat texObjsJson;
 	for (const auto& [layer, texObjs] : m_texLayers) {
 		for (const auto& editedObj : texObjs) {
-			texObjsJson[layer].emplace_back(*editedObj.obj.texPath, editedObj.obj.texData);
+			texObjsJson[layer].emplace_back(editedObj.obj.getTexPath(), editedObj.obj.texData);
 		}
 	}
 
@@ -50,27 +51,42 @@ void nv::editor::SpriteEditor::save() {
 	assert(file.is_open());
 	file << json.dump(2);
 	file.close();
-} 
+}
+
+void nv::editor::SpriteEditor::saveAsTextureObject() {
+	auto& currTexLayer = m_texLayers[m_currLayer];
+	if (currTexLayer.size() != 1) {
+		std::println("Error: to save as texture object, there must be exactly one texture object in the current layer");
+		return;
+	}
+	auto filename = saveFile(L"Save as .nv_texture_object");
+	if (!filename) {
+		return;
+	}
+	json json;
+	currTexLayer.front().obj.save(json);
+	std::ofstream jsonFile{ *filename };
+	jsonFile << json.dump(2);
+}
 
 void nv::editor::SpriteEditor::insertTextures(SDL_Renderer* renderer) {
 	auto texPaths = openFilePaths();
 	if (texPaths) {
 		TextureData defaultPos;
 		defaultPos.ren.setPos(400, 400);
-		defaultPos.ren.setSize(300, 300);
+		defaultPos.ren.setSize(100, 100);
 		auto& currLayer = m_texLayers[m_currLayer];
 		for (const auto& texPath : *texPaths) {
 			currLayer.emplace_back(
+				renderer,
 				texPath, //todo: make texPath part of TextureObject constructor
-				std::make_shared<TextureRAII>(IMG_LoadTexture(renderer, texPath.c_str())),
+				loadSharedTexture(renderer, texPath),
 				defaultPos
 			);
 			defaultPos.ren.rect.x += 300;
 		}
-		m_selectedTexObj.obj      = &currLayer.back();
-		m_selectedTexObj.objLayer = &currLayer;
-		m_selectedTexObj.it       = std::prev(currLayer.end());
-		m_isTexSelected           = true;
+		m_selectedTexObj.resetToLastElement(&currLayer);
+		m_isTexSelected = true;
 	}
 }
 
@@ -115,6 +131,9 @@ void SpriteEditor::showSpriteOptions(SDL_Renderer* renderer) {
 	if (ImGui::Button("Save")) {
 		save();
 	}
+	if (ImGui::Button("Save as Texture Object")) {
+		saveAsTextureObject();
+	}
 	ImGui::SameLine();
 	if (ImGui::Button("Open")) {
 		open(renderer);
@@ -151,6 +170,6 @@ nv::editor::EditorDest SpriteEditor::imguiRender() {
 	return EditorDest::None;
 }
 
-void nv::editor::SpriteEditor::sdlRender() noexcept {
-	renderCopy(m_renderer, m_texLayers);
+void nv::editor::SpriteEditor::sdlRender() const noexcept {
+	renderCopy(m_texLayers);
 }

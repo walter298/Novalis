@@ -2,11 +2,16 @@
 
 #include <print>
 
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
+
 void nv::Instance::quit() {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	IMG_Quit();
 	Mix_Quit();
+	TTF_Quit();
 	SDL_Quit();
 }
 
@@ -19,7 +24,7 @@ nv::Instance::Instance(std::string_view windowTitle) {
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || //returns zero on sucess
 		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0 ||
-		//TTF_Init() != 0 || 
+		TTF_Init() != 0 || 
 		IMG_Init(IMG_INIT_PNG) == 0)
 	{
 		exitWithError();
