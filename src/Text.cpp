@@ -8,7 +8,7 @@ nv::FontRAII nv::loadFont(std::string_view fontPath, int fontSize) {
 
 void nv::Text::changeText(std::string_view newText) noexcept {
 	m_str = newText;
-	auto surface = TTF_RenderText_Solid(m_font, newText.data(), { 0, 0, 0, 255 });
+	auto surface = TTF_RenderText_Solid(m_font, m_str.data(), { 0, 0, 0, 255 });
 	if (surface == nullptr) {
 		m_ren.setSize(0, 0);
 		return;
@@ -33,7 +33,7 @@ nv::Text::Text(SDL_Renderer* renderer, std::string_view str, std::string_view fo
 nv::Text::Text(SDL_Renderer* renderer, const json& json, FontMap& fontMap) 
 	: m_renderer{ renderer }
 {
-	m_fontPath = json["font_path"].get<std::string>();
+	m_fontPath = relativePath(json["font_path"].get<std::string>());
 	m_fontSize = json["font_size"].get<int>();
 
 	auto fontName = m_fontPath + std::to_string(m_fontSize);
@@ -48,7 +48,6 @@ nv::Text::Text(SDL_Renderer* renderer, const json& json, FontMap& fontMap)
 	m_str = json["value"].get<std::string>();
 	changeText(m_str);
 	m_ren = json["ren"].get<Rect>();
-
 	m_name = json["name"].get<std::string>();
 }
 
@@ -91,6 +90,10 @@ bool nv::Text::containsCoord(int x, int y) const noexcept {
 
 bool nv::Text::containsCoord(SDL_Point p) const noexcept {
 	return containsCoord(p.x, p.y);
+}
+
+void nv::Text::setOpacity(uint8_t a) noexcept {
+	color.a = a;
 }
 
 void nv::Text::render() const noexcept {

@@ -5,18 +5,19 @@ bool nv::Rect::isInRegion(int mx, int my, int x, int y, int w, int h) noexcept {
 		my > y && my < y + h;
 }
 
-bool nv::Rect::isInRegion(const Coord& coord, int x, int y, int w, int h) noexcept {
+bool nv::Rect::isInRegion(SDL_Point coord, int x, int y, int w, int h) noexcept {
 	return isInRegion(coord.x, coord.y, x, y, w, h);
 }
 
-nv::Rect::Rect(SDL_Renderer* renderer)
-	: renderer{ renderer }
+nv::Rect::Rect(SDL_Renderer* renderer, int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	: renderer{ renderer }, rect{ x, y, w, h }, color{ r, g, b, a }
 {
 }
 
-nv::Rect::Rect(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
-	: rect{ x, y, w, h }, color{ r, g, b, a }
-{}
+nv::Rect::Rect(SDL_Renderer* renderer, const json& json) {
+	*this = json.get<Rect>();
+	this->renderer = renderer;
+}
 
 bool nv::Rect::containsCoord(int mx, int my) const noexcept {
 	return isInRegion(mx, my, rect.x, rect.y, rect.w, rect.h);
@@ -61,13 +62,23 @@ SDL_Point nv::Rect::getSize() const noexcept {
 	return { rect.w, rect.h };
 }
 
+void nv::Rect::setOpacity(uint8_t a) {
+	color.a = a;
+}
+
 void nv::Rect::render() const noexcept {
+	assert(renderer != nullptr);
+
+	Uint8 r; Uint8 b; Uint8 g; Uint8 a;
+	SDL_GetRenderDrawColor(renderer, &r, &b, &g, &a);
+
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderFillRect(renderer, &rect);
+	SDL_SetRenderDrawColor(renderer, r, b, g, a);
 }
 
 void nv::Rect::setRenderColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) noexcept {
-	color.r = r, color.g = g, color.b = b, color.a = a;
+	std::tie(color.r, color.g, color.b, color.a) = std::tie(r, g, b, a);
 }
 
 void nv::Rect::save(json& json) const {
