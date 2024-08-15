@@ -83,33 +83,38 @@ namespace nv {
 
 	template<typename T>
 	struct FunctionTraits { //primary template assumes function call operator
-		using args = FunctionTraits<decltype(&T::operator())>::args;
+		using Args = typename FunctionTraits<decltype(&T::operator())>::Args;
+		using Ret  = typename FunctionTraits<decltype(&T::operator())>::Ret;
+		using Sig  = typename FunctionTraits<decltype(&T::operator())>::Sig;
 	};
 
-	template<typename R, typename... Args>
-	struct FunctionTraits<R(Args...)> { //specialization for functions that haven't decayed
-		using args = std::tuple<Args...>;
+	template<typename R, typename... Ts>
+	struct FunctionTraits<R(Ts...)> { //specialization for functions that haven't decayed
+		using Args = std::tuple<Ts...>;
+		using Ret  = R;
+		using Sig  = std::tuple<R, Ts...>;
 	};
 
-	template<typename R, typename... Args>
-	struct FunctionTraits<R(*)(Args...)> { //specialization for function pointers
-		using args = std::tuple<Args...>;
+	template<typename R, typename... Ts>
+	struct FunctionTraits<R(*)(Ts...)> { //specialization for function pointers
+		using Args = std::tuple<Ts...>;
+		using Ret  = R;
+		using Sig = std::tuple<R, Ts...>;
 	};
 
-	template<typename C, typename R, typename... Args>
-	struct FunctionTraits<R(C::*)(Args...) const> { //specialization for const member functions
-		using args = std::tuple<Args...>;
+	template<typename C, typename R, typename... Ts>
+	struct FunctionTraits<R(C::*)(Ts...) const> { //specialization for const member functions
+		using Args = std::tuple<Ts...>;
+		using Ret  = R;
+		using Sig = std::tuple<R, Ts...>;
 	};
 
-	template<typename C, typename R, typename... Args>
-	struct FunctionTraits<R(C::*)(Args...)> { //specialization for mutable member functions
-		using args = std::tuple<Args...>;
+	template<typename C, typename R, typename... Ts>
+	struct FunctionTraits<R(C::*)(Ts...)> { //specialization for mutable member functions
+		using Args = std::tuple<Ts...>;
+		using Ret  = R;
+		using Sig = std::tuple<R, Ts...>;
 	};
-
-	template<typename Func>
-	using ResultOfNonOverloaded = decltype(
-		std::apply(std::declval<std::decay_t<Func>>(), std::declval<typename FunctionTraits<Func>::args>())
-	);
 
 	template<typename Value, typename... Keys>
 	class TypeMap {
@@ -221,11 +226,19 @@ namespace nv {
 	struct IsReferenceWrapper<std::reference_wrapper<T>> : public std::true_type {};
 
 	template<typename T>
-	auto& unrefwrap(T& t) {
+	constexpr auto& unrefwrap(T& t) {
 		if constexpr (IsReferenceWrapper<std::remove_cvref_t<T>>::value) {
 			return t.get();
 		} else {
 			return t;
 		}
 	}
+
+	template<template<typename... Ts> typename T, typename... Ts>
+	struct GetParameterizedTypeFromTuple {};
+
+	template<template<typename... Ts> typename Parameterized, typename... Ts2>
+	struct GetParameterizedTypeFromTuple<Parameterized, std::tuple<Ts2...>> {
+		using type = Parameterized<Ts2...>;
+	};
 }

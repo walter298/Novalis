@@ -25,15 +25,26 @@ namespace nv {
 		
 		SDL_Event m_SDLEvt{};
 
-		template<typename EventT>
-		using Events = std::vector<std::pair<EventT, ID<EventT>>>;
+		template<typename Object>
+		using IDObjects = std::vector<std::pair<Object, ID<Object>>>;
+
+		template<typename Ret, typename... EventParams>
+		using Events = IDObjects<Event<Ret, EventParams...>>;
+
+		template<typename... EventParams>
+		struct EventData {
+			Events<void, EventParams...> events;
+			Events<bool, EventParams...> cancellableEvents;
+
+			std::vector<typename Events<bool, EventParams...>::iterator> cancelledEventIterators;
+		};
 
 		Keymap m_keyMap;
 		const Uint8* m_keystate = SDL_GetKeyboardState(nullptr);
 
-		std::tuple<Events<Event<>>, Events<MouseEvent>, Events<KeyboardEvent>> m_callableEvents;
+		std::tuple<EventData<>, EventData<MouseData>, EventData<const Keymap&>> m_eventData;
 
-		Events<TextInput> m_textInputs;
+		IDObjects<TextInput> m_textInputs;
 		TextInput* m_currEditedTextInput = nullptr;
 		std::string m_textInputBuff;
 		void selectTextInput();
@@ -58,6 +69,21 @@ namespace nv {
 			auto objIt = ranges::find_if(objs, [&](const auto& obj) { 
 				return unrefwrap(obj).getName() == name;
 			});
+			/*if (objIt == objs.end()) {
+				std::println("Could not find: {}", name);
+				for (const auto& [currLayer, objs] : self.m_objectLayers) {
+					std::print("{} ", currLayer);
+					forEachDataMember([](const auto& objs) {
+						std::print("\n\n{}: ", typeid(ValueType<decltype(objs)>).name());
+						for (const auto& obj : objs) {
+							std::print("{} ", unrefwrap(obj).getName());
+						}
+						std::println("");
+						return STAY_IN_LOOP;
+					}, objs);
+				}
+			}*/
+			
 			assert(objIt != objs.end());
 		
 			return *objIt;
@@ -82,45 +108,32 @@ namespace nv {
 	public:
 		template<typename EventType>
 		void removeEvent(ID<EventType> id) {
-			eraseImpl(id, std::get<Events<EventType>>(m_callableEvents), &std::pair<EventType, ID<EventType>>::second);
+			auto& eventData = std::get<EventData<EventType>>(m_eventData);
+			
+			eraseImpl(id, std::get<EventData<EventType>>(m_eventData).events, &std::pair<EventType, ID<EventType>>::second);
 		}
 		template<typename Object>
 		void removeObject(ID<Object> id, int layer) {
 			eraseImpl(id, std::get<std::vector<Object>>(m_objectLayers.at(layer)), &ObjectBase::getID);
 		}
-	private:
-		template<typename T>
-		struct GetEventsType;
-
-		template<typename... Ts>
-		struct GetEventsType<std::tuple<Ts...>> {
-			using type = Events<Event<Ts...>>;
-		};
-
-		template<typename Func>
-		using GetIDFromFunc = typename GetEventsType<typename FunctionTraits<std::decay_t<Func>>::args>::type::value_type::second_type;
-	private:
-		template<typename Events, typename Func>
-		void pushCancellableEvent(Events& events, Func&& func, GetIDFromFunc<Func> id) {
-			events.emplace_back([this, events = std::ref(events), func = std::forward<Func>(func), id = id](const auto&... args) mutable {
-				if (func(args...)) {
-					removeEvent(id);
-				}
-			}, id);
-		}
-	public:
+	
 		template<typename Func>
 		auto addEvent(Func&& func) {
-			using FuncArgs = typename FunctionTraits<std::decay_t<Func>>::args;
-			using EventsType = typename GetEventsType<FuncArgs>::type;
+			using FuncInfo = FunctionTraits<std::decay_t<Func>>;
+			using FuncArgs = typename FuncInfo::Args;
+			using FuncRet  = typename FuncInfo::Ret;
+			using FuncSig  = typename FuncInfo::Sig;
 
-			GetIDFromFunc<Func> id;
-			auto& events = std::get<EventsType>(m_callableEvents);
+			using IDSpecialization = ID<typename GetParameterizedTypeFromTuple<Event, FuncSig>::type>;
+			IDSpecialization id;
 
-			if constexpr (std::same_as<ResultOfNonOverloaded<Func>, bool>) {
-				pushCancellableEvent(events, std::forward<Func>(func), id);
+			using EventDataSpecialization = typename GetParameterizedTypeFromTuple<EventData, FuncArgs>::type;
+			auto& eventData = std::get<EventDataSpecialization>(m_eventData);
+
+			if constexpr (std::same_as<FuncRet, bool>) {
+				eventData.cancellableEvents.emplace_back(std::forward<Func>(func), id);
 			} else {
-				events.emplace_back(std::forward<Func>(func), id);
+				eventData.events.emplace_back(std::forward<Func>(func), id);
 			}
 			return id;
 		}

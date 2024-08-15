@@ -62,7 +62,7 @@ namespace nv {
 					if (evt.type == SDL_QUIT) {
 						return EditorDest::Quit;
 					} else if (evt.type == SDL_KEYDOWN) {
-						if (evt.key.keysym.scancode == SDL_SCANCODE_MINUS) {
+						if (evt.key.keysym.scancode == SDL_SCANCODE_F5) {
 							return EditorDest::Home;
 						}
 					}

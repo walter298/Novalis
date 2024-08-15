@@ -7,8 +7,8 @@
 #include <SDL2/SDL_scancode.h>
 
 namespace nv {
-	template<typename... Args> 
-	using Event = std::move_only_function<void(Args...)>;
+	template<typename Ret, typename... Args> 
+	using Event = std::move_only_function<Ret(Args...)>;
 
 	enum class MouseButtonState {
 		Down,
