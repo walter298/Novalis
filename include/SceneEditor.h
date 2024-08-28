@@ -48,15 +48,15 @@ namespace nv {
 			void showSceneOptions() noexcept;
 
 			template<typename Object>
-			void selectImpl(EditedObjectVector<Object>& objLayer, SelectedObjectData<Object>& selectedObjData) {
+			void selectImpl(EditedObjectHive<Object>& objLayer, SelectedObjectData<Object>& selectedObjData) {
 				if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-					auto selectedObj = selectObj(objLayer, convertPair<SDL_Point>(ImGui::GetMousePos()));
+					/*auto selectedObj = selectObj(objLayer, convertPair<SDL_Point>(ImGui::GetMousePos()));
 					if (selectedObj != objLayer.end()) {
 						selectedObjData.obj = &(*selectedObj);
 						selectedObjData.objLayer = &objLayer;
 						selectedObjData.it = selectedObj;
 						m_selectedObjType = m_selectedObjMap.get<Object>();
-					}
+					}*/
 				}
 			}
 

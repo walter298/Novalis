@@ -9,9 +9,6 @@
 #include <string>
 #include <thread> //sleep
 
-#include <Windows.h>
-#include <ShlObj.h>
-
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
@@ -121,12 +118,12 @@ namespace nv {
 			return Ret{ static_cast<Converted>(pair.x), static_cast<Converted>(pair.y) };
 		}
 
-		template<typename EditedObject>
-		auto selectObj(std::vector<EditedObject>& objs, SDL_Point mousePos) {
+		/*template<typename Object>
+		auto selectObj(EditedObjectHive<Object>& objs, SDL_Point mousePos) {
 			return ranges::find_if(objs, [&](const auto& editedObj) {
 				return editedObj.obj.containsCoord(mousePos);
 			});
-		}
+		}*/
 
 		template<RenderObject Object>
 		struct EditedObjectData {
@@ -151,18 +148,18 @@ namespace nv {
 		};
 
 		template<RenderObject Object>
-		using EditedObjectVector = std::vector<EditedObjectData<Object>>;
+		using EditedObjectHive = plf::hive<EditedObjectData<Object>>;
 
 		template<RenderObject Object>
 		struct SelectedObjectData {
-			EditedObjectData<Object>* obj        = nullptr;
-			EditedObjectVector<Object>* objLayer = nullptr;
-			EditedObjectVector<Object>::iterator it;
+			EditedObjectData<Object>* obj      = nullptr;
+			EditedObjectHive<Object>* objLayer = nullptr;
+			EditedObjectHive<Object>::iterator it;
 
-			void resetToLastElement(EditedObjectVector<Object>* newObjLayer) {
-				obj      = &newObjLayer->back();
+			void resetToRandomElement(EditedObjectHive<Object>* newObjLayer) {
+				obj      = &(*newObjLayer->begin());
 				objLayer = newObjLayer;
-				it       = std::prev(std::end(*newObjLayer));
+				it       = newObjLayer->begin();
 			}
 			void reset() {
 				obj      = nullptr;
@@ -229,9 +226,9 @@ namespace nv {
 			//duplication 
 			if constexpr (std::copyable<Object>) {
 				if (ImGui::Button("Duplicate")) {
-					editedObj.objLayer->push_back(*editedObj.obj);
-					editedObj.obj = &editedObj.objLayer->back();
-					editedObj.it = std::prev(editedObj.objLayer->end());
+					auto it = editedObj.objLayer->insert(*editedObj.obj);
+					editedObj.obj = &(*it);
+					editedObj.it = it;
 				}
 			}
 

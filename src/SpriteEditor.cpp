@@ -42,7 +42,7 @@ void SpriteEditor::open(SDL_Renderer* renderer) {
 				auto& currTexLayer = m_texLayers[layer];
 				currTexLayer.reserve(texObjs.size());
 				for (auto& [texPath, texData] : texObjs) {
-					currTexLayer.emplace_back(renderer, texPath, loadSharedTexture(renderer, texPath), std::move(texData));
+					currTexLayer.emplace(renderer, texPath, loadSharedTexture(renderer, texPath), std::move(texData));
 				}
 			}
 		} catch (json::exception e) {
@@ -85,7 +85,7 @@ void nv::editor::SpriteEditor::saveAsTextureObject() {
 		return;
 	}
 	json json;
-	currTexLayer.front().obj.save(json);
+	currTexLayer.begin()->obj.save(json);
 	std::ofstream jsonFile{ *filename };
 	jsonFile << json.dump(2);
 }
@@ -98,7 +98,7 @@ void nv::editor::SpriteEditor::insertTextures(SDL_Renderer* renderer) {
 		defaultPos.ren.setSize(100, 100);
 		auto& currLayer = m_texLayers[m_currLayer];
 		for (const auto& texPath : *texPaths) {
-			currLayer.emplace_back(
+			currLayer.emplace(
 				renderer,
 				texPath, //todo: make texPath part of TextureObject constructor
 				loadSharedTexture(renderer, texPath),
@@ -106,7 +106,8 @@ void nv::editor::SpriteEditor::insertTextures(SDL_Renderer* renderer) {
 			);
 			defaultPos.ren.rect.x += 300;
 		}
-		m_selectedTexObj.resetToLastElement(&currLayer);
+		
+		m_selectedTexObj.resetToRandomElement(&currLayer);
 		m_isTexSelected = true;
 	}
 }
@@ -136,7 +137,6 @@ void SpriteEditor::showSpriteOptions(SDL_Renderer* renderer) {
 	//select layer
 	if (ImGui::InputInt("Layer", &m_currLayer)) {
 		auto tupleWrapper = std::tie(m_texLayers);
-		//makeOneLayerMoreVisible(std::tie(m_texLayers), m_currLayer, 100);
 	}
 
 	//insert textures
@@ -164,7 +164,7 @@ void SpriteEditor::showSpriteOptions(SDL_Renderer* renderer) {
 }
 
 SpriteEditor::SpriteEditor(SDL_Renderer* renderer) noexcept
-	: m_renderer{ renderer } //m_texDataEditor { { 0, 500 } }
+	: m_renderer{ renderer } 
 {
 }
 
@@ -181,11 +181,14 @@ nv::editor::EditorDest SpriteEditor::imguiRender() {
 		}
 	} 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-		auto selectedObj = selectObj(currLayer, convertPair<SDL_Point>(ImGui::GetMousePos()));
-		if (selectedObj != currLayer.end()) {
-			m_selectedTexObj.obj      = &(*selectedObj);
+		auto mouse = convertPair<SDL_Point>(ImGui::GetMousePos());
+		auto selectedObjIt = ranges::find_if(currLayer, [&](const auto& tex) {
+			return tex.obj.containsCoord(mouse);
+		});
+		if (selectedObjIt != currLayer.end()) {
+			m_selectedTexObj.obj      = &(*selectedObjIt);
 			m_selectedTexObj.objLayer = &currLayer;
-			m_selectedTexObj.it       = selectedObj;
+			m_selectedTexObj.it       = selectedObjIt;
 			m_isTexSelected = true;
 		} 
 	}

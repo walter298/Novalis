@@ -4,9 +4,12 @@
 #include <print>
 #include <tuple>
 
+#include <plf_hive.h>
+
 #include <nlohmann/json.hpp>
 
 #include "data_util/Algorithms.h"
+#include "data_util/DataStructures.h"
 #include "data_util/Reflection.h"
 
 #include "Button.h"
@@ -21,7 +24,52 @@ namespace nv {
 	private:
 		void render();
 
-		ObjectLayers<Sprite, Texture, Text, Rect, SpriteRef, TextureRef, TextRef, RectRef> m_objectLayers;
+		struct TypeErasedBase {
+			virtual void render() const noexcept = 0;
+			virtual const std::string& getName() const noexcept = 0;
+		};
+		using TypeErasedBasePtr = std::unique_ptr<TypeErasedBase>;
+
+		struct TypeErasedMoveableBase : public virtual TypeErasedBase {
+			virtual void move(int, int) noexcept = 0;
+			virtual void move(SDL_Point) noexcept = 0;
+		};
+		using TypeErasedMoveableBasePtr = std::unique_ptr<TypeErasedMoveableBase>;
+
+		template<typename T, typename Base = TypeErasedBase>
+		struct TypeErasedDerived : public Base {
+			T obj;
+
+			template<typename U>
+			TypeErasedDerived(U&& u) : obj{ std::forward<U>(u) }
+			{
+			}
+
+			const std::string& getName() const noexcept override {
+				return unrefwrap(obj).getName();
+			}
+
+			void render() const noexcept override {
+				unrefwrap(obj).render();
+			}
+		};
+
+		template<typename T>
+		struct TypeErasedMoveableDerived : public TypeErasedDerived<T, TypeErasedMoveableBase> {
+			using TypeErasedDerived<T, TypeErasedMoveableBase>::TypeErasedDerived;
+
+			void move(int dx, int dy) noexcept override {
+				unrefwrap(this->obj).move(dx, dy);
+			}
+			void move(SDL_Point p) noexcept override {
+				unrefwrap(this->obj).move(p);
+			}
+		};
+		using TypeErasedMoveableBasePtr = std::unique_ptr<TypeErasedMoveableBase>;
+
+		ObjectLayers<Sprite, Texture, Text, Rect, SpriteRef, TextureRef, TextRef, RectRef, 
+					 TypeErasedBasePtr, TypeErasedMoveableBasePtr, TypeErasedBase*, TypeErasedMoveableBase*> 
+			m_objectLayers;
 		
 		SDL_Event m_SDLEvt{};
 
@@ -31,12 +79,12 @@ namespace nv {
 		template<typename Ret, typename... EventParams>
 		using Events = IDObjects<Event<Ret, EventParams...>>;
 
-		template<typename... EventParams>
+		template<typename... EventArgs>
 		struct EventData {
-			Events<void, EventParams...> events;
-			Events<bool, EventParams...> cancellableEvents;
+			Events<void, EventArgs...> events;
+			Events<bool, EventArgs...> cancellableEvents;
 
-			std::vector<typename Events<bool, EventParams...>::iterator> cancelledEventIterators;
+			std::vector<typename Events<bool, EventArgs...>::iterator> cancelledEventIterators;
 		};
 
 		Keymap m_keyMap;
@@ -62,42 +110,43 @@ namespace nv {
 		Scene(std::string_view path, SDL_Renderer* renderer, TextureMap& texMap, FontMap& fontMap);
 
 		template<typename Object>
-		auto& find(this auto&& self, int layer, std::string_view name) 
+		auto find(this auto&& self, int layer, std::string_view name)
 			requires(RenderObject<std::unwrap_reference_t<Object>&>) 
 		{
-			decltype(auto) objs = std::get<std::vector<Object>>(self.m_objectLayers.at(layer));
+			decltype(auto) objs = std::get<plf::hive<Object>>(self.m_objectLayers.at(layer));
 			auto objIt = ranges::find_if(objs, [&](const auto& obj) { 
 				return unrefwrap(obj).getName() == name;
 			});
-			/*if (objIt == objs.end()) {
-				std::println("Could not find: {}", name);
-				for (const auto& [currLayer, objs] : self.m_objectLayers) {
-					std::print("{} ", currLayer);
-					forEachDataMember([](const auto& objs) {
-						std::print("\n\n{}: ", typeid(ValueType<decltype(objs)>).name());
-						for (const auto& obj : objs) {
-							std::print("{} ", unrefwrap(obj).getName());
-						}
-						std::println("");
-						return STAY_IN_LOOP;
-					}, objs);
-				}
-			}*/
+			if (objIt == objs.end()) {
+				std::println("Error: could not find {} at layer {}", name, layer);
+				self.printElements();
+				exit(-5555);
+			}
 			
-			assert(objIt != objs.end());
-		
-			return *objIt;
+			return StableRef{ objs, objIt };
 		}
 
 		template<typename Object>
-		decltype(auto) addObject(Object&& object, int layer) 
+		auto addObject(Object&& object, int layer) 
 			requires(RenderObject<std::unwrap_reference_t<Object&>>) 
 		{
-			decltype(auto) objects = std::get<std::vector<std::remove_cvref_t<Object>>>(m_objectLayers[layer]);
-			objects.push_back(std::forward<Object>(object));
-			return unrefwrap(objects.back());
+			decltype(auto) objects = std::get<plf::hive<std::remove_cvref_t<Object>>>(m_objectLayers[layer]);
+			return StableRef{ objects, objects.insert(std::forward<Object>(object)) };
 		}
-
+		template<typename Object>
+		auto addCustomObject(Object&& object, int layer) {
+			if constexpr (MoveableObject<std::remove_cvref_t<Object>>) {
+				auto& objs = std::get<plf::hive<TypeErasedMoveableBasePtr>>(m_objectLayers[layer]);
+				auto it = objs.insert(std::make_unique<TypeErasedMoveableDerived<Object>>(std::forward<Object>(object)));
+				std::println("{} custom moveable objects", objs.size());
+				return StableRef{ objs, it };
+			} else {
+				auto& objs = std::get<plf::hive<TypeErasedBasePtr>>(m_objectLayers[layer]);
+				auto it = objs.insert(std::make_unique<TypeErasedDerived<Object>>(std::forward<Object>(object)));
+				std::println("{} custom non-moveable objects", objs.size());
+				return StableRef{ objs, it };
+			}
+		}
 	private:
 		template<typename Object, typename Objects, typename Transform>
 		void eraseImpl(ID<Object> id, Objects& objects, Transform transform) {
@@ -108,13 +157,19 @@ namespace nv {
 	public:
 		template<typename EventType>
 		void removeEvent(ID<EventType> id) {
-			auto& eventData = std::get<EventData<EventType>>(m_eventData);
-			
-			eraseImpl(id, std::get<EventData<EventType>>(m_eventData).events, &std::pair<EventType, ID<EventType>>::second);
-		}
-		template<typename Object>
-		void removeObject(ID<Object> id, int layer) {
-			eraseImpl(id, std::get<std::vector<Object>>(m_objectLayers.at(layer)), &ObjectBase::getID);
+			using EventTypeTPs     = typename GetTemplateTypes<EventType>::Types; //will be of "one" type like void(int, int)
+			using EventInfo        = FunctionTraits<std::tuple_element_t<0, EventTypeTPs>>;
+			using EventArgs        = typename EventInfo::Args;
+			using EventRet         = typename EventInfo::Ret;
+			using MatchedEventData = typename GetParameterizedTypeFromTuple<EventData, EventArgs>::type;
+
+			auto& eventData = std::get<MatchedEventData>(m_eventData);
+			auto getID = &std::pair<EventType, ID<EventType>>::second;
+			if constexpr (std::same_as<EventRet, bool>) {
+				eraseImpl(id, eventData.cancellableEvents, getID);
+			} else {
+				eraseImpl(id, eventData.events, getID);
+			}
 		}
 	
 		template<typename Func>
@@ -143,6 +198,8 @@ namespace nv {
 
 		void overlay(Scene& scene);
 		void deoverlay();
+
+		void printElements() const;
 	};
 }
 

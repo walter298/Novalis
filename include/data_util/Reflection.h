@@ -1,6 +1,8 @@
 #pragma once
 
 #include <tuple>
+
+#include <boost/functional/hash.hpp>
 #include <boost/pfr.hpp>
 
 #include "BasicConcepts.h"
@@ -30,7 +32,6 @@ namespace nv {
 			using type = pfr::tuple_element_t<Idx, std::remove_cvref_t<T>>;
 		};
 	}
-
 
 	template<size_t Idx, typename T>
 	using GetType = typename detail::GetTypeImpl<std::is_aggregate_v<std::remove_cvref<T>>, Idx, T>::type;
@@ -177,8 +178,7 @@ namespace nv {
 			if constexpr (pred(obj)) {
 				whenFound(obj);
 				return BREAK_FROM_LOOP;
-			}
-			else {
+			} else {
 				return STAY_IN_LOOP;
 			}
 		}, tuple);
@@ -219,15 +219,15 @@ namespace nv {
 		detail::findCompImpl(comp, transform, whenFound, first, second, args...);
 	}
 
-	template<typename T>
-	struct IsReferenceWrapper : public std::false_type {};
+	template<template<typename...> typename ClassTemplate, typename>
+	struct IsClassTemplate : public std::false_type {};
 
-	template<typename T>
-	struct IsReferenceWrapper<std::reference_wrapper<T>> : public std::true_type {};
+	template<template<typename...> typename ClassTemplate, typename... Ts>
+	struct IsClassTemplate<ClassTemplate, ClassTemplate<Ts...>> : public std::true_type {};
 
 	template<typename T>
 	constexpr auto& unrefwrap(T& t) {
-		if constexpr (IsReferenceWrapper<std::remove_cvref_t<T>>::value) {
+		if constexpr (IsClassTemplate<std::reference_wrapper, std::remove_cvref_t<T>>::value) {
 			return t.get();
 		} else {
 			return t;
@@ -240,5 +240,75 @@ namespace nv {
 	template<template<typename... Ts> typename Parameterized, typename... Ts2>
 	struct GetParameterizedTypeFromTuple<Parameterized, std::tuple<Ts2...>> {
 		using type = Parameterized<Ts2...>;
+	};
+
+	template<typename Parameterized>
+	struct GetTemplateTypes {};
+
+	template<template<typename... GTs> typename Parameterized, typename... Ts>
+	struct GetTemplateTypes<Parameterized<Ts...>> {
+		using Types = std::tuple<Ts...>;
+	};
+
+	namespace detail {
+		//this is moronic: compiler is too stupid to deduce an nttp pack of 0 length in an integer sequence
+		template<size_t currentTypeIdx, typename BuiltUpType, typename T>
+		constexpr auto excludeMembers(BuiltUpType builtUp, T&& t, std::integer_sequence<size_t>) {
+			if constexpr (currentTypeIdx == memberCount<T>()) {
+				return builtUp;
+			} else {
+				return excludeMembers<currentTypeIdx + 1>(std::tuple_cat(builtUp, std::tie(std::get<currentTypeIdx>(t))), t, std::integer_sequence<size_t>{});
+			}
+		}
+
+		template<size_t currentTypeIdx, typename BuiltUpType, typename T, size_t currentExcludedTypeIdx, size_t... excludedTypeIdxs>
+		constexpr auto excludeMembers(BuiltUpType builtUp, T&& t, std::integer_sequence<size_t, currentExcludedTypeIdx, excludedTypeIdxs...>) {
+			if constexpr (currentTypeIdx == memberCount<T>()) {
+				return builtUp;
+			} else if constexpr (currentExcludedTypeIdx == currentTypeIdx) {
+				return excludeMembers<currentTypeIdx + 1>(
+					builtUp,
+					t,
+					std::integer_sequence<size_t, excludedTypeIdxs...>{}
+				);
+			} else {
+				return excludeMembers<currentTypeIdx + 1>(
+					std::tuple_cat(builtUp, std::tie(std::get<currentTypeIdx>(t))),
+					t,
+					std::integer_sequence<size_t, currentExcludedTypeIdx, excludedTypeIdxs...>{}
+				);
+			}
+		}
+	}
+
+	template<typename T, size_t... excludedTypeIdxs>
+	constexpr auto excludeMembers(T&& t, std::integer_sequence<size_t, excludedTypeIdxs...>) {
+		return detail::excludeMembers<0>(std::tuple{}, t, std::integer_sequence<size_t, excludedTypeIdxs...>{});
+	}
+
+	struct HashAggregate {
+		template<Aggregate Aggr>
+		size_t operator()(const Aggr& aggr) const noexcept {
+			size_t hashCode = 0;
+			pfr::for_each_field(aggr, [&](const auto& member) {
+				boost::hash_combine(hashCode, member);
+			});
+			return hashCode;
+		}
+	};
+
+	struct CompareAggregates {
+		template<Aggregate Aggr1, Aggregate Aggr2>
+		bool operator()(const Aggr1 a, const Aggr2& b) const noexcept {
+			bool ret = true;
+			forEachDataMember([&](const auto& field1, const auto& field2) {
+				if (field1 == field2) {
+					ret = false;
+					return BREAK_FROM_LOOP;
+				}
+				return STAY_IN_LOOP;
+			}, a , b);
+			return ret;
+		}
 	};
 }
