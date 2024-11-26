@@ -12,7 +12,7 @@
 #include "ID.h"
 
 namespace nv {
-	struct Rect : public ObjectBase<Rect> {
+	struct Rect : public detail::ObjectBase<Rect> {
 		SDL_Renderer* renderer = nullptr;
 	
 		static bool isInRegion(int mx, int my, int x, int y, int w, int h) noexcept;

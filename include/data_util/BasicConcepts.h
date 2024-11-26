@@ -54,9 +54,6 @@ namespace nv {
 	template<typename Range>
 	concept RenderObjectRange = ranges::viewable_range<Range> && RenderObject<typename Range::value_type>;
 
-	template<typename... Ts>
-	using ObjectLayers = boost_con::flat_map<int, std::tuple<plf::hive<Ts>...>>;
-
 	template<typename T>
 	concept Aggregate = std::is_aggregate_v<std::remove_cvref_t<T>>;
 
@@ -75,8 +72,24 @@ namespace nv {
 	using nlohmann::json;
 
 	template<typename T>
-	concept Map = requires(T t) {
+	concept Map = requires(std::remove_cvref_t<T> t) {
 		std::cmp_less(std::declval<typename T::key_type>(), std::declval<typename T::key_type>());
 		t.emplace(std::declval<typename T::key_type>(), std::declval<typename T::value_type>());
 	};
+
+	template<typename T>
+	concept Container = requires(T t) {
+		t.begin();
+		t.end();
+		t.cbegin();
+		t.cend();
+		typename std::remove_cvref_t<T>::value_type;
+		typename std::remove_cvref_t<T>::iterator;
+		typename std::remove_cvref_t<T>::const_iterator;
+		typename std::remove_cvref_t<T>::difference_type;
+		typename std::remove_cvref_t<T>::size_type;
+	};
+
+	template<typename Range>
+	concept NonContainerRange = ranges::viewable_range<Range> && !Container<Range>;
 }

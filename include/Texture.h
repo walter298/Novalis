@@ -8,6 +8,7 @@
 
 #include <SDL2/SDL_image.h>
 
+#include "Collision.h"
 #include "Rect.h"
 #include "ID.h"
 
@@ -26,11 +27,12 @@ namespace nv {
 		SDL_Point rotationPoint{ 0, 0 };
 		double angle = 0.0;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
+		BGPolygon hitbox;
 	};
 
-	class Texture : public ObjectBase<Texture> {
+	class Texture : public detail::ObjectBase<Texture> {
 	private:
-		SDL_Renderer* m_renderer;
+		SDL_Renderer* m_renderer = nullptr;
 		std::variant<SharedTexture, SDL_Texture*> m_texVariant;
 		SDL_Texture* m_tex = nullptr;
 		std::shared_ptr<const std::string> m_texPath = nullptr;
@@ -38,6 +40,7 @@ namespace nv {
 		Texture() = default;
 		Texture(SDL_Renderer* renderer, std::string_view texPath, SharedTexture texPtr, TextureData texData);
 		Texture(SDL_Renderer* renderer, std::string_view texPath, SDL_Texture* rawTex, TextureData texData);
+		Texture(SDL_Renderer* renderer, SDL_Texture* rawTex, TextureData texData);
 		Texture(SDL_Renderer* renderer, const json& json, TextureMap& texMap);
 		
 		const std::string& getTexPath() const noexcept;
@@ -67,6 +70,10 @@ namespace nv {
 
 		bool containsCoord(int x, int y) const noexcept;
 		bool containsCoord(SDL_Point p) const noexcept;
+
+		const auto& getHitbox(this auto&& self) {
+			return self.texData.hitbox;
+		}
 
 		void render() const noexcept;
 

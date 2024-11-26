@@ -24,9 +24,11 @@ namespace nv {
 	private:
 		void render();
 
+		//ONLY USED BY CUSTOM OBJECTS, SPRITES AND TEXTURES HAVE ZERO INDIRECTION!!!
 		struct TypeErasedBase {
 			virtual void render() const noexcept = 0;
 			virtual const std::string& getName() const noexcept = 0;
+			virtual ~TypeErasedBase() noexcept {}
 		};
 		using TypeErasedBasePtr = std::unique_ptr<TypeErasedBase>;
 
@@ -46,12 +48,14 @@ namespace nv {
 			}
 
 			const std::string& getName() const noexcept override {
-				return unrefwrap(obj).getName();
+				return unrefwrap(obj).name;
 			}
 
 			void render() const noexcept override {
 				unrefwrap(obj).render();
 			}
+
+			~TypeErasedDerived() noexcept override {}
 		};
 
 		template<typename T>
@@ -64,6 +68,8 @@ namespace nv {
 			void move(SDL_Point p) noexcept override {
 				unrefwrap(this->obj).move(p);
 			}
+
+			~TypeErasedMoveableDerived() noexcept override = default;
 		};
 		using TypeErasedMoveableBasePtr = std::unique_ptr<TypeErasedMoveableBase>;
 
@@ -87,10 +93,9 @@ namespace nv {
 			std::vector<typename Events<bool, EventArgs...>::iterator> cancelledEventIterators;
 		};
 
-		Keymap m_keyMap;
 		const Uint8* m_keystate = SDL_GetKeyboardState(nullptr);
 
-		std::tuple<EventData<>, EventData<MouseData>, EventData<const Keymap&>> m_eventData;
+		std::tuple<EventData<>, EventData<MouseData>, EventData<const Uint8*>> m_eventData;
 
 		IDObjects<TextInput> m_textInputs;
 		TextInput* m_currEditedTextInput = nullptr;
@@ -99,6 +104,8 @@ namespace nv {
 		
 		MouseData m_mouseData;
 
+		std::unordered_map<std::string, SDL_Point> m_specialPoints;
+
 		void executeEvents();
 	public:
 		SDL_Renderer* renderer;
@@ -106,6 +113,7 @@ namespace nv {
 		TextureMap& texMap;
 
 		bool running = false;
+		int FPS = 60;
 
 		Scene(std::string_view path, SDL_Renderer* renderer, TextureMap& texMap, FontMap& fontMap);
 
@@ -113,9 +121,9 @@ namespace nv {
 		auto find(this auto&& self, int layer, std::string_view name)
 			requires(RenderObject<std::unwrap_reference_t<Object>&>) 
 		{
-			decltype(auto) objs = std::get<plf::hive<Object>>(self.m_objectLayers.at(layer));
+			decltype(auto) objs = std::get<plf::hive<Object>>(self.m_objectLayers.layers.at(layer));
 			auto objIt = ranges::find_if(objs, [&](const auto& obj) { 
-				return unrefwrap(obj).getName() == name;
+				return unrefwrap(obj).name == name;
 			});
 			if (objIt == objs.end()) {
 				std::println("Error: could not find {} at layer {}", name, layer);
@@ -126,22 +134,22 @@ namespace nv {
 			return StableRef{ objs, objIt };
 		}
 
+		SDL_Point getSpecialPoint(std::string_view name) const noexcept;
+
 		template<typename Object>
-		auto addObject(Object&& object, int layer) 
-			requires(RenderObject<std::unwrap_reference_t<Object&>>) 
-		{
-			decltype(auto) objects = std::get<plf::hive<std::remove_cvref_t<Object>>>(m_objectLayers[layer]);
+		auto addObject(Object&& object, int layer) {
+			decltype(auto) objects = std::get<plf::hive<std::remove_cvref_t<Object>>>(m_objectLayers.layers[layer]);
 			return StableRef{ objects, objects.insert(std::forward<Object>(object)) };
 		}
 		template<typename Object>
 		auto addCustomObject(Object&& object, int layer) {
 			if constexpr (MoveableObject<std::remove_cvref_t<Object>>) {
-				auto& objs = std::get<plf::hive<TypeErasedMoveableBasePtr>>(m_objectLayers[layer]);
+				auto& objs = std::get<plf::hive<TypeErasedMoveableBasePtr>>(m_objectLayers.layers[layer]);
 				auto it = objs.insert(std::make_unique<TypeErasedMoveableDerived<Object>>(std::forward<Object>(object)));
 				std::println("{} custom moveable objects", objs.size());
 				return StableRef{ objs, it };
 			} else {
-				auto& objs = std::get<plf::hive<TypeErasedBasePtr>>(m_objectLayers[layer]);
+				auto& objs = std::get<plf::hive<TypeErasedBasePtr>>(m_objectLayers.layers[layer]);
 				auto it = objs.insert(std::make_unique<TypeErasedDerived<Object>>(std::forward<Object>(object)));
 				std::println("{} custom non-moveable objects", objs.size());
 				return StableRef{ objs, it };
@@ -171,7 +179,12 @@ namespace nv {
 				eraseImpl(id, eventData.events, getID);
 			}
 		}
-	
+
+		template<typename Func, typename Ret, typename... Args>
+		void addEventImpl(Func&& func) {
+
+		}
+
 		template<typename Func>
 		auto addEvent(Func&& func) {
 			using FuncInfo = FunctionTraits<std::decay_t<Func>>;
@@ -184,7 +197,7 @@ namespace nv {
 
 			using EventDataSpecialization = typename GetParameterizedTypeFromTuple<EventData, FuncArgs>::type;
 			auto& eventData = std::get<EventDataSpecialization>(m_eventData);
-
+			
 			if constexpr (std::same_as<FuncRet, bool>) {
 				eventData.cancellableEvents.emplace_back(std::forward<Func>(func), id);
 			} else {
@@ -192,6 +205,60 @@ namespace nv {
 			}
 			return id;
 		}
+		
+		template<typename Func, typename Rep, typename Period>
+		auto addEvent(Func&& func, std::chrono::duration<Rep, Period> period) {
+			using FuncInfo = FunctionTraits<std::decay_t<Func>>;
+			using FuncArgs = typename FuncInfo::Args;
+			using FuncRet = typename FuncInfo::Ret;
+			using FuncSig = typename FuncInfo::Sig;
+
+			using IDSpecialization = ID<typename GetParameterizedTypeFromTuple<Event, FuncSig>::type>;
+			IDSpecialization id;
+
+			using namespace std::chrono;
+			using Duration = duration<Rep, Period>;
+
+			auto periodicEvtWrapper = [func = std::forward<Func>(func), 
+									   period = period,
+									   lastExecuted = system_clock::now()](auto... args) mutable 
+			{
+				auto now = system_clock::now();
+				
+				auto timeElapsed = duration_cast<Duration>(now - lastExecuted);
+				
+				if (timeElapsed < period) {
+					if constexpr (std::same_as<FuncRet, bool>) {
+						return false;
+					} else {
+						return;
+					}
+				}
+				lastExecuted = now;
+				auto timesToExecute = timeElapsed / period;
+
+				for (auto i : views::iota(0, timesToExecute)) {
+					if constexpr (std::same_as<FuncRet, bool>) {
+						if (func(args...)) {
+							return true;
+						}
+					} else {
+						func(args...);
+					}
+				}
+			};
+
+			using EventDataSpecialization = typename GetParameterizedTypeFromTuple<EventData, FuncArgs>::type;
+			auto& eventData = std::get<EventDataSpecialization>(m_eventData);
+
+			if constexpr (std::same_as<FuncRet, bool>) {
+				eventData.cancellableEvents.emplace_back(std::move(periodicEvtWrapper), id);
+			} else {
+				eventData.events.emplace_back(std::move(periodicEvtWrapper), id);
+			}
+			return id;
+		}
+		
 		ID<TextInput> addTextInput(nv::TextInput&& textInput);
 
 		void operator()();

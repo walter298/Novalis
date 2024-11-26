@@ -20,11 +20,11 @@ namespace nv {
 
 	FontRAII loadFont(std::string_view fontPath, int fontSize);
 
-	class Text : public ObjectBase<Text> {
+	class Text : public detail::ObjectBase<Text> {
 	private:
 		SDL_Renderer* m_renderer;
 		TTF_Font* m_font;
-		TextureRAII m_tex{ nullptr, SDL_DestroyTexture };
+		SharedTexture m_tex = nullptr; //points to the pointer in the variant
 		std::string m_str;
 		std::string m_fontPath;
 		int m_fontSize = 0;

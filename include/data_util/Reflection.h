@@ -80,7 +80,7 @@ namespace nv {
 	inline constexpr bool BREAK_FROM_LOOP = true;
 
 	template<size_t N, typename... Ts>
-	using PackIndex = GetType<N, std::tuple<Ts...>>;
+	using PackIndex = std::tuple_element_t<N, std::tuple<Ts...>>;
 
 	template<typename T>
 	struct FunctionTraits { //primary template assumes function call operator
@@ -234,6 +234,15 @@ namespace nv {
 		}
 	}
 
+	template<typename T>
+	constexpr auto& unptrwrap(T& t) {
+		if constexpr (IsClassTemplate<std::unique_ptr, T>::value) {
+			return *t;
+		} else {
+			return t;
+		}
+	}
+
 	template<template<typename... Ts> typename T, typename... Ts>
 	struct GetParameterizedTypeFromTuple {};
 
@@ -310,5 +319,10 @@ namespace nv {
 			}, a , b);
 			return ret;
 		}
+	};
+
+	template<typename T>
+	struct TypeInfo {
+		using Type = T;
 	};
 }
