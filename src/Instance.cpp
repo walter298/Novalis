@@ -4,54 +4,61 @@
 
 #include <print>
 
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 void nv::Instance::quit() {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-	IMG_Quit();
-	Mix_Quit();
+
+
 	TTF_Quit();
+	//IMG_Quit();
+	/*Mix_Quit();
+	TTF_Quit();*/
 	SDL_Quit();
 }
 
-nv::Instance::Instance(std::string_view windowTitle) noexcept {
+static nv::Instance* globalInstance = nullptr;
+
+nv::Instance::Instance(const char* windowTitle) noexcept {
 	auto exitWithError = [this] {
 		std::println("{}", SDL_GetError());
 		quit();
 		exit(-1);
 	};
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || //returns zero on sucess
-		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0 ||
-		TTF_Init() != 0 || 
-		IMG_Init(IMG_INIT_PNG) == 0)
-	{
+	if (!(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) && TTF_Init())) {
 		exitWithError();
 	}
 
-	//get screen width and height
-	SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-	m_screenWidth = dm.w;
-	m_screenHeight = dm.h;
+	//if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || //returns zero on sucess
+	//	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0 ||
+	//	TTF_Init() != 0 || 
+	//	IMG_Init(IMG_INIT_PNG) == 0)
+	//{
+	//	exitWithError();
+	//}
 
-	window = SDL_CreateWindow(windowTitle.data(), 0, 0, m_screenWidth, m_screenHeight, SDL_WINDOW_OPENGL);
+	//get screen width and height
+	auto dm = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
+	m_screenWidth = dm->w;
+	m_screenHeight = dm->h;
+
+	window = SDL_CreateWindow(windowTitle, m_screenWidth, m_screenHeight, SDL_WINDOW_OPENGL);
 	if (window == nullptr) {
 		exitWithError();
 	}
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	renderer = SDL_CreateRenderer(window, nullptr);
 	if (renderer == nullptr) {
 		exitWithError();
 	}
 
-	constexpr int WIDTH_ANCHOR = 2560;
-	constexpr int HEIGHT_ANCHOR = 1440;
-	SDL_RenderSetLogicalSize(renderer, WIDTH_ANCHOR, HEIGHT_ANCHOR);
+	SDL_SetRenderLogicalPresentation(renderer, m_screenWidth, m_screenHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
 	workingDirectory(); //initialize local static inside workingDirectory
+
+	globalInstance = this;
 }
 
 nv::Instance::~Instance() noexcept {
@@ -64,4 +71,8 @@ int nv::Instance::getScreenWidth() const noexcept {
 
 int nv::Instance::getScreenHeight() const noexcept {
 	return m_screenHeight;
+}
+
+nv::Instance* getGlobalInstance() noexcept {
+	return globalInstance;
 }

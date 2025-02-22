@@ -15,7 +15,7 @@ namespace nv {
 		chrono::duration<Rep, Period> denm;
 	};
 
-	template<RenderObject Object, typename XRateRep, typename XRatePeriod, typename YRateRep, typename YRatePeriod>
+	template<concepts::RenderableObject Object, typename XRateRep, typename XRatePeriod, typename YRateRep, typename YRatePeriod>
 	class MoveScheduler {
 	private:
 		std::reference_wrapper<Object> m_obj;

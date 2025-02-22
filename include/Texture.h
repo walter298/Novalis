@@ -1,83 +1,97 @@
 #pragma once
 
-#include <fstream>
-#include <functional>
+#include <filesystem>
+#include <memory>
+#include <print>
 #include <string_view>
-#include <unordered_map>
 #include <variant>
+#include <boost/unordered/unordered_flat_map.hpp>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL_render.h>
 
-#include <SDL2/SDL_image.h>
-
-#include "Collision.h"
 #include "Rect.h"
-#include "ID.h"
 
 namespace nv {
-	using TextureRAII = std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)>;
-	TextureRAII loadTexture(SDL_Renderer* renderer, std::string_view texPath) noexcept;
+	struct TexturePtr {
+		SDL_Texture* tex = nullptr;
 
-	using TextureMap = std::unordered_map<std::string, TextureRAII>;
-
-	using SharedTexture = std::shared_ptr<SDL_Texture>;
-	SharedTexture loadSharedTexture(SDL_Renderer* renderer, std::string_view texPath) noexcept;
-
-	struct TextureData {
-		Rect ren;
-		Rect world;
-		SDL_Point rotationPoint{ 0, 0 };
-		double angle = 0.0;
-		SDL_RendererFlip flip = SDL_FLIP_NONE;
-		BGPolygon hitbox;
+		TexturePtr() = default;
+		inline TexturePtr(SDL_Texture* tex) : tex{ tex }
+		{
+		}
+		inline TexturePtr(SDL_Renderer* renderer, const char* path) : tex{ IMG_LoadTexture(renderer, path) }  
+		{
+			if (tex == nullptr) {
+				std::println("Error: could not load texture {}", path);
+				std::println("{}", SDL_GetError());
+				exit(-1);
+			}
+		}
+		inline TexturePtr(const TexturePtr& other) noexcept : tex{ other.tex } {
+			if (tex != nullptr) {
+				tex->refcount++;
+			}
+		}
+		inline ~TexturePtr() noexcept {
+			SDL_DestroyTexture(tex); //will decrement refcount and then only destroy if the refcount is 0
+		}
 	};
 
-	class Texture : public detail::ObjectBase<Texture> {
-	private:
-		SDL_Renderer* m_renderer = nullptr;
-		std::variant<SharedTexture, SDL_Texture*> m_texVariant;
-		SDL_Texture* m_tex = nullptr;
-		std::shared_ptr<const std::string> m_texPath = nullptr;
+	using TextureMap = boost::unordered_flat_map<std::string, TexturePtr>;
+
+	class Texture {
+	protected:
+		void setTextureDimensions() {
+			float w = 0.0f, h = 0.0f;
+			SDL_GetTextureSize(tex.tex, &w, &h);
+			ren.setSize(w, h);
+		}
+		void renderImpl(SDL_Renderer* renderer, SDL_Texture* tex) const noexcept {
+			SDL_RenderTextureRotated(renderer, tex, nullptr, &ren.rect, angle, &rotationPoint, flip);
+		}
 	public:
-		Texture() = default;
-		Texture(SDL_Renderer* renderer, std::string_view texPath, SharedTexture texPtr, TextureData texData);
-		Texture(SDL_Renderer* renderer, std::string_view texPath, SDL_Texture* rawTex, TextureData texData);
-		Texture(SDL_Renderer* renderer, SDL_Texture* rawTex, TextureData texData);
-		Texture(SDL_Renderer* renderer, const json& json, TextureMap& texMap);
+		TexturePtr tex;
+		Rect ren;
+		SDL_FPoint rotationPoint{ 0, 0 };
+		double angle = 0.0;
+		SDL_FlipMode flip = SDL_FLIP_NONE;
 		
-		const std::string& getTexPath() const noexcept;
-
-		TextureData texData;
-		
-		void setOpacity(Uint8 opacity) noexcept;
-
-		void setPos(int x, int y) noexcept;
-		void setPos(SDL_Point pos) noexcept;
-
-		SDL_Point getPos() const noexcept;
-
-		void move(int dx, int dy) noexcept;
-		void move(SDL_Point change) noexcept;
-
-		void setSize(int w, int h) noexcept;
-		void setSize(SDL_Point p);
-
-		SDL_Point getSize() const noexcept;
-
-		void scale(int dx, int dy) noexcept;
-		void scale(SDL_Point change) noexcept;
-
-		void rotate(double angle, SDL_Point rotationPoint) noexcept;
-		void setRotationCenter() noexcept;
-
-		bool containsCoord(int x, int y) const noexcept;
-		bool containsCoord(SDL_Point p) const noexcept;
-
-		const auto& getHitbox(this auto&& self) {
-			return self.texData.hitbox;
+		inline Texture(TexturePtr tex) noexcept : tex{ tex } {
+			float w = 0.0f, h = 0.0f;
+			SDL_GetTextureSize(tex.tex, &w, &h);
+			ren.setSize(w, h);
 		}
 
-		void render() const noexcept;
+		inline Texture(SDL_Renderer* renderer, const char* path) noexcept : Texture{ TexturePtr{ renderer, path } } 
+		{
+		}
 
-		void save(json& json) const;
+		inline void render(SDL_Renderer* renderer) const noexcept {
+			SDL_RenderTextureRotated(renderer, tex.tex, nullptr, &ren.rect, angle, &rotationPoint, flip);
+		}
+
+		inline void screenScale(float newScale, SDL_FPoint refPoint) noexcept {
+			ren.scale(newScale, refPoint);
+		}
+		inline void screenMove(SDL_FPoint change) noexcept {
+			ren.move(change);
+		}
+		inline SDL_FPoint getScreenPos() const noexcept {
+			return ren.getPos();
+		}
+		inline SDL_FPoint getScreenSize() const noexcept {
+			return ren.getSize();
+		}
+		inline void setScreenSize(SDL_FPoint p) noexcept {
+			ren.setSize(p);
+		}
+		inline void rotate(double angle, SDL_FPoint rotationPoint) noexcept {
+			this->angle = angle;
+			this->rotationPoint = rotationPoint;
+		}
+		inline void setOpacity(uint8_t opacity) noexcept {
+			SDL_SetTextureAlphaMod(tex.tex, opacity);
+		}
 	};
 
 	using TextureRef = std::reference_wrapper<Texture>;

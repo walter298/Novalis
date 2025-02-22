@@ -88,9 +88,12 @@ namespace nv {
 		}
 	};
 
-	template<typename... Ts>
+	template<template<typename> typename Allocator, template<typename> typename LayerStorage, typename... Ts>
 	struct ObjectLayers {
-		boost::container::flat_map<int, std::tuple<plf::hive<Ts>...>> layers;
+		using LayerValue = std::tuple<LayerStorage<Ts>...>;
+		using SpecializedAllocator = Allocator<std::pair<const int, LayerValue>>;
+
+		boost::container::flat_map<int, LayerValue, std::less<>, SpecializedAllocator> layers;
 
 		decltype(auto) operator[](this auto&& self, int n) {
 			return self.layers[n];
@@ -153,10 +156,13 @@ namespace nv {
 		template<typename Callable>
 		void forEachHive(this auto&& self, Callable callable, int layer) {
 			forEachDataMember([layer, &callable](auto& objHive) {
-				if (callable(layer, objHive) == BREAK_FROM_LOOP) {
-					return BREAK_FROM_LOOP;
-				}
-			}, self.layers.at(layer));
+				return callable(layer, objHive) == BREAK_FROM_LOOP;
+			}, self.layers[layer]);
+		}
+
+		template<typename... Us>
+		ObjectLayers(Us&&... us) : layers{ std::forward<Us>(us)... }
+		{
 		}
 	};
 }

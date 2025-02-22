@@ -10,65 +10,49 @@
 #include "Algorithms.h"
 #include "DataStructures.h"
 
-namespace {
-	struct Path {
-		nfdchar_t* path = nullptr;
-		~Path() {
-			free(path);
-		}
-	};
-
-	auto makeFilterList(const nv::FileExtensionFilters& filters) {
-		constexpr auto delim = ";";
-		auto combinedFilters = std::accumulate(filters.begin(), filters.end(), nv::FileString{}, [&](const auto& a, const auto& b) {
-			return a + delim + b;
-		});
-		return combinedFilters;
-	}
-}
 nv::FileOpenResult nv::openFile(const nv::FileExtensionFilters& filters) {
-	Path outPath;
-	auto combinedFilters = makeFilterList(filters);
-	auto result = NFD_OpenDialog(combinedFilters.c_str(), nullptr, &outPath.path);
+	NFD::UniquePath outPath;
+	
+	auto result = NFD::OpenDialog(outPath, filters.begin(), static_cast<nfdfiltersize_t>(filters.size()));
 	if (result == NFD_OKAY) {
-		return FileString{ outPath.path };
+		return std::string{ outPath.get() };
 	} else {
 		return std::nullopt;
 	}
 }
 
 nv::MultipleFileOpensResult nv::openMultipleFiles(const nv::FileExtensionFilters& filters) {
-	nfdpathset_t outPaths;
+	NFD::UniquePathSet outPaths = nullptr;
 
-	auto combinedFilters = makeFilterList(filters);
-	auto res = NFD_OpenDialogMultiple(nullptr, nullptr, &outPaths);
-	if (res == NFD_CANCEL) {
+	auto res = NFD::OpenDialogMultiple(outPaths, filters.begin(), static_cast<nfdfiltersize_t>(filters.size()));
+	if (res != NFD_OKAY) {
 		return std::nullopt;
 	}
 
-	nv::ScopeExit scopeExit{ [&] { NFD_PathSet_Free(&outPaths); } };
-	
-	std::vector<FileString> ret;
-	auto pathC = NFD_PathSet_GetCount(&outPaths);
-	ret.reserve(pathC);
-	for (size_t i = 0; i < pathC; i++) {
-		ret.push_back(NFD_PathSet_GetPath(&outPaths, i));
+	nfdpathsetsize_t pathC = 0;
+	if (NFD::PathSet::Count(outPaths, pathC) != NFD_OKAY) {
+		return std::nullopt;
 	}
-	return ret;
+
+	std::vector<std::string> strPaths;
+	strPaths.reserve(pathC);
+	for (nfdpathsetsize_t i = 0; i < pathC; i++) {
+		NFD::UniquePathSetPath currPath;
+		NFD::PathSet::GetPath(outPaths, i, currPath);
+		strPaths.push_back(currPath.get());
+	}
+
+	return strPaths;
 }
 
 bool nv::saveNewFile(const nv::FileExtensionFilters& filters, const nv::FileContentsGenerator& contentsGen) {
-	auto combinedFilters = makeFilterList(filters);
-	Path outPath;
-
-	auto res = NFD_SaveDialog(combinedFilters.c_str(), nullptr, &outPath.path);
-	
-	if (res == NFD_CANCEL || res == NFD_ERROR) {
+	NFD::UniquePath path;
+	if (NFD::SaveDialog(path, filters.begin(), static_cast<nfdfiltersize_t>(filters.size())) != NFD_OKAY) {
 		return false;
 	}
 
-	std::ofstream file{ outPath.path };
-	file << contentsGen(outPath.path);
+	std::ofstream file{ path.get() };
+	file << contentsGen(path.get());
 	file.close();
 
 	return true;

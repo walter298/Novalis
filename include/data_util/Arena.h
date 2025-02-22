@@ -1,31 +1,60 @@
 #pragma once
 
+#include <cassert>
 #include <concepts>
 #include <memory>
 #include <vector>
+#include <boost/smart_ptr/allocate_unique.hpp>
+
+#include "Reflection.h"
+#include "SharedBuffer.h"
 
 namespace nv {
 	class Arena {
 	private:
-		std::unique_ptr<std::byte[]> m_buff;
+		SharedBuffer m_buff;
 		void* m_nextObjectBegin;
+		size_t m_capacity;
 		size_t m_space;
 	public:
-		Arena(size_t size);
+		Arena(size_t size)  
+			: m_buff{ size }, m_nextObjectBegin{ m_buff.data() }, m_capacity{ size }, m_space{ size }
+		{
+		}
+
+		template<typename Allocator>
+		Arena(size_t size, Allocator& allocator)
+			: m_buff{ allocator, size }, 
+			m_nextObjectBegin{ m_buff.data() }, m_capacity{ size }, m_space{ size }
+		{
+		}
 
 		template<typename T, typename... Args>
-		T* emplace(Args&&... args) noexcept requires(std::is_nothrow_constructible_v<T, Args...>) {
+		T* emplace(Args&&... args) noexcept 
+			requires(std::is_nothrow_constructible_v<T, Args...> && std::is_trivially_destructible_v<T>) 
+		{
 			if (!std::align(alignof(T), sizeof(T), m_nextObjectBegin, m_space)) { //align ptr so we can construct a properly aligned object
 				return nullptr;
 			}
-			T* obj = new (m_nextObjectBegin) T(std::forward<Args...>(args)...);
+			T* obj = new (m_nextObjectBegin) T(std::forward<Args>(args)...);
 			m_nextObjectBegin = static_cast<std::byte*>(m_nextObjectBegin) + sizeof(T);
 			return obj;
 		}
 
-		void* rawAlloc(size_t bytes) noexcept;
+		void* allocate(size_t bytes, size_t alignment = sizeof(std::max_align_t)) noexcept {
+			if (std::align(alignment, bytes, m_nextObjectBegin, m_space)) {
+				auto temp = m_nextObjectBegin;
+				m_nextObjectBegin = static_cast<std::byte*>(m_nextObjectBegin) + bytes;
+				return temp;
+			} else {
+				return nullptr;
+			}
+		}
 
-		void clear() noexcept;
+		void clear() noexcept {
+			m_space = m_capacity;
+			m_nextObjectBegin = m_buff.data();
+		}
 	};
 
 	template<typename T>
@@ -57,18 +86,10 @@ namespace nv {
 		};
 
 		T* allocate(size_t n) noexcept {
-			auto ptr = static_cast<T*>(m_arena.get().rawAlloc(n * sizeof(T)));
+			auto ptr = static_cast<T*>(m_arena.get().allocate(n * sizeof(T), alignof(T)));
 			assert(ptr != nullptr);
 			return ptr;
 		}
 		void deallocate(T*, size_t) noexcept {} //no-op
 	};
-
-	/*class ArenaManager {
-	private:
-		Arena* m_globalArena = nullptr;
-
-	public:
-		ArenaManager(size_t size);
-	};*/
 }

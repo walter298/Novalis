@@ -4,20 +4,17 @@
 #include <functional>
 #include <string>
 
-#include <nfd.h>
+#include <nfd.hpp>
 
 namespace nv {
-	using FileString     = std::basic_string<nfdchar_t>;
-	using FileStringView = std::basic_string_view<nfdchar_t>;
-
-	using FileExtensionFilters = std::vector<FileString>;
-	using FileOpenResult = std::optional<FileString>;
-	using MultipleFileOpensResult = std::optional<std::vector<FileString>>;
+	using FileExtensionFilters    = std::initializer_list<nfdfilteritem_t>;
+	using FileOpenResult          = std::optional<std::string>;
+	using MultipleFileOpensResult = std::optional<std::vector<std::string>>;
+	using FileContentsGenerator   = std::function<std::string(const nfdchar_t*)>;
 
 	FileOpenResult openFile(const FileExtensionFilters& filters);
 	MultipleFileOpensResult openMultipleFiles(const FileExtensionFilters& filters);
 
-	using FileContentsGenerator = std::function<std::string(FileStringView)>;
 	bool saveNewFile(const nv::FileExtensionFilters& filters, const FileContentsGenerator& stringGen);
 
 	const std::string& workingDirectory();

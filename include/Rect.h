@@ -1,58 +1,75 @@
-#ifndef RECT_H
-#define RECT_H
-
-#include <iostream>
-#include <memory>
+#pragma once
 
 #include "data_util/BasicConcepts.h"
 
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_rect.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_rect.h>
 
 #include "ID.h"
 
 namespace nv {
-	struct Rect : public detail::ObjectBase<Rect> {
-		SDL_Renderer* renderer = nullptr;
-	
-		static bool isInRegion(int mx, int my, int x, int y, int w, int h) noexcept;
-		static bool isInRegion(SDL_Point coord, int x, int y, int w, int h) noexcept;
+	struct Rect {
+		static bool isInRegion(float mx, float my, float x, float y, float w, float h) noexcept;
+		static bool isInRegion(SDL_FPoint coord, float x, float y, float w, float h) noexcept;
 
-		SDL_Rect rect{ 0, 0, 0, 0 };
-		SDL_Color color{ 255, 255, 255, 255 };
-		int borderThickness = 20;
+		SDL_FRect rect{ 0.0f, 0.0f, 0.0f, 0.0f };
+		float currScale = 1.0f;
 
-		Rect() = default;
-		Rect(SDL_Renderer* renderer) noexcept;
-		Rect(SDL_Renderer* renderer, int x, int y, int w, int h, uint8_t r = 255, uint8_t g = 255, uint8_t b = 255, uint8_t a = 255);
-		Rect(SDL_Renderer* renderer, const json& json);
+		Rect() noexcept = default;
+		inline Rect(SDL_FRect rect) noexcept : rect{ rect } 
+		{
+		}
 
-		bool containsCoord(int mX, int mY) const noexcept;
-		bool containsCoord(SDL_Point p) const noexcept;
-		void move(int dx, int dy) noexcept;
-		void move(SDL_Point p) noexcept;
-		void scale(int dw, int dh) noexcept;
-		void scale(SDL_Point p) noexcept;
-		void setPos(int x, int y) noexcept;
-		void setPos(SDL_Point p) noexcept;
-		SDL_Point getPos() const noexcept;
-		void setSize(int w, int h) noexcept;
-		void setSize(SDL_Point p) noexcept;
-		SDL_Point getSize() const noexcept;
-		void setOpacity(uint8_t a);
-		void render() const noexcept;
-		void setRenderColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) noexcept;
+		inline void scale(float newScale, SDL_FPoint refPoint = { 0.0f, 0.0f }) noexcept {
+			auto scaleFactor = (newScale / currScale);
+			rect.x = rect.x + scaleFactor * (refPoint.x - rect.x);
+			rect.y = rect.y + scaleFactor * (refPoint.y - rect.y);
+			rect.w *= scaleFactor;
+			rect.h *= scaleFactor;
+			currScale = newScale;
+		}
+
+		bool containsCoord(SDL_FPoint p) const noexcept;
+		void move(float dx, float dy) noexcept;
+		void move(SDL_FPoint p) noexcept;
+		void setPos(float x, float y) noexcept;
+		void setPos(SDL_FPoint p) noexcept;
+		SDL_FPoint getPos() const noexcept;
+		void setSize(float w, float h) noexcept;
+		void setSize(SDL_FPoint p) noexcept;
+		SDL_FPoint getSize() const noexcept;
+		
 		void save(json& json) const;
 
 		friend void to_json(json& j, const Rect& r);
 		friend void from_json(const json& j, Rect& r);
 	};
 
+	inline SDL_Rect toSDLRect(SDL_FRect frect) {
+		return {
+			static_cast<int>(frect.x), static_cast<int>(frect.y),
+			static_cast<int>(frect.w), static_cast<int>(frect.h)
+		};
+	}
+
+	inline SDL_FRect toSDLFRect(SDL_Rect r) {
+		return {
+			static_cast<float>(r.x), static_cast<float>(r.y),
+			static_cast<float>(r.w), static_cast<float>(r.h)
+		};
+	}
+
+	inline void renderSDLRect(SDL_Renderer* renderer, SDL_FRect rect, SDL_Color color) {
+		uint8_t r = 0, g = 0, b = 0, a = 0;
+		SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
+		SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+		SDL_RenderFillRect(renderer, &rect);
+		SDL_SetRenderDrawColor(renderer, r, g, b, a);
+	}
+	inline void renderSDLRect(SDL_Renderer* renderer, SDL_Rect rect, SDL_Color color) {
+		renderSDLRect(renderer, toSDLFRect(rect), color);
+	}
+
 	void to_json(json& j, const Rect& r);
 	void from_json(const json& j, Rect& r);
-
-	using RectPtr = std::shared_ptr<Rect>;
-	using RectRef = std::reference_wrapper<Rect>;
 }
-
-#endif

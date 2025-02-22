@@ -6,9 +6,11 @@
 #include <boost/pfr.hpp>
 #include <boost/container/flat_map.hpp>
 
+#include <plf_hive.h>
+
 #include <nlohmann/json.hpp>
 
-#include <SDL2/SDL_rect.h>
+#include <SDL3/SDL_rect.h>
 
 #include "BasicConcepts.h"
 
@@ -45,14 +47,28 @@ namespace boost {
 	}
 }
 
+namespace plf {
+	template<typename T>
+	void to_json(nlohmann::json& j, const hive<T>& hive) {
+		std::vector<T> vec;
+		vec.append_range(hive);
+		j = vec;
+	}
+	template<typename T>
+	void from_json(const nlohmann::json& j, hive<T>& hive) {
+		auto vec = j.get<std::vector<T>>();
+		hive.insert(vec.begin(), vec.end());
+	}
+}
+
 void to_json(nlohmann::json& j, const SDL_Color& c);
 void from_json(const nlohmann::json& j, SDL_Color& c);
 
-void to_json(nlohmann::json& j, const SDL_Rect& c);
-void from_json(const nlohmann::json& j, SDL_Rect& c);
+void to_json(nlohmann::json& j, const SDL_FRect& c);
+void from_json(const nlohmann::json& j, SDL_FRect& c);
 
-void to_json(nlohmann::json& j, const SDL_Point& p);
-void from_json(const nlohmann::json& j, SDL_Point& p);
+void to_json(nlohmann::json& j, const SDL_FPoint& p);
+void from_json(const nlohmann::json& j, SDL_FPoint& p);
 
 namespace nv {
 	namespace chrono = std::chrono;
@@ -66,7 +82,7 @@ namespace nv {
 	using namespace std::literals;
 
 	namespace detail {
-		template<Aggregate Aggr, size_t... Idxs>
+		template<concepts::Aggregate Aggr, size_t... Idxs>
 		void assignEachAggrMember(const json& j, Aggr& aggr, std::index_sequence<Idxs...> idxs) {
 			using ParsedAggr = std::tuple<pfr::tuple_element_t<Idxs, Aggr>...>;
 			auto parsedTuple = j.get<ParsedAggr>();
@@ -74,19 +90,19 @@ namespace nv {
 		}
 	}
 
-	template<Aggregate Aggr>
+	template<concepts::Aggregate Aggr>
 	void from_json(const json& j, Aggr& aggr) {
 		detail::assignEachAggrMember(j, aggr, std::make_index_sequence<pfr::tuple_size_v<Aggr>>());
 	}
 
 	namespace detail {
-		template<Aggregate Aggr, size_t... Idxs>
+		template<concepts::Aggregate Aggr, size_t... Idxs>
 		auto feedJsonAggregate(json& j, const Aggr& aggr, std::index_sequence<Idxs...> idxs) {
 			j = std::tuple{ pfr::get<Idxs>(aggr)... };
 		}
 	}
 
-	template<Aggregate Aggr>
+	template<concepts::Aggregate Aggr>
 	void to_json(json& j, const Aggr& aggr) {
 		detail::feedJsonAggregate(j, aggr, std::make_index_sequence<pfr::tuple_size_v<Aggr>>());
 	}

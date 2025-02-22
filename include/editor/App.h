@@ -2,6 +2,6 @@
 
 namespace nv {
 	namespace editor {
-		void runEditors();
+		void runApp();
 	}
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace nv {
 	class Animation {
 	protected:

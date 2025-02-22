@@ -13,7 +13,7 @@ namespace nv {
 	//get that works with tuples AND aggregates
 	template<size_t Idx, typename T>
 	constexpr decltype(auto) powerGet(T&& t) {
-		if constexpr (Aggregate<T>) {
+		if constexpr (concepts::Aggregate<T>) {
 			return pfr::get<Idx>(std::forward<T>(t)); //aggregate case
 		}
 		else {
@@ -27,7 +27,7 @@ namespace nv {
 			using type = std::tuple_element_t<Idx, std::remove_cvref_t<T>>;
 		};
 
-		template<size_t Idx, Aggregate T>
+		template<size_t Idx, concepts::Aggregate T>
 		struct GetTypeImpl<true, Idx, T> {
 			using type = pfr::tuple_element_t<Idx, std::remove_cvref_t<T>>;
 		};
@@ -39,7 +39,7 @@ namespace nv {
 	template<typename T>
 	consteval size_t memberCount() {
 		using Plain = std::remove_cvref_t<T>;
-		if constexpr (Aggregate<Plain>) {
+		if constexpr (concepts::Aggregate<Plain>) {
 			return pfr::tuple_size_v<Plain>; //aggregate case
 		} else {
 			return std::tuple_size_v<Plain>; //tuple case
@@ -296,7 +296,7 @@ namespace nv {
 	}
 
 	struct HashAggregate {
-		template<Aggregate Aggr>
+		template<concepts::Aggregate Aggr>
 		size_t operator()(const Aggr& aggr) const noexcept {
 			size_t hashCode = 0;
 			pfr::for_each_field(aggr, [&](const auto& member) {
@@ -307,7 +307,7 @@ namespace nv {
 	};
 
 	struct CompareAggregates {
-		template<Aggregate Aggr1, Aggregate Aggr2>
+		template<concepts::Aggregate Aggr1, concepts::Aggregate Aggr2>
 		bool operator()(const Aggr1 a, const Aggr2& b) const noexcept {
 			bool ret = true;
 			forEachDataMember([&](const auto& field1, const auto& field2) {

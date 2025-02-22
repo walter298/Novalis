@@ -14,18 +14,18 @@ void from_json(const nlohmann::json& j, SDL_Color& c) {
 	std::tie(c.r, c.g, c.b, c.a) = j.get<Quad<Uint8>>();
 }
 
-void to_json(nlohmann::json& j, const SDL_Rect& r) {
+void to_json(nlohmann::json& j, const SDL_FRect& r) {
 	j = std::tie(r.x, r.y, r.w, r.h);
 }
 
-void from_json(const nlohmann::json& j, SDL_Rect& r) {
+void from_json(const nlohmann::json& j, SDL_FRect& r) {
 	std::tie(r.x, r.y, r.w, r.h) = j.get<Quad<int>>();
 }
 
-void to_json(nlohmann::json& j, const SDL_Point& p) {
+void to_json(nlohmann::json& j, const SDL_FPoint& p) {
 	j = std::tie(p.x, p.y);
 }
-void from_json(const nlohmann::json& j, SDL_Point& p) {
+void from_json(const nlohmann::json& j, SDL_FPoint& p) {
 	std::tie(p.x, p.y) = j.get<std::tuple<int, int>>();
 }
 

@@ -44,7 +44,7 @@ namespace nv {
 	template<ranges::viewable_range Range, typename Value, typename PM>
 	constexpr auto binaryFind(Range& range, const Value& value, PM pm)
 		requires((std::is_member_pointer_v<PM> || std::is_member_function_pointer_v<PM>) &&
-				   SameAsDecayed<Value, decltype(std::invoke(pm, std::declval<typename Range::value_type>()))>)
+				   concepts::SameAsDecayed<Value, decltype(std::invoke(pm, std::declval<typename Range::value_type>()))>)
 	{
 		return ranges::lower_bound(range, value, [](const Value& v1, const Value& v2) {
 			return v1 < v2;

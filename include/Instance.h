@@ -1,9 +1,9 @@
-#ifndef INSTANCE_H
-#define INSTANCE_H
+#pragma once
 
-#include <string_view>
+//#include "Node.h"
 
-#include <SDL2/SDL.h>
+#include "Texture.h"
+#include "Text.h"
 
 namespace nv {
 	class Instance {
@@ -15,14 +15,18 @@ namespace nv {
 	public:
 		SDL_Window* window     = nullptr;
 		SDL_Renderer* renderer = nullptr;
-		
-		Instance(std::string_view windowTitle) noexcept;
+		TextureMap texMap;
+		//FontMap fontMap;
+		/*BufferedNodeMap bufferedNodeMap;
+		DynamicNodeMap dynamicNodeMap;*/
+
+		Instance(const char* windowTitle) noexcept;
 		Instance(Instance&&) = delete;
 		~Instance() noexcept;
 
 		int getScreenWidth() const noexcept;
 		int getScreenHeight() const noexcept;
 	};
-}
 
-#endif
+	Instance* getGlobalInstance();
+}

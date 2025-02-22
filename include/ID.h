@@ -22,7 +22,7 @@ namespace nv {
 		}
 	};
 
-	class Sprite;
+	//class Sprite;
 	class Texture;
 
 	namespace detail {
@@ -31,14 +31,8 @@ namespace nv {
 			static inline int x = 0;
 			static inline int y = 0;
 		public:
-			friend class Sprite;
+			//friend class Sprite;
 			friend class Texture;
-		};
-
-		template<typename T>
-		struct ObjectBase {
-			ID<T> m_ID;
-			std::string name;
 		};
 	}
 }

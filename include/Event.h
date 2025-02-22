@@ -4,7 +4,7 @@
 
 #include <boost/unordered/unordered_flat_map.hpp>
 
-#include <SDL2/SDL_scancode.h>
+#include <SDL3/SDL_scancode.h>
 
 #include "data_util/Reflection.h"
 
@@ -46,10 +46,10 @@ namespace nv {
 		MouseButtonState left = MouseButtonState::None;
 		MouseButtonState mid = MouseButtonState::None;
 		MouseButtonState right = MouseButtonState::None;
-		int x = 0;
-		int y = 0;
-		int deltaX = 0;
-		int deltaY = 0;
+		float x = 0.0f;
+		float y = 0.0f;
+		float deltaX = 0.0f;
+		float deltaY = 0.0f;
 	};
 
 	using MouseEvent    = Event<void, MouseData>;
