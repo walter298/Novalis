@@ -1,0 +1,110 @@
+{
+  "$schema": "https://raw.githubusercontent.com/spdx/spdx-spec/v2.2.1/schemas/spdx-schema.json",
+  "spdxVersion": "SPDX-2.2",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "documentNamespace": "https://spdx.org/spdxdocs/nativefiledialog-extended-x64-windows-1.2.1-3e7920ba-fb00-480a-94ef-feddafbcc541",
+  "name": "nativefiledialog-extended:x64-windows@1.2.1 0fb4c156612c47abafce4b746b63e7809b2f86683027b1c24d3469cdd1aadb37",
+  "creationInfo": {
+    "creators": [
+      "Tool: vcpkg-2025-01-29-a75ad067f470c19f030361064e32a2585392bee2"
+    ],
+    "created": "2025-04-03T01:45:26Z"
+  },
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "GENERATES",
+      "relatedSpdxElement": "SPDXRef-binary"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-0"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-binary",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-0",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-1",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    }
+  ],
+  "packages": [
+    {
+      "name": "nativefiledialog-extended",
+      "SPDXID": "SPDXRef-port",
+      "versionInfo": "1.2.1",
+      "downloadLocation": "git+https://github.com/microsoft/vcpkg@de840713bb625f3d94a683f1369105b245d23982",
+      "homepage": "https://github.com/btzy/nativefiledialog-extended",
+      "licenseConcluded": "Zlib",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "description": "Native File Dialog Extended",
+      "comment": "This is the port (recipe) consumed by vcpkg."
+    },
+    {
+      "name": "nativefiledialog-extended:x64-windows",
+      "SPDXID": "SPDXRef-binary",
+      "versionInfo": "0fb4c156612c47abafce4b746b63e7809b2f86683027b1c24d3469cdd1aadb37",
+      "downloadLocation": "NONE",
+      "licenseConcluded": "Zlib",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "comment": "This is a binary package built by vcpkg."
+    },
+    {
+      "SPDXID": "SPDXRef-resource-0",
+      "name": "btzy/nativefiledialog-extended",
+      "downloadLocation": "git+https://github.com/btzy/nativefiledialog-extended@v1.2.1",
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "4ec3e174a90354c524d9be2776422740f80b73021df94e1942e60ab4310995245554f83097b9b2dcca04d016a8548d3fc0760f73daf724c5c3d72c15cf776bed"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "fileName": "./C:/Users/walte/AppData/Local/vcpkg/registries/git-trees/de840713bb625f3d94a683f1369105b245d23982/portfile.cmake",
+      "SPDXID": "SPDXRef-file-0",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "bc0403693c85a8226904c36aa183d4f3bb4c98789179b381500d81f2388156fa"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./C:/Users/walte/AppData/Local/vcpkg/registries/git-trees/de840713bb625f3d94a683f1369105b245d23982/vcpkg.json",
+      "SPDXID": "SPDXRef-file-1",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6366c4e89e157b7a8c9c133bfb6ae495c038b6d0ec75ab455db91603dd3f02fc"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    }
+  ]
+}

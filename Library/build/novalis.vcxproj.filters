@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Animation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Button.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\ID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Instance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Physics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Rect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\ResourceRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Sound.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Sprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\src\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{B3C69569-F2F1-36F0-8AD1-053BE325B1E7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

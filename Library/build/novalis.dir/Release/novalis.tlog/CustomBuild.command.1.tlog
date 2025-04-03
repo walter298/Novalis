@@ -1,0 +1,10 @@
+^C:\USERS\WALTE\ONEDRIVE\DESKTOP\CODE_PROJECTS\REDMANE\REDMANE\NOVALIS_CMAKE_BUILD\LIBRARY\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library -BC:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build --check-stamp-file C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
