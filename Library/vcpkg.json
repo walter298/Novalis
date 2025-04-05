@@ -1,6 +1,6 @@
 {
   "name": "novalis",
-  "version": "0.3",
+  "version": "0.8",
   "description": "A C++23 2D Game Engine built off SDL3 and Dear ImGui; has a scene/node editor!",
   "homepage": "https://github.com/walter298/Novalis",
   "license": "MIT",
