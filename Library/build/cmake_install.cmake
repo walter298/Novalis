@@ -82,7 +82,7 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/novalis" TYPE FILE FILES
-    "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/novalisConfig.cmake"
+    "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/novalisConfig.cmake"
     "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/novalisConfigVersion.cmake"
     )
 endif()
