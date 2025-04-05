@@ -35,11 +35,10 @@ target_link_libraries(novalis
         SDL3::SDL3
 )
 
-
 # Export target for install
 include(CMakePackageConfigHelpers)
 
-# Install the target
+# Install the library target
 install(TARGETS novalis
     EXPORT novalisTargets
     ARCHIVE DESTINATION lib
@@ -48,17 +47,17 @@ install(TARGETS novalis
     INCLUDES DESTINATION include
 )
 
-# Install headers
+# Install header files
 install(DIRECTORY src/
     DESTINATION include
     FILES_MATCHING PATTERN "*.h"
 )
 
-# Export the target definition
+# Export targets
 install(EXPORT novalisTargets
     FILE novalisTargets.cmake
-    NAMESPACE novalis::
-    DESTINATION lib/cmake/novalis
+    NAMESPACE Novalis::
+    DESTINATION share/novalis
 )
 
 # Version file
@@ -68,16 +67,16 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
-# Config file
+# Config file (you must have cmake/novalisConfig.cmake.in)
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/novalisConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/novalisConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/novalis
+    INSTALL_DESTINATION share/novalis
 )
 
 # Install config files
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/novalisConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/novalisConfigVersion.cmake"
-    DESTINATION lib/cmake/novalis
+    DESTINATION share/novalis
 )
