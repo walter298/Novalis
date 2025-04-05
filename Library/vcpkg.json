@@ -1,6 +1,6 @@
 {
   "name": "novalis",
-  "version": "0.8",
+  "version": "0.9",
   "description": "A C++23 2D Game Engine built off SDL3 and Dear ImGui; has a scene/node editor!",
   "homepage": "https://github.com/walter298/Novalis",
   "license": "MIT",
@@ -9,12 +9,14 @@
     "boost-geometry",
     "boost-type-erasure",
     "boost-unordered",
+    "boost-optional",
+    "boost-preprocessor",
+    "boost-pfr",
     "nativefiledialog-extended",
     "nlohmann-json",
     "plf-hive",
     "sdl3",
     "sdl3-image",
-    "boost-pfr",
     {
       "name": "vcpkg-cmake",
       "host": true

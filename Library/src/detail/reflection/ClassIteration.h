@@ -1,8 +1,6 @@
 #pragma once
 
 #include <tuple>
-#include <boost/describe.hpp>
-#include <boost/mp11.hpp>
 #include <boost/pfr.hpp>
 #include <boost/preprocessor.hpp>
 

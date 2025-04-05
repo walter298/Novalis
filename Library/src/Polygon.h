@@ -4,7 +4,6 @@
 #include <span>
 #include <vector>
 
-#include <boost/describe.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>

@@ -5,7 +5,6 @@
 #include <print>
 #include <string_view>
 #include <variant>
-#include <boost/describe.hpp>
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3/SDL_render.h>
