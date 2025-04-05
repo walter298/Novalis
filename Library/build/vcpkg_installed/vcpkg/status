@@ -640,6 +640,15 @@ Abi: fe7e181f652a9d497b85b89f43f344ca30f4ee1d6c051a109a66266d7fbdc2b7
 Description: Boost geometry module
 Status: install ok installed
 
+Package: boost-pfr
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-headers
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 9d10842520fe0ec004052025c8e089d947a7f1e9de1fd5ff29f798998c2dd286
+Description: Boost pfr module
+Status: install ok installed
+
 Package: boost-vmd
 Version: 1.86.0
 Depends: boost-cmake, boost-config, boost-headers, boost-preprocessor
@@ -701,14 +710,5 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 70ed7b372e8ebb7b102d801bcb653aab4f44b393965f11f082b2ab62f2b86ae4
 Description: SDL_image is an image file loading library. It loads images as SDL surfaces and textures, and supports the following formats: BMP, GIF, JPEG, LBM, PCX, PNG, PNM, TGA, TIFF, WEBP, XCF, XPM, XV
-Status: install ok installed
-
-Package: boost-pfr
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9d10842520fe0ec004052025c8e089d947a7f1e9de1fd5ff29f798998c2dd286
-Description: Boost pfr module
 Status: install ok installed
 

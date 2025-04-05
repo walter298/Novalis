@@ -5,7 +5,7 @@ events:
     kind: "message-v1"
     backtrace:
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineSystem.cmake:205 (message)"
-      - "CMakeLists.txt:3 (PROJECT)"
+      - "CMakeLists.txt:3 (project)"
     message: |
       The system is: Windows - 10.0.22631 - AMD64
   -
@@ -13,74 +13,8 @@ events:
     backtrace:
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
-      - "CMakeLists.txt:3 (PROJECT)"
-    message: |
-      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
-      Compiler:  
-      Build flags: 
-      Id flags:  
-      
-      The output was:
-      0
-      MSBuild version 17.13.9+e0f243f1e for .NET Framework
-      Build started 4/3/2025 3:50:23 PM.
-      
-      Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdC\\CompilerIdC.vcxproj" on node 1 (default targets).
-      PrepareForBuild:
-        Creating directory "Debug\\".
-        Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-        Creating directory "Debug\\CompilerIdC.tlog\\".
-      InitializeBuildStatus:
-        Creating "Debug\\CompilerIdC.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
-        Touching "Debug\\CompilerIdC.tlog\\unsuccessfulbuild".
-      VcpkgTripletSelection:
-        Using triplet "x64-windows" from "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\"
-        Using normalized configuration "Release"
-      VcpkgCheckManifestRoot:
-        The vcpkg manifest was disabled, but we found a manifest file in C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\. You may want to enable vcpkg manifests in your properties page or pass /p:VcpkgEnableManifest=true to the msbuild invocation.
-      ClCompile:
-        C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /I"C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\include" /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc143.pdb" /external:W0 /Gd /TC /FC /errorReport:queue CMakeCCompilerId.c
-        CMakeCCompilerId.c
-      Link:
-        C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdC.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\lib\\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdC.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdC.lib" /MACHINE:X64 Debug\\CMakeCCompilerId.obj
-        CompilerIdC.vcxproj -> C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdC\\CompilerIdC.exe
-      AppLocalFromInstalled:
-        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdC\\CompilerIdC.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdC.tlog\\CompilerIdC.write.1u.tlog" "Debug\\vcpkg.applocal.log"
-        'pwsh.exe' is not recognized as an internal or external command,
-        operable program or batch file.
-        The command "pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdC\\CompilerIdC.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdC.tlog\\CompilerIdC.write.1u.tlog" "Debug\\vcpkg.applocal.log"" exited with code 9009.
-        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdC\\CompilerIdC.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdC.tlog\\CompilerIdC.write.1u.tlog" "Debug\\vcpkg.applocal.log"
-      PostBuildEvent:
-        for %%i in (cl.exe) do @echo CMAKE_C_COMPILER=%%~$PATH:i
-        :VCEnd
-        CMAKE_C_COMPILER=C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\Hostx64\\x64\\cl.exe
-      FinalizeBuildStatus:
-        Deleting file "Debug\\CompilerIdC.tlog\\unsuccessfulbuild".
-        Touching "Debug\\CompilerIdC.tlog\\CompilerIdC.lastbuildstate".
-      Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdC\\CompilerIdC.vcxproj" (default targets).
-      
-      Build succeeded.
-          0 Warning(s)
-          0 Error(s)
-      
-      Time Elapsed 00:00:03.32
-      
-      
-      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
-      
-      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.vcxproj"
-      
-      The C compiler identification is MSVC, found in:
-        C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/3.29.0/CompilerIdC/CompilerIdC.exe
-      
-  -
-    kind: "message-v1"
-    backtrace:
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
-      - "CMakeLists.txt:3 (PROJECT)"
+      - "CMakeLists.txt:3 (project)"
     message: |
       Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
       Compiler:  
@@ -90,9 +24,9 @@ events:
       The output was:
       0
       MSBuild version 17.13.9+e0f243f1e for .NET Framework
-      Build started 4/3/2025 3:50:27 PM.
+      Build started 4/4/2025 10:40:20 PM.
       
-      Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.vcxproj" on node 1 (default targets).
+      Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.vcxproj" on node 1 (default targets).
       PrepareForBuild:
         Creating directory "Debug\\".
         Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
@@ -104,19 +38,19 @@ events:
         Using triplet "x64-windows" from "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\"
         Using normalized configuration "Release"
       VcpkgCheckManifestRoot:
-        The vcpkg manifest was disabled, but we found a manifest file in C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\. You may want to enable vcpkg manifests in your properties page or pass /p:VcpkgEnableManifest=true to the msbuild invocation.
+        The vcpkg manifest was disabled, but we found a manifest file in C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\. You may want to enable vcpkg manifests in your properties page or pass /p:VcpkgEnableManifest=true to the msbuild invocation.
       ClCompile:
         C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /I"C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\include" /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc143.pdb" /external:W0 /Gd /TP /FC /errorReport:queue CMakeCXXCompilerId.cpp
         CMakeCXXCompilerId.cpp
       Link:
         C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\lib" /LIBPATH:"C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\lib\\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\lib\\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCXX.lib" /MACHINE:X64 Debug\\CMakeCXXCompilerId.obj
-        CompilerIdCXX.vcxproj -> C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe
+        CompilerIdCXX.vcxproj -> C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe
       AppLocalFromInstalled:
-        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+        pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
         'pwsh.exe' is not recognized as an internal or external command,
         operable program or batch file.
-        The command "pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"" exited with code 9009.
-        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
+        The command "pwsh.exe -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"" exited with code 9009.
+        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "C:\\package_managers\\vcpkg\\vcpkg\\scripts\\buildsystems\\msbuild\\applocal.ps1" "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.exe" "C:\\package_managers\\vcpkg\\vcpkg\\installed\\x64-windows\\bin" "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.write.1u.tlog" "Debug\\vcpkg.applocal.log"
       PostBuildEvent:
         for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
         :VCEnd
@@ -124,13 +58,13 @@ events:
       FinalizeBuildStatus:
         Deleting file "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild".
         Touching "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.lastbuildstate".
-      Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.vcxproj" (default targets).
+      Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\3.29.0\\CompilerIdCXX\\CompilerIdCXX.vcxproj" (default targets).
       
       Build succeeded.
           0 Warning(s)
           0 Error(s)
       
-      Time Elapsed 00:00:02.08
+      Time Elapsed 00:00:01.14
       
       
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -138,109 +72,24 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
       
       The CXX compiler identification is MSVC, found in:
-        C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/3.29.0/CompilerIdCXX/CompilerIdCXX.exe
+        C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/3.29.0/CompilerIdCXX/CompilerIdCXX.exe
       
-  -
-    kind: "try_compile-v1"
-    backtrace:
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:64 (try_compile)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:3 (PROJECT)"
-    checks:
-      - "Detecting C compiler ABI info"
-    directories:
-      source: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-x1odzl"
-      binary: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-x1odzl"
-    cmakeVariables:
-      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
-      CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/vcpkg_installed"
-      VCPKG_PREFER_SYSTEM_LIBS: "OFF"
-      VCPKG_TARGET_TRIPLET: "x64-windows"
-      Z_VCPKG_ROOT_DIR: "C:/package_managers/vcpkg/vcpkg"
-    buildResult:
-      variable: "CMAKE_C_ABI_COMPILED"
-      cached: true
-      stdout: |
-        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-x1odzl'
-        
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_78220.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
-        MSBuild version 17.13.9+e0f243f1e for .NET Framework
-        Build started 4/3/2025 3:50:31 PM.
-        
-        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-x1odzl\\cmTC_78220.vcxproj" on node 1 (default targets).
-        PrepareForBuild:
-          Creating directory "cmTC_78220.dir\\Debug\\".
-          Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-x1odzl\\Debug\\".
-          Creating directory "cmTC_78220.dir\\Debug\\cmTC_78220.tlog\\".
-        InitializeBuildStatus:
-          Creating "cmTC_78220.dir\\Debug\\cmTC_78220.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
-          Touching "cmTC_78220.dir\\Debug\\cmTC_78220.tlog\\unsuccessfulbuild".
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_78220.dir\\Debug\\\\" /Fd"cmTC_78220.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.29\\Modules\\CMakeCCompilerABI.c"
-          Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
-          Copyright (C) Microsoft Corporation.  All rights reserved.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_78220.dir\\Debug\\\\" /Fd"cmTC_78220.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.29\\Modules\\CMakeCCompilerABI.c"
-          CMakeCCompilerABI.c
-        Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-x1odzl\\Debug\\cmTC_78220.exe" /INCREMENTAL /ILK:"cmTC_78220.dir\\Debug\\cmTC_78220.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-x1odzl/Debug/cmTC_78220.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-x1odzl/Debug/cmTC_78220.lib" /MACHINE:X64  /machine:x64 cmTC_78220.dir\\Debug\\CMakeCCompilerABI.obj
-          cmTC_78220.vcxproj -> C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-x1odzl\\Debug\\cmTC_78220.exe
-        FinalizeBuildStatus:
-          Deleting file "cmTC_78220.dir\\Debug\\cmTC_78220.tlog\\unsuccessfulbuild".
-          Touching "cmTC_78220.dir\\Debug\\cmTC_78220.tlog\\cmTC_78220.lastbuildstate".
-        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-x1odzl\\cmTC_78220.vcxproj" (default targets).
-        
-        Build succeeded.
-            0 Warning(s)
-            0 Error(s)
-        
-        Time Elapsed 00:00:01.07
-        
-      exitCode: 0
-  -
-    kind: "message-v1"
-    backtrace:
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:170 (message)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:3 (PROJECT)"
-    message: |
-      Parsed C implicit link information:
-        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
-        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?))("|,| |$)]
-        linker tool for 'C': C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.43.34808/bin/HostX64/x64/link.exe
-        implicit libs: []
-        implicit objs: []
-        implicit dirs: []
-        implicit fwks: []
-      
-      
-  -
-    kind: "message-v1"
-    backtrace:
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:207 (cmake_determine_linker_id)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:3 (PROJECT)"
-    message: |
-      Running the C compiler's linker: "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.43.34808/bin/HostX64/x64/link.exe" "-v"
-      Microsoft (R) Incremental Linker Version 14.43.34808.0
-      Copyright (C) Microsoft Corporation.  All rights reserved.
   -
     kind: "try_compile-v1"
     backtrace:
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:64 (try_compile)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:3 (PROJECT)"
+      - "CMakeLists.txt:3 (project)"
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y8t1wm"
-      binary: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y8t1wm"
+      source: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-k4mkla"
+      binary: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-k4mkla"
     cmakeVariables:
-      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/vcpkg_installed"
+      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed"
       VCPKG_PREFER_SYSTEM_LIBS: "OFF"
       VCPKG_TARGET_TRIPLET: "x64-windows"
       Z_VCPKG_ROOT_DIR: "C:/package_managers/vcpkg/vcpkg"
@@ -248,40 +97,40 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y8t1wm'
+        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-k4mkla'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_34cb2.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_f0adb.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         MSBuild version 17.13.9+e0f243f1e for .NET Framework
-        Build started 4/3/2025 3:50:33 PM.
+        Build started 4/4/2025 10:40:22 PM.
         
-        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y8t1wm\\cmTC_34cb2.vcxproj" on node 1 (default targets).
+        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-k4mkla\\cmTC_f0adb.vcxproj" on node 1 (default targets).
         PrepareForBuild:
-          Creating directory "cmTC_34cb2.dir\\Debug\\".
+          Creating directory "cmTC_f0adb.dir\\Debug\\".
           Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y8t1wm\\Debug\\".
-          Creating directory "cmTC_34cb2.dir\\Debug\\cmTC_34cb2.tlog\\".
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-k4mkla\\Debug\\".
+          Creating directory "cmTC_f0adb.dir\\Debug\\cmTC_f0adb.tlog\\".
         InitializeBuildStatus:
-          Creating "cmTC_34cb2.dir\\Debug\\cmTC_34cb2.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
-          Touching "cmTC_34cb2.dir\\Debug\\cmTC_34cb2.tlog\\unsuccessfulbuild".
+          Creating "cmTC_f0adb.dir\\Debug\\cmTC_f0adb.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_f0adb.dir\\Debug\\cmTC_f0adb.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_34cb2.dir\\Debug\\\\" /Fd"cmTC_34cb2.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.29\\Modules\\CMakeCXXCompilerABI.cpp"
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_f0adb.dir\\Debug\\\\" /Fd"cmTC_f0adb.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.29\\Modules\\CMakeCXXCompilerABI.cpp"
           Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
           Copyright (C) Microsoft Corporation.  All rights reserved.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_34cb2.dir\\Debug\\\\" /Fd"cmTC_34cb2.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.29\\Modules\\CMakeCXXCompilerABI.cpp"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_f0adb.dir\\Debug\\\\" /Fd"cmTC_f0adb.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.29\\Modules\\CMakeCXXCompilerABI.cpp"
           CMakeCXXCompilerABI.cpp
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y8t1wm\\Debug\\cmTC_34cb2.exe" /INCREMENTAL /ILK:"cmTC_34cb2.dir\\Debug\\cmTC_34cb2.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y8t1wm/Debug/cmTC_34cb2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y8t1wm/Debug/cmTC_34cb2.lib" /MACHINE:X64  /machine:x64 cmTC_34cb2.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_34cb2.vcxproj -> C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y8t1wm\\Debug\\cmTC_34cb2.exe
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-k4mkla\\Debug\\cmTC_f0adb.exe" /INCREMENTAL /ILK:"cmTC_f0adb.dir\\Debug\\cmTC_f0adb.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-k4mkla/Debug/cmTC_f0adb.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-k4mkla/Debug/cmTC_f0adb.lib" /MACHINE:X64  /machine:x64 cmTC_f0adb.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_f0adb.vcxproj -> C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-k4mkla\\Debug\\cmTC_f0adb.exe
         FinalizeBuildStatus:
-          Deleting file "cmTC_34cb2.dir\\Debug\\cmTC_34cb2.tlog\\unsuccessfulbuild".
-          Touching "cmTC_34cb2.dir\\Debug\\cmTC_34cb2.tlog\\cmTC_34cb2.lastbuildstate".
-        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y8t1wm\\cmTC_34cb2.vcxproj" (default targets).
+          Deleting file "cmTC_f0adb.dir\\Debug\\cmTC_f0adb.tlog\\unsuccessfulbuild".
+          Touching "cmTC_f0adb.dir\\Debug\\cmTC_f0adb.tlog\\cmTC_f0adb.lastbuildstate".
+        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-k4mkla\\cmTC_f0adb.vcxproj" (default targets).
         
         Build succeeded.
             0 Warning(s)
             0 Error(s)
         
-        Time Elapsed 00:00:00.98
+        Time Elapsed 00:00:00.37
         
       exitCode: 0
   -
@@ -289,7 +138,7 @@ events:
     backtrace:
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:170 (message)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:3 (PROJECT)"
+      - "CMakeLists.txt:3 (project)"
     message: |
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
@@ -307,21 +156,17 @@ events:
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:207 (cmake_determine_linker_id)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:3 (PROJECT)"
+      - "CMakeLists.txt:3 (project)"
     message: |
       Running the CXX compiler's linker: "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.43.34808/bin/HostX64/x64/link.exe" "-v"
       Microsoft (R) Incremental Linker Version 14.43.34808.0
       Copyright (C) Microsoft Corporation.  All rights reserved.
-...
-
----
-events:
   -
     kind: "try_compile-v1"
     backtrace:
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
-      - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindThreads.cmake:99 (CHECK_CXX_SOURCE_COMPILES)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindThreads.cmake:163 (_threads_check_libc)"
       - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:859 (_find_package)"
       - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
@@ -337,16 +182,18 @@ events:
       - "build/vcpkg_installed/x64-windows/share/boost/BoostConfig.cmake:128 (boostcfg_find_component)"
       - "build/vcpkg_installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package)"
       - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:813 (include)"
-      - "CMakeLists.txt:11 (FIND_PACKAGE)"
-    checks:
-      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindBoost.cmake:594 (find_package)"
+      - "build/vcpkg_installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package)"
+      - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:813 (include)"
+      - "CMakeLists.txt:17 (find_package)"
     directories:
-      source: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-frwh02"
-      binary: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-frwh02"
+      source: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y43y3v"
+      binary: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y43y3v"
     cmakeVariables:
-      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/vcpkg_installed"
+      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed"
       VCPKG_PREFER_SYSTEM_LIBS: "OFF"
       VCPKG_TARGET_TRIPLET: "x64-windows"
       Z_VCPKG_ROOT_DIR: "C:/package_managers/vcpkg/vcpkg"
@@ -354,40 +201,79 @@ events:
       variable: "CMAKE_HAVE_LIBC_PTHREAD"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-frwh02'
+        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-y43y3v'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_6905f.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_5dd22.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         MSBuild version 17.13.9+e0f243f1e for .NET Framework
-        Build started 4/3/2025 4:02:47 PM.
+        Build started 4/4/2025 10:40:23 PM.
         
-        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\cmTC_6905f.vcxproj" on node 1 (default targets).
+        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj" on node 1 (default targets).
         PrepareForBuild:
-          Creating directory "cmTC_6905f.dir\\Debug\\".
+          Creating directory "cmTC_5dd22.dir\\Debug\\".
           Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\Debug\\".
-          Creating directory "cmTC_6905f.dir\\Debug\\cmTC_6905f.tlog\\".
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\Debug\\".
+          Creating directory "cmTC_5dd22.dir\\Debug\\cmTC_5dd22.tlog\\".
         InitializeBuildStatus:
-          Creating "cmTC_6905f.dir\\Debug\\cmTC_6905f.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
-          Touching "cmTC_6905f.dir\\Debug\\cmTC_6905f.tlog\\unsuccessfulbuild".
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_6905f.dir\\Debug\\\\" /Fd"cmTC_6905f.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\src.c"
+          Creating "cmTC_5dd22.dir\\Debug\\cmTC_5dd22.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_5dd22.dir\\Debug\\cmTC_5dd22.tlog\\unsuccessfulbuild".
+        ComputeStdModulesCompileInputs:
+          Reading library manifest file 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\modules.json' which provides data for library 'microsoft/STL'.
+          Adding module source 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\std.ixx' from library 'microsoft/STL' to be built with this project.
+          Adding module source 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\std.compat.ixx' from library 'microsoft/STL' to be built with this project.
+        MakeDirsForCl:
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.dir\\Debug\\microsoft\\STL".
+        SetModuleDependencies:
+          Creating directory "cmTC_5dd22.dir\\Debug\\cmTC_5dd22_MD.tlog\\".
+          Scanning sources for module dependencies...
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_5dd22.dir\\Debug\\\\" /scanDependencies "cmTC_5dd22.dir\\Debug\\\\" /Fo"cmTC_5dd22.dir\\Debug\\\\" /Fd"cmTC_5dd22.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx"
           Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
           Copyright (C) Microsoft Corporation.  All rights reserved.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_6905f.dir\\Debug\\\\" /Fd"cmTC_6905f.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\src.c"
-          src.c
-        C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\src.c(1,10): error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\cmTC_6905f.vcxproj]
-        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\cmTC_6905f.vcxproj" (default targets) -- FAILED.
+          /std:c++latest is provided as a preview of language features from the latest C++
+          working draft, and we're eager to hear about bugs and suggestions for improvements.
+          However, note that these features are provided as-is without support, and subject
+          to changes or removal as the working draft evolves. See
+          https://go.microsoft.com/fwlink/?linkid=2045807 for details.
+          cl /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_5dd22.dir\\Debug\\\\" /scanDependencies "cmTC_5dd22.dir\\Debug\\\\" /Fo"cmTC_5dd22.dir\\Debug\\\\" /Fd"cmTC_5dd22.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx"
+          src.cxx
+        C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx(1,10): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+        C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx(1,10): error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+        C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\Microsoft.CppCommon.targets(528,5): warning MSB8074: Cannot read Module Dependencies file cmTC_5dd22.dir\\Debug\\src.cxx.module.json: Expecting element 'root' from namespace ''.. Encountered 'None'  with name '', namespace ''.  The build order might be incorrect. [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+        ClCompile:
+          Compiling...
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_5dd22.dir\\Debug\\\\" /Fo"cmTC_5dd22.dir\\Debug\\\\" /Fd"cmTC_5dd22.dir\\Debug\\vc143.pdb" /sourceDependencies "cmTC_5dd22.dir\\Debug\\.d.json" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx"
+          Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
+          Copyright (C) Microsoft Corporation.  All rights reserved.
+          /std:c++latest is provided as a preview of language features from the latest C++
+          working draft, and we're eager to hear about bugs and suggestions for improvements.
+          However, note that these features are provided as-is without support, and subject
+          to changes or removal as the working draft evolves. See
+          https://go.microsoft.com/fwlink/?linkid=2045807 for details.
+          cl /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_5dd22.dir\\Debug\\\\" /Fo"cmTC_5dd22.dir\\Debug\\\\" /Fd"cmTC_5dd22.dir\\Debug\\vc143.pdb" /sourceDependencies "cmTC_5dd22.dir\\Debug\\.d.json" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx"
+          src.cxx
+        C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx(1,10): error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj" (default targets) -- FAILED.
         
         Build FAILED.
         
-        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\cmTC_6905f.vcxproj" (default target) (1) ->
+        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj" (default target) (1) ->
+        (SetModuleDependencies target) -> 
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\Microsoft.CppCommon.targets(528,5): warning MSB8074: Cannot read Module Dependencies file cmTC_5dd22.dir\\Debug\\src.cxx.module.json: Expecting element 'root' from namespace ''.. Encountered 'None'  with name '', namespace ''.  The build order might be incorrect. [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+        
+        
+        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj" (default target) (1) ->
+        (SetModuleDependencies target) -> 
+          C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx(1,10): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+          C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx(1,10): error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
+        
+        
+        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj" (default target) (1) ->
         (ClCompile target) -> 
-          C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\src.c(1,10): error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-frwh02\\cmTC_6905f.vcxproj]
+          C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\src.cxx(1,10): error C1083: Cannot open include file: 'pthread.h': No such file or directory [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-y43y3v\\cmTC_5dd22.vcxproj]
         
-            0 Warning(s)
-            1 Error(s)
+            1 Warning(s)
+            3 Error(s)
         
-        Time Elapsed 00:00:00.24
+        Time Elapsed 00:00:00.63
         
       exitCode: 1
   -
@@ -410,16 +296,18 @@ events:
       - "build/vcpkg_installed/x64-windows/share/boost/BoostConfig.cmake:128 (boostcfg_find_component)"
       - "build/vcpkg_installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package)"
       - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:813 (include)"
-      - "CMakeLists.txt:11 (FIND_PACKAGE)"
-    checks:
-      - "Looking for pthread_create in pthreads"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindBoost.cmake:594 (find_package)"
+      - "build/vcpkg_installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package)"
+      - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:813 (include)"
+      - "CMakeLists.txt:17 (find_package)"
     directories:
-      source: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-h936ce"
-      binary: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-h936ce"
+      source: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-oca6xy"
+      binary: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-oca6xy"
     cmakeVariables:
-      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/vcpkg_installed"
+      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed"
       VCPKG_PREFER_SYSTEM_LIBS: "OFF"
       VCPKG_TARGET_TRIPLET: "x64-windows"
       Z_VCPKG_ROOT_DIR: "C:/package_managers/vcpkg/vcpkg"
@@ -427,42 +315,67 @@ events:
       variable: "CMAKE_HAVE_PTHREADS_CREATE"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-h936ce'
+        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-oca6xy'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_b11c7.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_7ea48.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         MSBuild version 17.13.9+e0f243f1e for .NET Framework
-        Build started 4/3/2025 4:02:48 PM.
+        Build started 4/4/2025 10:40:24 PM.
         
-        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\cmTC_b11c7.vcxproj" on node 1 (default targets).
+        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\cmTC_7ea48.vcxproj" on node 1 (default targets).
         PrepareForBuild:
-          Creating directory "cmTC_b11c7.dir\\Debug\\".
+          Creating directory "cmTC_7ea48.dir\\Debug\\".
           Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\Debug\\".
-          Creating directory "cmTC_b11c7.dir\\Debug\\cmTC_b11c7.tlog\\".
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\Debug\\".
+          Creating directory "cmTC_7ea48.dir\\Debug\\cmTC_7ea48.tlog\\".
         InitializeBuildStatus:
-          Creating "cmTC_b11c7.dir\\Debug\\cmTC_b11c7.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
-          Touching "cmTC_b11c7.dir\\Debug\\cmTC_b11c7.tlog\\unsuccessfulbuild".
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_b11c7.dir\\Debug\\\\" /Fd"cmTC_b11c7.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\CheckFunctionExists.c"
+          Creating "cmTC_7ea48.dir\\Debug\\cmTC_7ea48.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_7ea48.dir\\Debug\\cmTC_7ea48.tlog\\unsuccessfulbuild".
+        ComputeStdModulesCompileInputs:
+          Reading library manifest file 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\modules.json' which provides data for library 'microsoft/STL'.
+          Adding module source 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\std.ixx' from library 'microsoft/STL' to be built with this project.
+          Adding module source 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\std.compat.ixx' from library 'microsoft/STL' to be built with this project.
+        MakeDirsForCl:
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\cmTC_7ea48.dir\\Debug\\microsoft\\STL".
+        SetModuleDependencies:
+          Creating directory "cmTC_7ea48.dir\\Debug\\cmTC_7ea48_MD.tlog\\".
+          Scanning sources for module dependencies...
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_7ea48.dir\\Debug\\\\" /scanDependencies "cmTC_7ea48.dir\\Debug\\\\" /Fo"cmTC_7ea48.dir\\Debug\\\\" /Fd"cmTC_7ea48.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\CheckFunctionExists.cxx"
           Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
           Copyright (C) Microsoft Corporation.  All rights reserved.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_b11c7.dir\\Debug\\\\" /Fd"cmTC_b11c7.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\CheckFunctionExists.c"
-          CheckFunctionExists.c
+          /std:c++latest is provided as a preview of language features from the latest C++
+          working draft, and we're eager to hear about bugs and suggestions for improvements.
+          However, note that these features are provided as-is without support, and subject
+          to changes or removal as the working draft evolves. See
+          https://go.microsoft.com/fwlink/?linkid=2045807 for details.
+          cl /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_7ea48.dir\\Debug\\\\" /scanDependencies "cmTC_7ea48.dir\\Debug\\\\" /Fo"cmTC_7ea48.dir\\Debug\\\\" /Fd"cmTC_7ea48.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\CheckFunctionExists.cxx"
+          CheckFunctionExists.cxx
+        ClCompile:
+          Compiling...
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_7ea48.dir\\Debug\\\\" /Fo"cmTC_7ea48.dir\\Debug\\\\" /Fd"cmTC_7ea48.dir\\Debug\\vc143.pdb" /sourceDependencies "cmTC_7ea48.dir\\Debug\\.d.json" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\CheckFunctionExists.cxx"
+          Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
+          Copyright (C) Microsoft Corporation.  All rights reserved.
+          /std:c++latest is provided as a preview of language features from the latest C++
+          working draft, and we're eager to hear about bugs and suggestions for improvements.
+          However, note that these features are provided as-is without support, and subject
+          to changes or removal as the working draft evolves. See
+          https://go.microsoft.com/fwlink/?linkid=2045807 for details.
+          cl /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_7ea48.dir\\Debug\\\\" /Fo"cmTC_7ea48.dir\\Debug\\\\" /Fd"cmTC_7ea48.dir\\Debug\\vc143.pdb" /sourceDependencies "cmTC_7ea48.dir\\Debug\\.d.json" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\CheckFunctionExists.cxx"
+          CheckFunctionExists.cxx
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\Debug\\cmTC_b11c7.exe" /INCREMENTAL /ILK:"cmTC_b11c7.dir\\Debug\\cmTC_b11c7.ilk" /NOLOGO pthreads.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-h936ce/Debug/cmTC_b11c7.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-h936ce/Debug/cmTC_b11c7.lib" /MACHINE:X64  /machine:x64 cmTC_b11c7.dir\\Debug\\CheckFunctionExists.obj
-        LINK : fatal error LNK1104: cannot open file 'pthreads.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\cmTC_b11c7.vcxproj]
-        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\cmTC_b11c7.vcxproj" (default targets) -- FAILED.
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\Debug\\cmTC_7ea48.exe" /INCREMENTAL /ILK:"cmTC_7ea48.dir\\Debug\\cmTC_7ea48.ilk" /NOLOGO pthreads.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-oca6xy/Debug/cmTC_7ea48.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-oca6xy/Debug/cmTC_7ea48.lib" /MACHINE:X64  /machine:x64 cmTC_7ea48.dir\\Debug\\CheckFunctionExists.obj
+        LINK : fatal error LNK1104: cannot open file 'pthreads.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\cmTC_7ea48.vcxproj]
+        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\cmTC_7ea48.vcxproj" (default targets) -- FAILED.
         
         Build FAILED.
         
-        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\cmTC_b11c7.vcxproj" (default target) (1) ->
+        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\cmTC_7ea48.vcxproj" (default target) (1) ->
         (Link target) -> 
-          LINK : fatal error LNK1104: cannot open file 'pthreads.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-h936ce\\cmTC_b11c7.vcxproj]
+          LINK : fatal error LNK1104: cannot open file 'pthreads.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-oca6xy\\cmTC_7ea48.vcxproj]
         
             0 Warning(s)
             1 Error(s)
         
-        Time Elapsed 00:00:00.34
+        Time Elapsed 00:00:00.37
         
       exitCode: 1
   -
@@ -485,16 +398,18 @@ events:
       - "build/vcpkg_installed/x64-windows/share/boost/BoostConfig.cmake:128 (boostcfg_find_component)"
       - "build/vcpkg_installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package)"
       - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:813 (include)"
-      - "CMakeLists.txt:11 (FIND_PACKAGE)"
-    checks:
-      - "Looking for pthread_create in pthread"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindBoost.cmake:594 (find_package)"
+      - "build/vcpkg_installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake:3 (_find_package)"
+      - "C:/package_managers/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake:813 (include)"
+      - "CMakeLists.txt:17 (find_package)"
     directories:
-      source: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-lmujxg"
-      binary: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-lmujxg"
+      source: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-p8m703"
+      binary: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-p8m703"
     cmakeVariables:
-      CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
+      CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /GR /EHsc"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/vcpkg_installed"
+      VCPKG_INSTALLED_DIR: "C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed"
       VCPKG_PREFER_SYSTEM_LIBS: "OFF"
       VCPKG_TARGET_TRIPLET: "x64-windows"
       Z_VCPKG_ROOT_DIR: "C:/package_managers/vcpkg/vcpkg"
@@ -502,42 +417,67 @@ events:
       variable: "CMAKE_HAVE_PTHREAD_CREATE"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-lmujxg'
+        Change Dir: 'C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-p8m703'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_a8688.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_49f7d.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         MSBuild version 17.13.9+e0f243f1e for .NET Framework
-        Build started 4/3/2025 4:02:48 PM.
+        Build started 4/4/2025 10:40:24 PM.
         
-        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\cmTC_a8688.vcxproj" on node 1 (default targets).
+        Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\cmTC_49f7d.vcxproj" on node 1 (default targets).
         PrepareForBuild:
-          Creating directory "cmTC_a8688.dir\\Debug\\".
+          Creating directory "cmTC_49f7d.dir\\Debug\\".
           Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\Debug\\".
-          Creating directory "cmTC_a8688.dir\\Debug\\cmTC_a8688.tlog\\".
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\Debug\\".
+          Creating directory "cmTC_49f7d.dir\\Debug\\cmTC_49f7d.tlog\\".
         InitializeBuildStatus:
-          Creating "cmTC_a8688.dir\\Debug\\cmTC_a8688.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
-          Touching "cmTC_a8688.dir\\Debug\\cmTC_a8688.tlog\\unsuccessfulbuild".
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_a8688.dir\\Debug\\\\" /Fd"cmTC_a8688.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\CheckFunctionExists.c"
+          Creating "cmTC_49f7d.dir\\Debug\\cmTC_49f7d.tlog\\unsuccessfulbuild" because "AlwaysCreate" was specified.
+          Touching "cmTC_49f7d.dir\\Debug\\cmTC_49f7d.tlog\\unsuccessfulbuild".
+        ComputeStdModulesCompileInputs:
+          Reading library manifest file 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\modules.json' which provides data for library 'microsoft/STL'.
+          Adding module source 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\std.ixx' from library 'microsoft/STL' to be built with this project.
+          Adding module source 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\modules\\std.compat.ixx' from library 'microsoft/STL' to be built with this project.
+        MakeDirsForCl:
+          Creating directory "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\cmTC_49f7d.dir\\Debug\\microsoft\\STL".
+        SetModuleDependencies:
+          Creating directory "cmTC_49f7d.dir\\Debug\\cmTC_49f7d_MD.tlog\\".
+          Scanning sources for module dependencies...
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_49f7d.dir\\Debug\\\\" /scanDependencies "cmTC_49f7d.dir\\Debug\\\\" /Fo"cmTC_49f7d.dir\\Debug\\\\" /Fd"cmTC_49f7d.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\CheckFunctionExists.cxx"
           Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
           Copyright (C) Microsoft Corporation.  All rights reserved.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_a8688.dir\\Debug\\\\" /Fd"cmTC_a8688.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\CheckFunctionExists.c"
-          CheckFunctionExists.c
+          /std:c++latest is provided as a preview of language features from the latest C++
+          working draft, and we're eager to hear about bugs and suggestions for improvements.
+          However, note that these features are provided as-is without support, and subject
+          to changes or removal as the working draft evolves. See
+          https://go.microsoft.com/fwlink/?linkid=2045807 for details.
+          cl /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_49f7d.dir\\Debug\\\\" /scanDependencies "cmTC_49f7d.dir\\Debug\\\\" /Fo"cmTC_49f7d.dir\\Debug\\\\" /Fd"cmTC_49f7d.dir\\Debug\\vc143.pdb" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\CheckFunctionExists.cxx"
+          CheckFunctionExists.cxx
+        ClCompile:
+          Compiling...
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_49f7d.dir\\Debug\\\\" /Fo"cmTC_49f7d.dir\\Debug\\\\" /Fd"cmTC_49f7d.dir\\Debug\\vc143.pdb" /sourceDependencies "cmTC_49f7d.dir\\Debug\\.d.json" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\CheckFunctionExists.cxx"
+          Microsoft (R) C/C++ Optimizing Compiler Version 19.43.34808 for x64
+          Copyright (C) Microsoft Corporation.  All rights reserved.
+          /std:c++latest is provided as a preview of language features from the latest C++
+          working draft, and we're eager to hear about bugs and suggestions for improvements.
+          However, note that these features are provided as-is without support, and subject
+          to changes or removal as the working draft evolves. See
+          https://go.microsoft.com/fwlink/?linkid=2045807 for details.
+          cl /c /Zi /W1 /WX- /diagnostics:column /FS /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++latest /ifcOutput "cmTC_49f7d.dir\\Debug\\\\" /Fo"cmTC_49f7d.dir\\Debug\\\\" /Fd"cmTC_49f7d.dir\\Debug\\vc143.pdb" /sourceDependencies "cmTC_49f7d.dir\\Debug\\.d.json" /external:W1 /Gd /TP /errorReport:queue "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\CheckFunctionExists.cxx"
+          CheckFunctionExists.cxx
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\Debug\\cmTC_a8688.exe" /INCREMENTAL /ILK:"cmTC_a8688.dir\\Debug\\cmTC_a8688.ilk" /NOLOGO pthread.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-lmujxg/Debug/cmTC_a8688.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Projects/Redmane/Redmane/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-lmujxg/Debug/cmTC_a8688.lib" /MACHINE:X64  /machine:x64 cmTC_a8688.dir\\Debug\\CheckFunctionExists.obj
-        LINK : fatal error LNK1104: cannot open file 'pthread.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\cmTC_a8688.vcxproj]
-        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\cmTC_a8688.vcxproj" (default targets) -- FAILED.
+          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\Debug\\cmTC_49f7d.exe" /INCREMENTAL /ILK:"cmTC_49f7d.dir\\Debug\\cmTC_49f7d.ilk" /NOLOGO pthread.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-p8m703/Debug/cmTC_49f7d.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/CMakeScratch/TryCompile-p8m703/Debug/cmTC_49f7d.lib" /MACHINE:X64  /machine:x64 cmTC_49f7d.dir\\Debug\\CheckFunctionExists.obj
+        LINK : fatal error LNK1104: cannot open file 'pthread.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\cmTC_49f7d.vcxproj]
+        Done Building Project "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\cmTC_49f7d.vcxproj" (default targets) -- FAILED.
         
         Build FAILED.
         
-        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\cmTC_a8688.vcxproj" (default target) (1) ->
+        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\cmTC_49f7d.vcxproj" (default target) (1) ->
         (Link target) -> 
-          LINK : fatal error LNK1104: cannot open file 'pthread.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Projects\\Redmane\\Redmane\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-lmujxg\\cmTC_a8688.vcxproj]
+          LINK : fatal error LNK1104: cannot open file 'pthread.lib' [C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Library\\build\\CMakeFiles\\CMakeScratch\\TryCompile-p8m703\\cmTC_49f7d.vcxproj]
         
             0 Warning(s)
             1 Error(s)
         
-        Time Elapsed 00:00:00.32
+        Time Elapsed 00:00:00.37
         
       exitCode: 1
 ...

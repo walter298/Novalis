@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="C:\Users\walte\OneDrive\Desktop\Code_Projects\Redmane\Redmane\Novalis_CMake_Build\Library\build\CMakeFiles\dc0d331a3eaac0d4e2780ac99e223ed0\generate.stamp.rule">
+    <CustomBuild Include="C:\Users\walte\OneDrive\Desktop\Code_Libraries\Novalis_CMake_Build\Library\build\CMakeFiles\39d1b749e3104176e61068b505f123bf\generate.stamp.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{61EAA112-BD1A-345E-B173-C801C68B9A2E}</UniqueIdentifier>
+      <UniqueIdentifier>{C78B3AE8-D67A-3314-BE7C-7EABEDB49A3F}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

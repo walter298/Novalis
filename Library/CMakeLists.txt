@@ -14,7 +14,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.h")
 
 # Dependencies from vcpkg
-find_package(Boost REQUIRED COMPONENTS type_erasure geometry pfr unordered functional)
+find_package(Boost REQUIRED COMPONENTS type_erasure)
 find_package(sdl3 CONFIG REQUIRED)
 
 # Define library target
@@ -32,10 +32,6 @@ target_include_directories(novalis
 target_link_libraries(novalis
     PRIVATE
         Boost::type_erasure
-        Boost::geometry
-        Boost::pfr
-        Boost::unordered
-        Boost::functional
         SDL3::SDL3
 )
 
