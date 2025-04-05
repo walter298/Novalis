@@ -1,8 +1,37 @@
-Loading dependency information for 154 packages...
 Detecting compiler hash for triplet x64-windows...
 Compiler found: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe
 All requested packages are currently installed.
-Total install time: 2.44 ms
+Total install time: 1.14 ms
+boost-functional provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(boost_functional CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Boost::functional)
+
+boost-unordered provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(boost_unordered CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Boost::unordered)
+
+boost-geometry provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(boost_geometry CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Boost::geometry)
+
+boost-pfr provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(boost_pfr CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Boost::pfr)
+
+boost-type-erasure provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(boost_type_erasure CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Boost::type_erasure)
+
 nativefiledialog-extended provides CMake targets:
 
   # this is heuristically generated, and may not be correct

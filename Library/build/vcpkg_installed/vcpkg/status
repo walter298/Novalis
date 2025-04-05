@@ -54,6 +54,24 @@ Abi: 6b4f0fd7c845a593e4525840619978cda66a84a550cdb310de6fdc91ad7ae274
 Description: Boost config module
 Status: install ok installed
 
+Package: boost-static-assert
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-headers
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 5ab4bb843375cab861190b1e2bdffb3a8fcf9599006fa9a3d8702659241c5179
+Description: Boost static_assert module
+Status: install ok installed
+
+Package: boost-type-traits
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-headers, boost-static-assert
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 8e6dbbbd980e5c0bbb6855f7f603c9a5d09b2f2bbbb3d1bce305611c499cb7cb
+Description: Boost type_traits module
+Status: install ok installed
+
 Package: boost-assert
 Version: 1.86.0
 Depends: boost-cmake, boost-config, boost-headers
@@ -72,60 +90,6 @@ Abi: 6773d31a852b05cb83c1066ded35a0d1ae56bbd36d0678c9a4f155cc5fdd758f
 Description: Boost throw_exception module
 Status: install ok installed
 
-Package: boost-static-assert
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 5ab4bb843375cab861190b1e2bdffb3a8fcf9599006fa9a3d8702659241c5179
-Description: Boost static_assert module
-Status: install ok installed
-
-Package: boost-core
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-static-assert, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: db983b5a9809aaae715933b844bc930e0646f276b705bde65565b79bd79a897a
-Description: Boost core module
-Status: install ok installed
-
-Package: boost-mp11
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: de8360aea70cdba1a657472e38fb5f3f0f74b2b3081c5cb20849ae969a7f74b6
-Description: Boost mp11 module
-Status: install ok installed
-
-Package: boost-describe
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-mp11
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 37e3044c040d03291d255c7aa36710fb0568d82f041d030b3835ac8b09bfc286
-Description: Boost describe module
-Status: install ok installed
-
-Package: boost-container-hash
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-describe, boost-headers, boost-mp11
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 41891ce399a8f4738450272ae689b51439a527a8c15110f3dd5aa0a318e096f8
-Description: Boost container_hash module
-Status: install ok installed
-
-Package: boost-type-index
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 379565a481382ba9300482344d843939b832f031666c34300c943ebba5c41e2f
-Description: Boost type_index module
-Status: install ok installed
-
 Package: boost-preprocessor
 Version: 1.86.0
 Depends: boost-cmake, boost-config, boost-headers
@@ -133,24 +97,6 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: c9bcdce4e721b787df184339ff0e360b14b71bceadd5fbe260eacd68ddc831dd
 Description: Boost preprocessor module
-Status: install ok installed
-
-Package: boost-type-traits
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-static-assert
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 8e6dbbbd980e5c0bbb6855f7f603c9a5d09b2f2bbbb3d1bce305611c499cb7cb
-Description: Boost type_traits module
-Status: install ok installed
-
-Package: boost-tuple
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-headers, boost-static-assert, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 2bf74dab73368f7724a78cbd0b46975662b352c40a66b942801a3451f510048a
-Description: Boost tuple module
 Status: install ok installed
 
 Package: boost-io
@@ -162,6 +108,15 @@ Abi: 9eed492848e4458e3007b4f1652cbe74ff53f40c4f5f0f103da6a93cbb66bcfa
 Description: Boost io module
 Status: install ok installed
 
+Package: boost-core
+Version: 1.86.0
+Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-static-assert, boost-throw-exception
+Architecture: x64-windows
+Multi-Arch: same
+Abi: db983b5a9809aaae715933b844bc930e0646f276b705bde65565b79bd79a897a
+Description: Boost core module
+Status: install ok installed
+
 Package: boost-utility
 Version: 1.86.0
 Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-io, boost-preprocessor, boost-throw-exception, boost-type-traits
@@ -169,6 +124,15 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 9b50dfb8bff81580f6cadb232f16ad270ac898ad641785270e9dd367e2f537e8
 Description: Boost utility module
+Status: install ok installed
+
+Package: boost-typeof
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-headers
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 831488b6d77a0b9579b3c496618ef7e24712fd03f6419e1932c4c21e65680a0b
+Description: Boost typeof module
 Status: install ok installed
 
 Package: boost-predef
@@ -187,15 +151,6 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: e30c42b07b2bdde9ffeee83fa54cc160ab55d8f1267d53dd0baf57098b9f572a
 Description: Boost mpl module
-Status: install ok installed
-
-Package: boost-typeof
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 831488b6d77a0b9579b3c496618ef7e24712fd03f6419e1932c4c21e65680a0b
-Description: Boost typeof module
 Status: install ok installed
 
 Package: boost-detail
@@ -244,31 +199,49 @@ Abi: 8d98495b2b2b36d132377539db704e0bc32bb53eff6a9146c71c54c186ee8ea1
 Description: Boost functional module
 Status: install ok installed
 
-Package: boost-fusion
+Package: boost-mp11
 Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-container-hash, boost-core, boost-function-types, boost-functional, boost-headers, boost-mpl, boost-preprocessor, boost-static-assert, boost-tuple, boost-type-traits, boost-typeof, boost-utility
+Depends: boost-cmake, boost-config, boost-headers
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 12f602080b54f9511bc399d3e399efd1c58d9e711312de1b50ab8d255d42e415
-Description: Boost fusion module
+Abi: de8360aea70cdba1a657472e38fb5f3f0f74b2b3081c5cb20849ae969a7f74b6
+Description: Boost mp11 module
 Status: install ok installed
 
-Package: boost-hana
+Package: boost-variant2
 Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-fusion, boost-headers, boost-mpl, boost-tuple
+Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-mp11
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 36879dc440707c394f4bdafd0c2cee3dbc68c56dd8537550363123374db9dcc6
-Description: Boost hana module
+Abi: f07ab9e52307bae85529e3e10137f6e8978df8ed0acff451ff84c39629cc2996
+Description: Boost variant2 module
 Status: install ok installed
 
-Package: boost-yap
+Package: boost-describe
 Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-hana, boost-headers, boost-preprocessor, boost-type-index
+Depends: boost-cmake, boost-config, boost-headers, boost-mp11
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 2e794014303908adead87e52a4348c5cec467ca8efa61587dc911dc32aa065ed
-Description: Boost yap module
+Abi: 37e3044c040d03291d255c7aa36710fb0568d82f041d030b3835ac8b09bfc286
+Description: Boost describe module
+Status: install ok installed
+
+Package: boost-container-hash
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-describe, boost-headers, boost-mp11
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 41891ce399a8f4738450272ae689b51439a527a8c15110f3dd5aa0a318e096f8
+Description: Boost container_hash module
+Status: install ok installed
+
+Package: boost-type-index
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-throw-exception
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 379565a481382ba9300482344d843939b832f031666c34300c943ebba5c41e2f
+Description: Boost type_index module
 Status: install ok installed
 
 Package: boost-integer
@@ -289,40 +262,13 @@ Abi: 0fb0a057b2248bce68e625edc4fd1ed4820562666ec5423c52ab550aa485089c
 Description: Boost variant module
 Status: install ok installed
 
-Package: boost-unordered
+Package: boost-tuple
 Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-mp11, boost-predef, boost-throw-exception
+Depends: boost-cmake, boost-config, boost-core, boost-headers, boost-static-assert, boost-type-traits
 Architecture: x64-windows
 Multi-Arch: same
-Abi: e277e122a42b88dd0856614fedc252f3e8079ea835ac019ed351d63970fb253b
-Description: Boost unordered module
-Status: install ok installed
-
-Package: boost-winapi
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-predef
-Architecture: x64-windows
-Multi-Arch: same
-Abi: af06d8cb007f3ca8ff948b87a4dfea25f3c7a5933e45829d46a7dda66b4a31f5
-Description: Boost winapi module
-Status: install ok installed
-
-Package: boost-variant2
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-mp11
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f07ab9e52307bae85529e3e10137f6e8978df8ed0acff451ff84c39629cc2996
-Description: Boost variant2 module
-Status: install ok installed
-
-Package: boost-system
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-throw-exception, boost-variant2, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: d7562913d64bda6c3f2f76a21eb53e59908ff521c8a2ff4f0963333489e7f856
-Description: Boost system module
+Abi: 2bf74dab73368f7724a78cbd0b46975662b352c40a66b942801a3451f510048a
+Description: Boost tuple module
 Status: install ok installed
 
 Package: boost-move
@@ -352,13 +298,13 @@ Abi: 0c32a36c029ba8320eb77015fea27582566eddeca4d240340c70d1276b93d833
 Description: Boost optional module
 Status: install ok installed
 
-Package: boost-exception
+Package: boost-fusion
 Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-smart-ptr, boost-throw-exception, boost-tuple, boost-type-traits
+Depends: boost-cmake, boost-config, boost-container-hash, boost-core, boost-function-types, boost-functional, boost-headers, boost-mpl, boost-preprocessor, boost-static-assert, boost-tuple, boost-type-traits, boost-typeof, boost-utility
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 200dbd807348f781e06ca28fd1800f0fdee2c3e4e833e5315cfe479774b97d68
-Description: Boost exception module
+Abi: 12f602080b54f9511bc399d3e399efd1c58d9e711312de1b50ab8d255d42e415
+Description: Boost fusion module
 Status: install ok installed
 
 Package: boost-concept-check
@@ -386,6 +332,33 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 60c9049af1f3ffe6f44ca87634257be09bf670abbf2550c9d0f8b64adfb2977d
 Description: Boost tokenizer module
+Status: install ok installed
+
+Package: boost-winapi
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-headers, boost-predef
+Architecture: x64-windows
+Multi-Arch: same
+Abi: af06d8cb007f3ca8ff948b87a4dfea25f3c7a5933e45829d46a7dda66b4a31f5
+Description: Boost winapi module
+Status: install ok installed
+
+Package: boost-system
+Version: 1.86.0
+Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-throw-exception, boost-variant2, boost-winapi
+Architecture: x64-windows
+Multi-Arch: same
+Abi: d7562913d64bda6c3f2f76a21eb53e59908ff521c8a2ff4f0963333489e7f856
+Description: Boost system module
+Status: install ok installed
+
+Package: boost-exception
+Version: 1.86.0
+Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-smart-ptr, boost-throw-exception, boost-tuple, boost-type-traits
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 200dbd807348f781e06ca28fd1800f0fdee2c3e4e833e5315cfe479774b97d68
+Description: Boost exception module
 Status: install ok installed
 
 Package: boost-regex
@@ -458,6 +431,15 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: 594a91907fa461494d686f845be2c3ede7c3ef00aea366c2b1422e35e339f3ae
 Description: Boost lexical_cast module
+Status: install ok installed
+
+Package: boost-unordered
+Version: 1.86.0
+Depends: boost-assert, boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-mp11, boost-predef, boost-throw-exception
+Architecture: x64-windows
+Multi-Arch: same
+Abi: e277e122a42b88dd0856614fedc252f3e8079ea835ac019ed351d63970fb253b
+Description: Boost unordered module
 Status: install ok installed
 
 Package: boost-algorithm
@@ -568,15 +550,6 @@ Abi: 3c0c2497fec12c60f5108fcefde2091e8ae54b9c2870c0789149e46b4d7aab98
 Description: Boost spirit module
 Status: install ok installed
 
-Package: boost-xpressive
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-conversion, boost-core, boost-exception, boost-fusion, boost-headers, boost-integer, boost-iterator, boost-lexical-cast, boost-mpl, boost-numeric-conversion, boost-optional, boost-preprocessor, boost-proto, boost-range, boost-smart-ptr, boost-spirit, boost-static-assert, boost-throw-exception, boost-type-traits, boost-typeof, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: b62f21c3d0710d074286d2c166e209fd289904b997e8e1a1455fb1b09ff43c7d
-Description: Boost xpressive module
-Status: install ok installed
-
 Package: boost-serialization
 Version: 1.86.0
 Depends: boost-array, boost-assert, boost-cmake, boost-config, boost-core, boost-detail, boost-function, boost-headers, boost-integer, boost-io, boost-iterator, boost-move, boost-mp11, boost-mpl, boost-optional, boost-predef, boost-preprocessor, boost-smart-ptr, boost-spirit, boost-static-assert, boost-throw-exception, boost-type-traits, boost-utility, boost-variant, boost-variant2
@@ -586,76 +559,31 @@ Abi: 952dfbe5894e51e9e59ca48f16f2fbb9593dcbf7e6bc16d0b69ac9ec0848c450
 Description: Boost serialization module
 Status: install ok installed
 
-Package: boost-multi-index
+Package: boost-rational
 Version: 1.86.0
-Depends: boost-assert, boost-bind, boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-integer, boost-iterator, boost-move, boost-mpl, boost-preprocessor, boost-smart-ptr, boost-static-assert, boost-throw-exception, boost-tuple, boost-type-traits, boost-utility
+Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-integer, boost-static-assert, boost-throw-exception, boost-type-traits, boost-utility
 Architecture: x64-windows
 Multi-Arch: same
-Abi: a86f35f85521e03825676f07ea01f348514ec040583359fb92aa55d0be8d601f
-Description: Boost multi_index module
+Abi: aa94a1114ee3e521ff73c664c7c8ed9dec2e527bbfcdec9dacae33b06555313f
+Description: Boost rational module
 Status: install ok installed
 
-Package: boost-format
+Package: boost-qvm
 Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-optional, boost-smart-ptr, boost-throw-exception, boost-utility
+Depends: boost-cmake, boost-config, boost-headers
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 5f94478160b81c5267683d61f03859d81642aefc81e60cd6f4a69d343241aac4
-Description: Boost format module
+Abi: be247ad2728aa36d0d23f184034cc961452d9d8572bc8a4aa871f19af7fe49f7
+Description: Boost qvm module
 Status: install ok installed
 
-Package: boost-scope
+Package: boost-polygon
 Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-type-traits
+Depends: boost-cmake, boost-config, boost-headers
 Architecture: x64-windows
 Multi-Arch: same
-Abi: f1c50bcd057b035ec75e61c0d418cee6bc13ca3b25aa886ad4d62e5df1dc9eb3
-Description: Boost scope module
-Status: install ok installed
-
-Package: boost-filesystem
-Version: 1.86.0
-Depends: boost-assert, boost-atomic, boost-cmake, boost-config, boost-container-hash, boost-core, boost-detail, boost-headers, boost-io, boost-iterator, boost-predef, boost-scope, boost-smart-ptr, boost-system, boost-type-traits, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 168db10eeabcb4a584aa597e71898d17b9e1ee87454b7f50759e3e288f4fd17e
-Description: Boost filesystem module
-Status: install ok installed
-
-Package: boost-wave
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-concept-check, boost-config, boost-core, boost-filesystem, boost-format, boost-headers, boost-iterator, boost-lexical-cast, boost-mpl, boost-multi-index, boost-optional, boost-pool, boost-preprocessor, boost-serialization, boost-smart-ptr, boost-spirit, boost-static-assert, boost-throw-exception, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 1bf4b57fce2b932a1273434a9354c678ceb6895c9491578b0458d7bfb380bef5
-Description: Boost wave module
-Status: install ok installed
-
-Package: boost-vmd
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-preprocessor
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 2024bac6e697d1a56d05023dd47769391b4794c70bc602458790498bac339688
-Description: Boost vmd module
-Status: install ok installed
-
-Package: boost-uuid
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-throw-exception, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 6a3d5a8976513040baa51c8b2e70b40a232bbb5647c9c67bb81d105ec7ad01e6
-Description: Boost uuid module
-Status: install ok installed
-
-Package: boost-url
-Version: 1.86.0
-Depends: boost-align, boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-mp11, boost-optional, boost-static-assert, boost-system, boost-throw-exception, boost-type-traits, boost-variant2
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 17558de4eb9ade697edd7b294be0ca51d8b03a95f31f4714d0dfe91afc3b7e46
-Description: Boost url module
+Abi: 9084a1cd22a7bb77bd6cc200d9894fcbd37dc91e4555c182368b0294ec962e3a
+Description: Boost polygon module
 Status: install ok installed
 
 Package: boost-dynamic-bitset
@@ -685,40 +613,13 @@ Abi: d5d302a5f057bf3fb77970d2f3bddf16b2f5ee3b3833b8640feef3f91bea8e52
 Description: Boost math module
 Status: install ok installed
 
-Package: boost-lambda
+Package: boost-multiprecision
 Version: 1.86.0
-Depends: boost-bind, boost-cmake, boost-config, boost-core, boost-detail, boost-headers, boost-iterator, boost-mpl, boost-preprocessor, boost-tuple, boost-type-traits, boost-utility
+Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-integer, boost-lexical-cast, boost-math, boost-predef, boost-random, boost-throw-exception
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 2722f34c6cdb59f86cdb6da964865dbb85ce5ad9432457ca4dd9cea6432b4614
-Description: Boost lambda module
-Status: install ok installed
-
-Package: boost-units
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-integer, boost-io, boost-lambda, boost-math, boost-mpl, boost-preprocessor, boost-static-assert, boost-type-traits, boost-typeof
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 37c72e106d926bab32bf470c47b36ce94d775aa63de1856765ad818c2cdbeac5
-Description: Boost units module
-Status: install ok installed
-
-Package: boost-logic
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: ea5f336fd9c28ccf64852586eaa472bb180048fb4c2aa8f2ed14155145f19749
-Description: Boost logic module
-Status: install ok installed
-
-Package: boost-interval
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-detail, boost-headers, boost-logic
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 0ac28eebb1ab998f5cb0b68f9ed4579ac8cf104f0c847fc5d8a59bcbc817710c
-Description: Boost interval module
+Abi: f475ef95d7c0eee6774bc502f9fc8a22ecb2dade62901a2417e4a4daff8dade5
+Description: Boost multiprecision module
 Status: install ok installed
 
 Package: boost-any
@@ -730,31 +631,22 @@ Abi: 20c8f182a5e4eae95760ab564283caf82b12a557c6f8b6debc74a727aba5e391
 Description: Boost any module
 Status: install ok installed
 
-Package: boost-property-tree
+Package: boost-geometry
 Version: 1.86.0
-Depends: boost-any, boost-assert, boost-bind, boost-cmake, boost-config, boost-core, boost-headers, boost-iterator, boost-mpl, boost-multi-index, boost-optional, boost-range, boost-serialization, boost-static-assert, boost-throw-exception, boost-type-traits
+Depends: boost-algorithm, boost-any, boost-array, boost-assert, boost-cmake, boost-concept-check, boost-config, boost-container, boost-core, boost-function-types, boost-fusion, boost-headers, boost-integer, boost-iterator, boost-lexical-cast, boost-math, boost-mpl, boost-multiprecision, boost-numeric-conversion, boost-polygon, boost-qvm, boost-range, boost-rational, boost-serialization, boost-static-assert, boost-thread, boost-throw-exception, boost-tokenizer, boost-tuple, boost-type-traits, boost-variant, boost-variant2
 Architecture: x64-windows
 Multi-Arch: same
-Abi: c3e6aa87a76770a1fc0da01a5283bd60c5b1fde1d24b5e4e4708c5ef05c6edd4
-Description: Boost property_tree module
+Abi: fe7e181f652a9d497b85b89f43f344ca30f4ee1d6c051a109a66266d7fbdc2b7
+Description: Boost geometry module
 Status: install ok installed
 
-Package: boost-compute
+Package: boost-vmd
 Version: 1.86.0
-Depends: boost-algorithm, boost-array, boost-assert, boost-chrono, boost-cmake, boost-config, boost-core, boost-filesystem, boost-function, boost-function-types, boost-fusion, boost-headers, boost-iterator, boost-lexical-cast, boost-mpl, boost-optional, boost-preprocessor, boost-property-tree, boost-proto, boost-range, boost-smart-ptr, boost-static-assert, boost-thread, boost-throw-exception, boost-tuple, boost-type-traits, boost-typeof, boost-utility, boost-uuid
+Depends: boost-cmake, boost-config, boost-headers, boost-preprocessor
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 6c9a97360da1fb78ade2e15f0247fdb8f15aaeccb39836536f3b0b548f38ca81
-Description: Boost compute module
-Status: install ok installed
-
-Package: boost-ublas
-Version: 1.86.0
-Depends: boost-cmake, boost-compute, boost-concept-check, boost-config, boost-core, boost-headers, boost-interval, boost-iterator, boost-mpl, boost-range, boost-serialization, boost-smart-ptr, boost-static-assert, boost-type-traits, boost-typeof
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9cb08291b39dae0bc43b95bac575e47ec3afa7686d79fe9643b1c8e73158ffb0
-Description: Boost ublas module
+Abi: 2024bac6e697d1a56d05023dd47769391b4794c70bc602458790498bac339688
+Description: Boost vmd module
 Status: install ok installed
 
 Package: boost-type-erasure
@@ -766,834 +658,13 @@ Abi: 562d40feb981030636f85511e730cfa0ab33eb31683582ccc125f9553529696b
 Description: Boost type_erasure module
 Status: install ok installed
 
-Package: boost-tti
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-function-types, boost-headers, boost-mpl, boost-preprocessor, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 1a28d577189072a9d6b6fa27bd6aaed0ba8b5190fbf46726399297adc62d86b4
-Description: Boost tti module
-Status: install ok installed
-
-Package: boost-timer
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-io, boost-predef
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 00de9cb9cc29c1d0aab7c8c3029ca22fa56e13302bff4770247adda7f3566a98
-Description: Boost timer module
-Status: install ok installed
-
-Package: boost-test
-Version: 1.86.0
-Depends: boost-algorithm, boost-assert, boost-bind, boost-cmake, boost-config, boost-core, boost-detail, boost-exception, boost-function, boost-headers, boost-io, boost-iterator, boost-mpl, boost-numeric-conversion, boost-optional, boost-preprocessor, boost-smart-ptr, boost-static-assert, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: fcd784e35ccbc11b932d74d0c61f4b3fa76c0d28cfc81189c7d99e8e2fe7e8c0
-Description: Boost test module
-Status: install ok installed
-
-Package: boost-stl-interfaces
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 4679ea040414d6d41e3afa1a92a52f62de3cb3b0a62c3ed95f43e464da3b60fe
-Description: Boost stl_interfaces module
-Status: install ok installed
-
-Package: boost-static-string
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-static-assert, boost-throw-exception, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 0acfd84ddf81b332b5dbb21ee0868a1aab84cd650aeb03b7d80f5637ebc6e0d1
-Description: Boost static_string module
-Status: install ok installed
-
-Package: boost-statechart
-Version: 1.86.0
-Depends: boost-assert, boost-bind, boost-cmake, boost-config, boost-conversion, boost-core, boost-detail, boost-function, boost-headers, boost-mpl, boost-smart-ptr, boost-static-assert, boost-thread, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: cae47a42141592101b3257637dee224fd50986b29df0d106b96d4bf532fa8e2f
-Description: Boost statechart module
-Status: install ok installed
-
-Package: boost-stacktrace
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-predef, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 7fee25f3972ddb60a55dff7384a9c23e6df76395bb94bae3e33bc85fea930769
-Description: Boost stacktrace module
-Default-Features: windbg
-Status: install ok installed
-
-Package: boost-stacktrace
-Feature: windbg
-Architecture: x64-windows
-Multi-Arch: same
-Description: Use boost_stacktrace_windbg
-Status: install ok installed
-
-Package: boost-sort
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-headers, boost-range, boost-static-assert, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 7cd235848e1ae6da898a969465b6b58af72b0e9feb96fb5fc2111e7712526a96
-Description: Boost sort module
-Status: install ok installed
-
-Package: boost-parameter
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-function, boost-fusion, boost-headers, boost-mp11, boost-mpl, boost-optional, boost-preprocessor, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 92e116cad62a5990f6b1334f3f73ebffa00fc4b0d2d909e32bf5b044c1718ec8
-Description: Boost parameter module
-Status: install ok installed
-
-Package: boost-signals2
-Version: 1.86.0
-Depends: boost-assert, boost-bind, boost-cmake, boost-config, boost-core, boost-function, boost-headers, boost-iterator, boost-move, boost-mpl, boost-optional, boost-parameter, boost-preprocessor, boost-smart-ptr, boost-throw-exception, boost-tuple, boost-type-traits, boost-variant
-Architecture: x64-windows
-Multi-Arch: same
-Abi: d85efc08a7a21b63cfb235b058ccd00722cc2c505d6aa69bd31e83b45764a3f3
-Description: Boost signals2 module
-Status: install ok installed
-
-Package: boost-scope-exit
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-function, boost-headers, boost-preprocessor, boost-type-traits, boost-typeof
-Architecture: x64-windows
-Multi-Arch: same
-Abi: c0c2397dc95a69e52285c5a76abf93b869da48f0eeb06cfcad16c871335b168a
-Description: Boost scope_exit module
-Status: install ok installed
-
-Package: boost-safe-numerics
-Version: 1.86.0
-Depends: boost-cmake, boost-concept-check, boost-config, boost-core, boost-headers, boost-integer, boost-logic, boost-mp11
-Architecture: x64-windows
-Multi-Arch: same
-Abi: a477b66fec3505afc1d4e48be553ac4f3dcb2d5483f65d068d521ebd598c1ad1
-Description: Boost safe_numerics module
-Status: install ok installed
-
-Package: boost-context
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-mp11, boost-pool, boost-predef, boost-smart-ptr
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 6c5762d1de8e08baa5b1592fdd3f5a31b6207159dee2692b55df22f2b6d04b32
-Description: Boost context module
-Status: install ok installed
-
-Package: boost-coroutine
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-context, boost-core, boost-exception, boost-headers, boost-move, boost-system, boost-throw-exception, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 6f95649426492b5943e6aa8182e26e0357d82da37d9170d9b3468a35444c0d9a
-Description: Boost coroutine module
-Status: install ok installed
-
-Package: boost-asio
-Version: 1.86.0
-Depends: boost-align, boost-assert, boost-cmake, boost-config, boost-context, boost-coroutine, boost-date-time, boost-headers, boost-system, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: b12133aebd837d29028fa638a73365846e3a27f01d8387ba0d22d9ca9d1cd3fa
-Description: Boost asio module
-Status: install ok installed
-
-Package: boost-redis
-Version: 1.86.0
-Depends: boost-asio, boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-mp11, boost-system, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 2af77edc8996baf131b57e8dc18f230e2fe5a0be3d266c500b922a14328aefcc
-Description: Boost redis module
-Status: install ok installed
-
-Package: boost-rational
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-integer, boost-static-assert, boost-throw-exception, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: aa94a1114ee3e521ff73c664c7c8ed9dec2e527bbfcdec9dacae33b06555313f
-Description: Boost rational module
-Status: install ok installed
-
-Package: boost-qvm
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: be247ad2728aa36d0d23f184034cc961452d9d8572bc8a4aa871f19af7fe49f7
-Description: Boost qvm module
-Status: install ok installed
-
-Package: sqlite3
-Version: 3.48.0
+Package: nativefiledialog-extended
+Version: 1.2.1
 Depends: vcpkg-cmake, vcpkg-cmake-config
 Architecture: x64-windows
 Multi-Arch: same
-Abi: aadec12829d07f21f42b337655d2323cca31b28ee6173ebc2359a70a2584e16c
-Description: SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
-Default-Features: json1
-Status: install ok installed
-
-Package: sqlite3
-Feature: json1
-Architecture: x64-windows
-Multi-Arch: same
-Description: Enable JSON functionality for sqlite3
-Status: install ok installed
-
-Package: vcpkg-cmake-get-vars
-Version: 2024-09-22
-Depends: vcpkg-cmake
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f5ab3db4000073a2f7a6bce4525c9ed5620b3ea88ca5292782f17e0ea957011f
-Status: install ok installed
-
-Package: openssl
-Version: 3.4.0
-Port-Version: 1
-Depends: vcpkg-cmake, vcpkg-cmake-config, vcpkg-cmake-get-vars
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 768320e72fef0049b068d046f3d3ce865630e9b1e69633d0046fcb189dfda849
-Description: OpenSSL is an open source project that provides a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library.
-Status: install ok installed
-
-Package: liblzma
-Version: 5.6.3
-Depends: vcpkg-cmake, vcpkg-cmake-config
-Architecture: x64-windows
-Multi-Arch: same
-Abi: aa40c55b3de89d367e8b8a88ff96d9a06c3ee0784d0f4e6a4304b44ebff7604f
-Description: Compression library with an API similar to that of zlib.
-Status: install ok installed
-
-Package: libffi
-Version: 3.4.6
-Depends: vcpkg-cmake-get-vars
-Architecture: x64-windows
-Multi-Arch: same
-Abi: fbb9c01e800abf2b4ee669d9b79fc2271ced7648ccbd958321e25e8c9d2327fa
-Description: Portable, high level programming interface to various calling conventions
-Status: install ok installed
-
-Package: expat
-Version: 2.6.4
-Depends: vcpkg-cmake, vcpkg-cmake-config
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 7c35dc5d6eb6c9ae482e09f4e07691773ced75b7518eaf611b695576d029c194
-Description: XML parser library written in C
-Status: install ok installed
-
-Package: bzip2
-Version: 1.0.8
-Port-Version: 6
-Depends: vcpkg-cmake
-Architecture: x64-windows
-Multi-Arch: same
-Abi: a0f60866bd128bba2d8905ec59b2a9908a0a0922059e3a0facbb2bcc54d23b23
-Description: bzip2 is a freely available, patent free, high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression.
-Default-Features: tool
-Status: install ok installed
-
-Package: bzip2
-Feature: tool
-Architecture: x64-windows
-Multi-Arch: same
-Description: Builds bzip2 executable
-Status: install ok installed
-
-Package: zlib
-Version: 1.3.1
-Depends: vcpkg-cmake
-Architecture: x64-windows
-Multi-Arch: same
-Abi: c8daa9ac98fe71683ab62a79901dc7f337d137fcd7371082fbeb874cbb1e94db
-Description: A compression library
-Status: install ok installed
-
-Package: vcpkg-tool-meson
-Version: 1.6.1
-Depends: vcpkg-cmake-get-vars
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f48a58c1c139108dbcd63c6f07c98b2584a4f31c7a6ce7fa926235b22edddbf1
-Description: Meson build system
-Status: install ok installed
-
-Package: pkgconf
-Version: 2.3.0
-Depends: vcpkg-tool-meson
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 5f1e5ccda46feae81f332dfa3e59e64803525688030abfc54cf0783e729d3f89
-Description: pkgconf is a program which helps to configure compiler and linker flags for development libraries. It is similar to pkg-config from freedesktop.org.
-Status: install ok installed
-
-Package: vcpkg-pkgconfig-get-modules
-Version: 2024-04-03
-Depends: pkgconf
-Architecture: x64-windows
-Multi-Arch: same
-Abi: abe4782f337ccb90a9cb4fff758a3d43ea63b0a4b068521e2ac6045f42586173
-Status: install ok installed
-
-Package: vcpkg-msbuild
-Version: 2023-08-08
-Depends: vcpkg-cmake-get-vars, vcpkg-pkgconfig-get-modules
-Architecture: x64-windows
-Multi-Arch: same
-Abi: df434ae93ae1688d2cbb01f325d3c40a469365820fcc83a750ef5bab90fd813d
-Status: install ok installed
-
-Package: vcpkg-get-python
-Version: 2024-06-22
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 7330dc2d567e2e5aa46592c89b3b46c1d08a6514704f201914a1f7c723e66815
-Status: install ok installed
-
-Package: python3
-Version: 3.11.10
-Port-Version: 1
-Depends: vcpkg-get-python, vcpkg-msbuild, zlib
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 3cba66df45e0b35105227bb4784a0ccbd94185133175b8ed48d07091abe469f9
-Description: The Python programming language
-Default-Features: extensions
-Status: install ok installed
-
-Package: python3
-Feature: extensions
-Depends: bzip2, expat, libffi, liblzma, openssl, sqlite3
-Architecture: x64-windows
-Multi-Arch: same
-Description: Allow the build and usage of python extensions. On windows this requires python to be a dynamic library!
-Status: install ok installed
-
-Package: boost-property-map
-Version: 1.86.0
-Depends: boost-any, boost-assert, boost-cmake, boost-concept-check, boost-config, boost-core, boost-function, boost-headers, boost-iterator, boost-lexical-cast, boost-mpl, boost-smart-ptr, boost-static-assert, boost-throw-exception, boost-type-index, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f3c2e34137048b38642fb49fc91aacc9049c91d4d92699279dd7a43618d61fe4
-Description: Boost property_map module
-Status: install ok installed
-
-Package: boost-foreach
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-headers, boost-iterator, boost-mpl, boost-range, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: d13673a149c129ee623b4a0643f360967d4da9fbd92a4c9f0da7454fb75957e0
-Description: Boost foreach module
-Status: install ok installed
-
-Package: boost-bimap
-Version: 1.86.0
-Depends: boost-cmake, boost-concept-check, boost-config, boost-container-hash, boost-core, boost-headers, boost-iterator, boost-lambda, boost-mpl, boost-multi-index, boost-preprocessor, boost-static-assert, boost-throw-exception, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 84171063fad72cb849c2e1d43b39d653ba9de32bf33185cd7af6513dc3d80c3a
-Description: Boost bimap module
-Status: install ok installed
-
-Package: boost-graph
-Version: 1.86.0
-Depends: boost-algorithm, boost-any, boost-array, boost-assert, boost-bimap, boost-bind, boost-cmake, boost-concept-check, boost-config, boost-container-hash, boost-conversion, boost-core, boost-detail, boost-foreach, boost-function, boost-headers, boost-integer, boost-iterator, boost-lexical-cast, boost-math, boost-move, boost-mpl, boost-multi-index, boost-optional, boost-parameter, boost-preprocessor, boost-property-map, boost-property-tree, boost-random, boost-range, boost-regex, boost-serialization, boost-smart-ptr, boost-spirit, boost-static-assert, boost-throw-exception, boost-tti, boost-tuple, boost-type-traits, boost-typeof, boost-unordered, boost-utility, boost-xpressive
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 87703309e580209b0e684febbed7b35b3b26ff6a64321145baefd2e74798acf9
-Description: Boost graph module
-Status: install ok installed
-
-Package: boost-python
-Version: 1.86.0
-Depends: boost-align, boost-bind, boost-cmake, boost-config, boost-conversion, boost-core, boost-detail, boost-foreach, boost-function, boost-graph, boost-headers, boost-integer, boost-iterator, boost-lexical-cast, boost-mpl, boost-numeric-conversion, boost-preprocessor, boost-property-map, boost-smart-ptr, boost-static-assert, boost-tuple, boost-type-traits, boost-utility, python3
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 23982e70a21d789458b9473c3a13696369187a3a6889b878f815b74644b53f86
-Description: Boost python module
-Status: install ok installed
-
-Package: boost-circular-buffer
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-concept-check, boost-config, boost-core, boost-headers, boost-move, boost-static-assert, boost-throw-exception, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: eddc0cc8a61679706082233fd898dea252891d85724198c90b1e235c35dafe07
-Description: Boost circular_buffer module
-Status: install ok installed
-
-Package: boost-ptr-container
-Version: 1.86.0
-Depends: boost-array, boost-assert, boost-circular-buffer, boost-cmake, boost-config, boost-core, boost-headers, boost-iterator, boost-mpl, boost-range, boost-smart-ptr, boost-static-assert, boost-type-traits, boost-unordered, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: c5aa937a3d5f02c7d8a04b4d669334f2467efac23c19edb028124c6627dfb510
-Description: Boost ptr_container module
-Status: install ok installed
-
-Package: boost-program-options
-Version: 1.86.0
-Depends: boost-any, boost-bind, boost-cmake, boost-config, boost-core, boost-detail, boost-function, boost-headers, boost-iterator, boost-lexical-cast, boost-smart-ptr, boost-static-assert, boost-throw-exception, boost-tokenizer, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 3755fb5c117a0122db7362c8ce81c2fea498e382e807e273ac1d72bb3e755f2f
-Description: Boost program_options module
-Status: install ok installed
-
-Package: boost-process
-Version: 1.86.0
-Depends: boost-algorithm, boost-asio, boost-assert, boost-cmake, boost-config, boost-core, boost-filesystem, boost-fusion, boost-headers, boost-io, boost-iterator, boost-move, boost-optional, boost-system, boost-throw-exception, boost-tokenizer, boost-type-index, boost-type-traits, boost-utility, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 2b96d91675b013946497b4db98285b164931a64f6a50379f45e9593c13fa6015
-Description: Boost process module
-Status: install ok installed
-
-Package: boost-polygon
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9084a1cd22a7bb77bd6cc200d9894fcbd37dc91e4555c182368b0294ec962e3a
-Description: Boost polygon module
-Status: install ok installed
-
-Package: boost-poly-collection
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-iterator, boost-mp11, boost-mpl, boost-type-erasure, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: b7baeffba13cd7f3287bc7114e07c9e135880a4cf37442074eb715ee64301c19
-Description: Boost poly_collection module
-Status: install ok installed
-
-Package: boost-pfr
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9d10842520fe0ec004052025c8e089d947a7f1e9de1fd5ff29f798998c2dd286
-Description: Boost pfr module
-Status: install ok installed
-
-Package: boost-parameter-python
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-mpl, boost-parameter, boost-preprocessor, boost-python
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 3c901cb63d7561aec214b36cbfd3cd376ffc1d8dd06750eb360a64682f8276c8
-Description: Boost parameter_python module
-Status: install ok installed
-
-Package: boost-outcome
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-exception, boost-headers, boost-system, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 3ed99d3d9eaf7d91788eea891d157088b5eba2a0aadf008665403660fe536619
-Description: Boost outcome module
-Status: install ok installed
-
-Package: boost-multi-array
-Version: 1.86.0
-Depends: boost-array, boost-assert, boost-cmake, boost-concept-check, boost-config, boost-core, boost-functional, boost-headers, boost-iterator, boost-mpl, boost-static-assert, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 4209970a20076630d9c0ad89a0f69b0ac4395c8db4cf0bf3063aa3cb5379ff95
-Description: Boost multi_array module
-Status: install ok installed
-
-Package: boost-odeint
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-compute, boost-config, boost-core, boost-fusion, boost-headers, boost-iterator, boost-math, boost-mpl, boost-multi-array, boost-preprocessor, boost-range, boost-static-assert, boost-throw-exception, boost-type-traits, boost-ublas, boost-units, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f8202fdb5afbf68eae691e4231b7de1499096193d5babd66c0efde79d6ab6794
-Description: Boost odeint module
-Status: install ok installed
-
-Package: boost-nowide
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-filesystem, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 41be02f8477a6208bdf21ef17dd4de6d46c559eedf528b959c20ab10956be014
-Description: Boost nowide module
-Status: install ok installed
-
-Package: boost-charconv
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 436ffa8b0fe0196aeb21214c59ea57dc1675ce5131da2777fbf61d5e1a4b88f9
-Description: Boost charconv module
-Status: install ok installed
-
-Package: boost-mysql
-Version: 1.86.0
-Depends: boost-asio, boost-assert, boost-charconv, boost-cmake, boost-config, boost-core, boost-describe, boost-endian, boost-headers, boost-intrusive, boost-mp11, boost-optional, boost-system, boost-throw-exception, boost-variant2, openssl
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 41e48de909091e9685033d7d62ccb5099477d7d6f0e1ad3e911a6c4e6800dea3
-Description: Boost mysql module
-Status: install ok installed
-
-Package: boost-multiprecision
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-integer, boost-lexical-cast, boost-math, boost-predef, boost-random, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f475ef95d7c0eee6774bc502f9fc8a22ecb2dade62901a2417e4a4daff8dade5
-Description: Boost multiprecision module
-Status: install ok installed
-
-Package: boost-msm
-Version: 1.86.0
-Depends: boost-any, boost-assert, boost-bind, boost-circular-buffer, boost-cmake, boost-config, boost-core, boost-function, boost-fusion, boost-headers, boost-mpl, boost-parameter, boost-phoenix, boost-preprocessor, boost-proto, boost-serialization, boost-tuple, boost-type-index, boost-type-traits, boost-typeof
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 5b3c13e902c6e8f13fbfa625a2d0c58ac8de70b9c324077bbd20cbabce93eb9f
-Description: Boost msm module
-Status: install ok installed
-
-Package: boost-metaparse
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-mpl, boost-predef, boost-preprocessor, boost-static-assert, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 0357ddab3033b8948ecc1e5c3de750302e59bef37aaf7e491cc500bbb4a6ab23
-Description: Boost metaparse module
-Status: install ok installed
-
-Package: boost-interprocess
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-container, boost-core, boost-headers, boost-intrusive, boost-move, boost-static-assert, boost-type-traits, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 82c6cb8a0135bc40b8bb9ee2ff947178ae4ab5cffd31d081f2ad74874155c777
-Description: Boost interprocess module
-Status: install ok installed
-
-Package: boost-log
-Version: 1.86.0
-Depends: boost-align, boost-asio, boost-assert, boost-atomic, boost-cmake, boost-config, boost-core, boost-date-time, boost-exception, boost-filesystem, boost-function-types, boost-fusion, boost-headers, boost-interprocess, boost-intrusive, boost-io, boost-iterator, boost-move, boost-mpl, boost-optional, boost-parameter, boost-phoenix, boost-predef, boost-preprocessor, boost-property-tree, boost-proto, boost-random, boost-range, boost-regex, boost-smart-ptr, boost-spirit, boost-system, boost-thread, boost-throw-exception, boost-type-index, boost-type-traits, boost-utility, boost-winapi, boost-xpressive
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 24c5209bddedda7c537fc16c6822cbf3b8739082a39ec6f0ad928db223271251
-Description: Boost log module
-Status: install ok installed
-
-Package: boost-lockfree
-Version: 1.86.0
-Depends: boost-align, boost-array, boost-assert, boost-atomic, boost-cmake, boost-config, boost-core, boost-headers, boost-integer, boost-iterator, boost-mpl, boost-parameter, boost-predef, boost-static-assert, boost-tuple, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 0ec2b7fa8773a1aa8925a295104fdbb45f336acecded578b9a3d0e4032082492
-Description: Boost lockfree module
-Status: install ok installed
-
-Package: boost-locale
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-headers, boost-iterator, boost-predef, boost-thread, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 4763b8212a4b268877ec34a865672422390d7d34f342ed990c961b9508b40371
-Description: Boost locale module
-Status: install ok installed
-
-Package: boost-local-function
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers, boost-mpl, boost-preprocessor, boost-scope-exit, boost-type-traits, boost-typeof, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 43cf6b1aeca76190a27655ed286b863ae9e2d0daefa33445f7349327d9bdfe62
-Description: Boost local_function module
-Status: install ok installed
-
-Package: boost-leaf
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: eaf0d798ef74d1ded8322b28eb23afb240032dce22a246b7b4a4ccc2af0f692c
-Description: Boost leaf module
-Status: install ok installed
-
-Package: boost-lambda2
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 2df26a6c5c79d2a46475bbc898694f3ab46729a23fdec0d79c820469eac8c86d
-Description: Boost lambda2 module
-Status: install ok installed
-
-Package: boost-json
-Version: 1.86.0
-Depends: boost-align, boost-assert, boost-cmake, boost-config, boost-container, boost-container-hash, boost-core, boost-describe, boost-endian, boost-headers, boost-mp11, boost-static-assert, boost-system, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 6f66c372306021f8e0b287eb9f1bd537c2d0574ce2206281259b2b237d882c64
-Description: Boost json module
-Status: install ok installed
-
-Package: zstd
-Version: 1.5.6
-Depends: vcpkg-cmake, vcpkg-cmake-config
-Architecture: x64-windows
-Multi-Arch: same
-Abi: eff55afee2e62836d6ebd347f7c49168ef588d02d9a986bf70c70f3a5c475aca
-Description: Zstandard - Fast real-time compression algorithm
-Status: install ok installed
-
-Package: boost-iostreams
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-detail, boost-function, boost-headers, boost-integer, boost-iterator, boost-mpl, boost-numeric-conversion, boost-preprocessor, boost-random, boost-range, boost-regex, boost-smart-ptr, boost-static-assert, boost-throw-exception, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9c2561a44573d542ecbe6e55b55ae0478cac0c18ff5bd8d4c00125970831e3da
-Description: Boost iostreams module
-Default-Features: bzip2, lzma, zlib, zstd
-Status: install ok installed
-
-Package: boost-iostreams
-Feature: bzip2
-Depends: bzip2
-Architecture: x64-windows
-Multi-Arch: same
-Description: Support bzip2 filters
-Status: install ok installed
-
-Package: boost-iostreams
-Feature: lzma
-Depends: liblzma
-Architecture: x64-windows
-Multi-Arch: same
-Description: Support LZMA/xz filters
-Status: install ok installed
-
-Package: boost-iostreams
-Feature: zlib
-Depends: zlib
-Architecture: x64-windows
-Multi-Arch: same
-Description: Support zlib filters
-Status: install ok installed
-
-Package: boost-iostreams
-Feature: zstd
-Depends: zstd
-Architecture: x64-windows
-Multi-Arch: same
-Description: Support zstd filters
-Status: install ok installed
-
-Package: boost-icl
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-concept-check, boost-config, boost-container, boost-core, boost-date-time, boost-detail, boost-headers, boost-iterator, boost-move, boost-mpl, boost-range, boost-rational, boost-static-assert, boost-type-traits, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: d33ef834f56277cd66ac7cf930406d514798ea50982e7d041beebb36e9f6b94e
-Description: Boost icl module
-Status: install ok installed
-
-Package: boost-hof
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: f7244717e545421fd8c30d58215873549d54651e354a3ec0714a07b193f1e6a7
-Description: Boost hof module
-Status: install ok installed
-
-Package: boost-histogram
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-headers, boost-math, boost-mp11, boost-serialization, boost-throw-exception, boost-variant2
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 83cbf66d78a950911fe74d0bfc684c52fb694c71092b68c806aaa9f71a680a37
-Description: Boost histogram module
-Status: install ok installed
-
-Package: boost-heap
-Version: 1.86.0
-Depends: boost-array, boost-assert, boost-bind, boost-cmake, boost-concept-check, boost-config, boost-core, boost-headers, boost-intrusive, boost-iterator, boost-parameter, boost-static-assert, boost-throw-exception, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9c16f19693c0f5fbc7aa1193f572f27f1e093528bbe4927be76dee4f67d54db6
-Description: Boost heap module
-Status: install ok installed
-
-Package: boost-gil
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-concept-check, boost-config, boost-container-hash, boost-core, boost-headers, boost-integer, boost-iterator, boost-mp11, boost-preprocessor, boost-type-traits, boost-variant2
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 23b19b8bf6bba1dabf0cd95f022f431c021818a31950537c777ab433c994c6bf
-Description: Boost gil module
-Status: install ok installed
-
-Package: boost-geometry
-Version: 1.86.0
-Depends: boost-algorithm, boost-any, boost-array, boost-assert, boost-cmake, boost-concept-check, boost-config, boost-container, boost-core, boost-function-types, boost-fusion, boost-headers, boost-integer, boost-iterator, boost-lexical-cast, boost-math, boost-mpl, boost-multiprecision, boost-numeric-conversion, boost-polygon, boost-qvm, boost-range, boost-rational, boost-serialization, boost-static-assert, boost-thread, boost-throw-exception, boost-tokenizer, boost-tuple, boost-type-traits, boost-variant, boost-variant2
-Architecture: x64-windows
-Multi-Arch: same
-Abi: fe7e181f652a9d497b85b89f43f344ca30f4ee1d6c051a109a66266d7fbdc2b7
-Description: Boost geometry module
-Status: install ok installed
-
-Package: boost-flyweight
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-container-hash, boost-core, boost-detail, boost-headers, boost-interprocess, boost-mpl, boost-multi-index, boost-parameter, boost-preprocessor, boost-smart-ptr, boost-throw-exception, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: a841bb22ad6f9c5022e4dbd9e650c78ec15a2d2f0ca3dab808446510e601e953
-Description: Boost flyweight module
-Status: install ok installed
-
-Package: boost-fiber
-Version: 1.86.0
-Depends: boost-algorithm, boost-assert, boost-cmake, boost-config, boost-context, boost-core, boost-filesystem, boost-format, boost-headers, boost-intrusive, boost-predef, boost-smart-ptr
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 145310e54a0f13778a781d8276752960dbaab736a211eda79001f170208533db
-Description: Boost fiber module
-Status: install ok installed
-
-Package: boost-dll
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-core, boost-filesystem, boost-function, boost-headers, boost-move, boost-predef, boost-smart-ptr, boost-spirit, boost-system, boost-throw-exception, boost-type-index, boost-type-traits, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 26a116f616e7f62b06abd447cd04926ea88c977fe07a85914eb570c20440d9e2
-Description: Boost dll module
-Status: install ok installed
-
-Package: boost-crc
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 675e33cd53f99420716a7cd2ef8df22fc77bf7c3bd81989507f04507e32a2094
-Description: Boost crc module
-Status: install ok installed
-
-Package: boost-coroutine2
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-context, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 05d598de7fee49c40cafcba1d3457e52d60d43ada29543b3b2ea011abb4381e6
-Description: Boost coroutine2 module
-Status: install ok installed
-
-Package: boost-convert
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-core, boost-function-types, boost-headers, boost-lexical-cast, boost-math, boost-mpl, boost-optional, boost-parameter, boost-range, boost-spirit, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 776925c12e7e9febc9d029abfcea9804af68ae3e9ad6e6c184fd6d8bac0fe7a0
-Description: Boost convert module
-Status: install ok installed
-
-Package: boost-contract
-Version: 1.86.0
-Depends: boost-any, boost-assert, boost-cmake, boost-config, boost-core, boost-exception, boost-function, boost-function-types, boost-headers, boost-mpl, boost-optional, boost-preprocessor, boost-smart-ptr, boost-static-assert, boost-thread, boost-type-traits, boost-typeof, boost-utility
-Architecture: x64-windows
-Multi-Arch: same
-Abi: c047aa98b7c8783910451c00472ab6995b0e7b4b5a0d81fd7c80574ab2ef4a07
-Description: Boost contract module
-Status: install ok installed
-
-Package: boost-compatibility
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 6776cf72456b642e20a4b65295ddeebc1e2f968e12aff0545c5a5080122fc6b7
-Description: Boost compatibility module
-Status: install ok installed
-
-Package: boost-compat
-Version: 1.86.0
-Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-throw-exception
-Architecture: x64-windows
-Multi-Arch: same
-Abi: ff23af09ea6b06bc70c2807f8ec069604405405e6078132f768da95d0f642a9a
-Description: Boost compat module
-Status: install ok installed
-
-Package: boost-callable-traits
-Version: 1.86.0
-Depends: boost-cmake, boost-config, boost-headers
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 243174a374168ea463598c6d2b0e2cc28ee407cfa6691fa71a84ecb28f7455c7
-Description: Boost callable_traits module
-Status: install ok installed
-
-Package: boost-beast
-Version: 1.86.0
-Depends: boost-asio, boost-assert, boost-bind, boost-cmake, boost-config, boost-container, boost-container-hash, boost-core, boost-endian, boost-headers, boost-intrusive, boost-logic, boost-mp11, boost-optional, boost-preprocessor, boost-smart-ptr, boost-static-assert, boost-static-string, boost-system, boost-throw-exception, boost-type-index, boost-type-traits, boost-winapi
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 97b594eded71c7e65c00efee6975a82e954bd9f32bd1e983a034803d6f5283b7
-Description: Boost beast module
-Status: install ok installed
-
-Package: boost-assign
-Version: 1.86.0
-Depends: boost-array, boost-cmake, boost-config, boost-core, boost-headers, boost-move, boost-preprocessor, boost-ptr-container, boost-range, boost-static-assert, boost-throw-exception, boost-tuple, boost-type-traits
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9deb2ad782d81d4f9ce8003b5b80e2af24f23ffbda96595b5ce4f0f4092c867f
-Description: Boost assign module
-Status: install ok installed
-
-Package: boost-accumulators
-Version: 1.86.0
-Depends: boost-array, boost-assert, boost-circular-buffer, boost-cmake, boost-concept-check, boost-config, boost-core, boost-fusion, boost-headers, boost-iterator, boost-mpl, boost-numeric-conversion, boost-parameter, boost-preprocessor, boost-range, boost-serialization, boost-static-assert, boost-throw-exception, boost-tuple, boost-type-traits, boost-typeof, boost-ublas
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 9dd2d049cc20f725d503319769232a4014f61b2649605627133a7b3ad488d620
-Description: Boost accumulators module
-Status: install ok installed
-
-Package: boost
-Version: 1.86.0
-Port-Version: 1
-Depends: boost-accumulators, boost-algorithm, boost-align, boost-any, boost-array, boost-asio, boost-assert, boost-assign, boost-atomic, boost-beast, boost-bimap, boost-bind, boost-callable-traits, boost-charconv, boost-chrono, boost-circular-buffer, boost-compat, boost-compatibility, boost-compute, boost-concept-check, boost-config, boost-container, boost-container-hash, boost-context, boost-contract, boost-conversion, boost-convert, boost-core, boost-coroutine, boost-coroutine2, boost-crc, boost-date-time, boost-describe, boost-detail, boost-dll, boost-dynamic-bitset, boost-endian, boost-exception, boost-fiber, boost-filesystem, boost-flyweight, boost-foreach, boost-format, boost-function, boost-function-types, boost-functional, boost-fusion, boost-geometry, boost-gil, boost-graph, boost-hana, boost-headers, boost-heap, boost-histogram, boost-hof, boost-icl, boost-integer, boost-interprocess, boost-interval, boost-intrusive, boost-io, boost-iostreams, boost-iterator, boost-json, boost-lambda, boost-lambda2, boost-leaf, boost-lexical-cast, boost-local-function, boost-locale, boost-lockfree, boost-log, boost-logic, boost-math, boost-metaparse, boost-move, boost-mp11, boost-mpl, boost-msm, boost-multi-array, boost-multi-index, boost-multiprecision, boost-mysql, boost-nowide, boost-numeric-conversion, boost-odeint, boost-optional, boost-outcome, boost-parameter, boost-parameter-python, boost-pfr, boost-phoenix, boost-poly-collection, boost-polygon, boost-pool, boost-predef, boost-preprocessor, boost-process, boost-program-options, boost-property-map, boost-property-tree, boost-proto, boost-ptr-container, boost-python, boost-qvm, boost-random, boost-range, boost-ratio, boost-rational, boost-redis, boost-regex, boost-safe-numerics, boost-scope, boost-scope-exit, boost-serialization, boost-signals2, boost-smart-ptr, boost-sort, boost-spirit, boost-stacktrace, boost-statechart, boost-static-assert, boost-static-string, boost-stl-interfaces, boost-system, boost-test, boost-thread, boost-throw-exception, boost-timer, boost-tokenizer, boost-tti, boost-tuple, boost-type-erasure, boost-type-index, boost-type-traits, boost-typeof, boost-ublas, boost-units, boost-unordered, boost-url, boost-utility, boost-uuid, boost-variant, boost-variant2, boost-vmd, boost-wave, boost-winapi, boost-xpressive, boost-yap
-Architecture: x64-windows
-Multi-Arch: same
-Abi: fd05bf708fb5c0ce3986a01eb848164b263998cd01f2f358c65230b0fc5ae2d2
-Description: Peer-reviewed portable C++ source libraries
-Status: install ok installed
-
-Package: sdl3
-Version: 3.2.0
-Depends: vcpkg-cmake, vcpkg-cmake-config
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 79c3065b9b9adbe7e6edc637a5e292d4aa09e9aa6062e8ce00044a70b16eb528
-Description: Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+Abi: 0fb4c156612c47abafce4b746b63e7809b2f86683027b1c24d3469cdd1aadb37
+Description: Native File Dialog Extended
 Status: install ok installed
 
 Package: nlohmann-json
@@ -1606,6 +677,23 @@ Abi: 975f9ecd22cd509a086512a5c362eefab3d8a22bc0eb679f6f0ded11e6e428f1
 Description: JSON for Modern C++
 Status: install ok installed
 
+Package: plf-hive
+Version: 2021-12-11
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 69052657849d2ab854ef0c7acae327123f88271fcdd68d9c0a700a7ae598a671
+Description: plf::hive is a fork of plf::colony to match the current C++ standards proposal.
+Status: install ok installed
+
+Package: sdl3
+Version: 3.2.0
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 79c3065b9b9adbe7e6edc637a5e292d4aa09e9aa6062e8ce00044a70b16eb528
+Description: Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+Status: install ok installed
+
 Package: sdl3-image
 Version: 3.1.1
 Depends: sdl3, vcpkg-cmake, vcpkg-cmake-config
@@ -1615,20 +703,12 @@ Abi: 70ed7b372e8ebb7b102d801bcb653aab4f44b393965f11f082b2ab62f2b86ae4
 Description: SDL_image is an image file loading library. It loads images as SDL surfaces and textures, and supports the following formats: BMP, GIF, JPEG, LBM, PCX, PNG, PNM, TGA, TIFF, WEBP, XCF, XPM, XV
 Status: install ok installed
 
-Package: plf-hive
-Version: 2021-12-11
+Package: boost-pfr
+Version: 1.86.0
+Depends: boost-cmake, boost-config, boost-headers
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 69052657849d2ab854ef0c7acae327123f88271fcdd68d9c0a700a7ae598a671
-Description: plf::hive is a fork of plf::colony to match the current C++ standards proposal.
-Status: install ok installed
-
-Package: nativefiledialog-extended
-Version: 1.2.1
-Depends: vcpkg-cmake, vcpkg-cmake-config
-Architecture: x64-windows
-Multi-Arch: same
-Abi: 0fb4c156612c47abafce4b746b63e7809b2f86683027b1c24d3469cdd1aadb37
-Description: Native File Dialog Extended
+Abi: 9d10842520fe0ec004052025c8e089d947a7f1e9de1fd5ff29f798998c2dd286
+Description: Boost pfr module
 Status: install ok installed
 
