@@ -14,7 +14,7 @@ FILE(GLOB HEADERS "src/*.h")
 # find_package(boost_pfr REQUIRED)
 # find_package(boost_unordered REQUIRED)
 # find_package(boost_functional REQUIRED)
-# FIND_PACKAGE(sdl3 REQUIRED)
+FIND_PACKAGE(SDL3 CONFIG REQUIRED)
 
 ADD_LIBRARY(novalis STATIC ${SOURCES})
 
