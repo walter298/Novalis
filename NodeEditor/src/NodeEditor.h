@@ -4,9 +4,7 @@
 #include <vector>
 #include <SDL3/SDL_rect.h>
 
-#include "../detail/serialization/BufferedNodeSerialization.h"
-#include "../Node.h"
-#include "../Polygon.h"
+#include "detail/serialization/BufferedNodeSerialization.h"
 #include "EditedObjectData.h"
 #include "SpecialPoint.h"
 #include "ToolDisplay.h"

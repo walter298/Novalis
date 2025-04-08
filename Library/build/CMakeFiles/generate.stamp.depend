@@ -13,6 +13,7 @@ C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeSystemSpecificInitialize.cm
 C:/Program Files/CMake/share/cmake-3.29/Modules/Compiler/CMakeCommonCompilerMacros.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/Compiler/MSVC-CXX.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.29/Modules/FeatureSummary.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/Platform/Windows-Initialize.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/Platform/Windows-MSVC-CXX.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/Platform/Windows-MSVC.cmake
@@ -24,6 +25,12 @@ C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build
 C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/3.29.0/CMakeRCCompiler.cmake
 C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/3.29.0/CMakeSystem.cmake
 C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/cmake.verify_globs
+C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed/x64-windows/share/sdl3/SDL3Config.cmake
+C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed/x64-windows/share/sdl3/SDL3ConfigVersion.cmake
+C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed/x64-windows/share/sdl3/SDL3headersTargets.cmake
+C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed/x64-windows/share/sdl3/SDL3sharedTargets-debug.cmake
+C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed/x64-windows/share/sdl3/SDL3sharedTargets-release.cmake
+C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/vcpkg_installed/x64-windows/share/sdl3/SDL3sharedTargets.cmake
 C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/cmake/novalisConfig.cmake.in
 C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/vcpkg-configuration.json
 C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/vcpkg.json

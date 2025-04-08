@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/ScopeExit.h"
+#include "detail/ScopeExit.h"
 #include "NodeTabList.h"
 
 namespace nv {

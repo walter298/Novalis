@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.h")
 
 # find_package(Boost REQUIRED COMPONENTS type_erasure)
-#find_package(sdl3 CONFIG REQUIRED)
+find_package(sdl3 CONFIG REQUIRED)
 
 add_library(novalis STATIC ${SOURCES} ${HEADERS})
 add_library(Novalis::novalis ALIAS novalis)
@@ -22,11 +22,9 @@ target_include_directories(novalis
         $<INSTALL_INTERFACE:include>
 )
 
-# target_link_libraries(novalis
-#     PRIVATE
-#         #Boost::type_erasure
-#         SDL3::SDL3
-# )
+target_link_libraries(novalis
+    PUBLIC SDL3::SDL3
+)
 
 include(CMakePackageConfigHelpers)
 

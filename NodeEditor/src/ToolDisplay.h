@@ -1,10 +1,10 @@
 #pragma once
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
-#include "../imgui/imgui.h"
-#include "../detail/file/File.h"
-#include "../Texture.h"
+#include "imgui/imgui.h"
+#include "detail/file/File.h"
+#include "Texture.h"
 #include "WindowLayout.h"
 
 namespace nv {

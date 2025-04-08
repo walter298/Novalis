@@ -3,7 +3,7 @@
 #include <string>
 #include <SDL3/SDL_render.h>
 
-#include "../Rect.h"
+#include "Rect.h"
 
 namespace nv {
 	namespace editor {

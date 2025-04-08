@@ -7,17 +7,7 @@
 #include <variant>
 #include <string>
 #include <boost/optional.hpp>
-
-#include <magic_enum.hpp>
-
-#include "../imgui/imgui.h"
-#include "../imgui/imgui_impl_sdlrenderer3.h"
-#include "../imgui/imgui_impl_sdl3.h"
-#include "../imgui/imgui_internal.h"
-#include "../imgui/imgui_stdlib.h"
-
-#include "../Instance.h"
-#include "../Node.h"
+#include <magic_enum/magic_enum.hpp>
 
 #include "EditedObjectData.h"
 #include "NodeEditor.h"
@@ -26,6 +16,8 @@
 #include "TaskBar.h"
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
+
+#include "Node.h"
 
 using namespace nv;
 using namespace nv::editor;
