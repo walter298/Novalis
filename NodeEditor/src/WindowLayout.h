@@ -10,10 +10,12 @@
 
 namespace nv {
 	namespace editor {
-		constexpr const char* TOOL_WINDOW_NAME = "Tools";
-		constexpr const char* OBJECT_WINDOW_NAME = "Object";
-		constexpr const char* NODE_WINDOW_NAME = "Nodes";
-		constexpr const char* NODE_OPTIONS_WINDOW_NAME = "Current Node";
+		inline constexpr const char* TOOL_WINDOW_NAME = "Tools";
+		inline constexpr const char* OBJECT_WINDOW_NAME = "Object";
+		inline constexpr const char* NODE_WINDOW_NAME = "Nodes";
+		inline constexpr const char* NODE_OPTIONS_WINDOW_NAME = "Current Node";
+		inline constexpr const char* LAYER_EXPLORER_WINDOW_NAME = "Layer Explorer";
+
 		constexpr ImGuiWindowFlags WINDOW_FLAGS = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
 		inline SDL_FRect getWindowRect(const char* windowName) {
@@ -34,19 +36,19 @@ namespace nv {
 		}
 
 		inline float getWindowY() {
-			return ImGui::GetIO().DisplaySize.y * 0.1f;
+			return ImGui::GetIO().DisplaySize.y * 0.05f;
 		}
 
 		inline float getWindowHeight() {
 			return ImGui::GetIO().DisplaySize.y - getWindowY();
 		}
 
-		inline ImVec2 getToolSize() {
+		/*inline ImVec2 getToolSize() {
 			return {
-				getSideWindowWidth() * 0.26f,
-				getSideWindowWidth() * 0.26f
+				getSideWindowWidth() / 3.0f,
+				getSideWindowWidth() / 2.0f
 			};
-		}
+		}*/
 
 		inline float getToolWindowHeight() {
 			return getWindowHeight() * 0.2f;

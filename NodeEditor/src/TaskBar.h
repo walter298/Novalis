@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/ScopeExit.h"
+#include <novalis/detail/ScopeExit.h>
 #include "NodeTabList.h"
 
 namespace nv {
@@ -23,8 +23,7 @@ namespace nv {
 					ret.name = fileName(*filePath);
 					ret.filePath = *filePath;
 					return ret;
-				}
-				catch (std::exception e) {
+				} catch (std::exception e) {
 					std::println(stderr, "{}", e.what());
 					return std::nullopt;
 				}
@@ -109,7 +108,7 @@ namespace nv {
 				void showLayoutOption() {
 					std::visit([this](auto&& objects) {
 						ImGui::Begin("Choose Layout");
-						detail::ScopeExit imGuiEnd{ [] { ImGui::End(); } };
+						nv::detail::ScopeExit imGuiEnd{ [] { ImGui::End(); } };
 
 						if (objects.size() % 2 == 0 && ImGui::Button("Grid")) {
 							m_currentlyChosenLayout = ObjectLayout::Grid;
@@ -129,7 +128,7 @@ namespace nv {
 
 						ImGui::SetNextItemWidth(getInputWidth());
 						ImGui::BeginDisabled(m_currentlyChosenLayout == ObjectLayout::None);
-						detail::ScopeExit endDisabled{ [] { ImGui::EndDisabled(); } };
+						nv::detail::ScopeExit endDisabled{ [] { ImGui::EndDisabled(); } };
 						if (ImGui::Button("Set")) {
 							m_currentlyChosenLayout = ObjectLayout::None;
 							m_layoutName = "No layout chosen";

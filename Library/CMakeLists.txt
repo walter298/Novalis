@@ -7,11 +7,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
-file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.h")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/novalis/*.cpp")
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/novalis/*.h")
 
 # find_package(Boost REQUIRED COMPONENTS type_erasure)
 find_package(sdl3 CONFIG REQUIRED)
+
+set(SDLIMAGE_VENDORED ON)
+set(SDLIMAGE_AVIF ON)
+set(SDLIMAGE_BMP ON)
+set(SDLIMAGE_JPEG ON)
+set(SDLIMAGE_WEBP ON)
+set(SDLIMAGE_PNG ON)
+find_package(sdl3_image CONFIG REQUIRED)
 
 add_library(novalis STATIC ${SOURCES} ${HEADERS})
 add_library(Novalis::novalis ALIAS novalis)
@@ -23,7 +31,7 @@ target_include_directories(novalis
 )
 
 target_link_libraries(novalis
-    PUBLIC SDL3::SDL3
+    PUBLIC SDL3::SDL3 SDL3_image::SDL3_image
 )
 
 include(CMakePackageConfigHelpers)

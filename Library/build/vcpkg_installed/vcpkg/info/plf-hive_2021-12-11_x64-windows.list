@@ -1,8 +1,0 @@
-x64-windows/
-x64-windows/include/
-x64-windows/include/plf_hive.h
-x64-windows/share/
-x64-windows/share/plf-hive/
-x64-windows/share/plf-hive/copyright
-x64-windows/share/plf-hive/vcpkg.spdx.json
-x64-windows/share/plf-hive/vcpkg_abi_info.txt

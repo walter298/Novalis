@@ -1,4 +1,12 @@
-Library/build/
-Library/build.bat
-NodeEditor/build/
-NodeEditor/build.bat
+**/build/
+**/build.bat
+**/vcpkg.json
+**/CMakePresets.json
+**/CMakeUserPresets.json
+**/release_build.bat
+**/debug_build.bat
+**/release_run.bat
+**/debug_run.bat
+**/vcpkg-properties.json
+**/.vs/
+Redmane/

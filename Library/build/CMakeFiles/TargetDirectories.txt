@@ -1,4 +1,0 @@
-C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/novalis.dir
-C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/INSTALL.dir
-C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/walte/OneDrive/Desktop/Code_Libraries/Novalis_CMake_Build/Library/build/CMakeFiles/ZERO_CHECK.dir

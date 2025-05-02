@@ -1,10 +1,11 @@
 #pragma once
 
+#include <cstdlib>
 #include <magic_enum/magic_enum.hpp>
+#include <novalis/detail/file/File.h>
+#include <novalis/Texture.h>
 
 #include "imgui/imgui.h"
-#include "detail/file/File.h"
-#include "Texture.h"
 #include "WindowLayout.h"
 
 namespace nv {
@@ -25,6 +26,7 @@ namespace nv {
 		};
 
 		class ToolDisplay {
+		private:
 			static constexpr Point TEXTURE_SIZE = { 160.0f, 160.0f };
 
 			boost::unordered_flat_map<Tool, TexturePtr> m_buttons;
@@ -60,25 +62,41 @@ namespace nv {
 			using Entry = std::pair<const Tool, Texture>;
 
 			ToolDisplay(SDL_Renderer* renderer) : grabber{ m_currTool } {
+				static constexpr const char* rootDirEnvVar = "NOVALIS_ROOT";
+				auto rootDirPath = std::getenv(rootDirEnvVar);
+				if (!rootDirPath) {
+					std::println(stderr, "Error: {} environment variable not set. Should be set to parent of NodeEditor and Library subdirectories.", rootDirEnvVar);
+					std::exit(EXIT_FAILURE);
+				}
+
 				namespace fs = std::filesystem;
-				for (const auto& filePath : fs::directory_iterator(workingDirectory() + "novalis_assets/tool_images")) {
-					if (filePath.is_directory()) {
-						continue;
-					}
-					auto filename = filePath.path().stem().string();
+				std::println("{}", (fs::path{ rootDirPath } / "NodeEditor/novalis_assets/tool_images").string());
+
+				fs::directory_iterator toolImageDir{ 
+					fs::path{ rootDirPath } / "NodeEditor/novalis_assets/tool_images"
+				};
+				for (const auto& toolImagePath : toolImageDir) {
+					auto filename = toolImagePath.path().stem().string();
 					auto tool = magic_enum::enum_cast<Tool>(filename);
 					assert(tool.has_value());
-					auto pathStr = filePath.path().string();
-
-					TexturePtr tex{ renderer, pathStr.c_str() };
+					TexturePtr tex{ renderer, toolImagePath.path().string().c_str() };
 					m_buttons.emplace(tool.value(), std::move(tex));
 				}
 				grabber.initAfterTextureLoad(m_buttons.at(Tool::ObjectSelect), m_buttons.at(Tool::ObjectGrab));
 			}
 
 			void show(bool disabled) noexcept {
+				const ImVec2 winSize{
+					getSideWindowWidth(),
+					getWindowHeight() * 0.3f
+				};
+				const ImVec2 toolButtonSize{
+					winSize.x / 3.3f,
+					winSize.y / 2.5f
+				};
+				
 				ImGui::SetNextWindowPos({ 0.0f, getWindowY() });
-				ImGui::SetNextWindowSize({ getSideWindowWidth(), getWindowHeight() * 0.3f });
+				ImGui::SetNextWindowSize(winSize);
 
 				ImGui::BeginDisabled(disabled);
 				ImGui::Begin(TOOL_WINDOW_NAME, nullptr, WINDOW_FLAGS);
@@ -95,7 +113,7 @@ namespace nv {
 						ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0, 255, 0, 255 });
 					}
 					auto strId = std::to_string(i);
-					if (ImGui::ImageButton(strId.c_str(), reinterpret_cast<ImTextureID>(tex.tex), getToolSize())) {
+					if (ImGui::ImageButton(strId.c_str(), reinterpret_cast<ImTextureID>(tex.tex), toolButtonSize)) {
 						m_currTool = tool;
 					}
 					if (highlighted) {

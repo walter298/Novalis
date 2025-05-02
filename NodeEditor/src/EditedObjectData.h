@@ -1,8 +1,8 @@
 #pragma once
 
-#include "detail/serialization/KeyConstants.h"
-#include "detail/serialization/TextureSerialization.h"
-#include "Node.h"
+#include <novalis/detail/serialization/KeyConstants.h>
+#include <novalis/detail/serialization/TextureSerialization.h>
+#include <novalis/Node.h>
 
 namespace nv {
 	namespace editor {

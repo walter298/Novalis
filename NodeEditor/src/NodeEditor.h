@@ -4,8 +4,9 @@
 #include <vector>
 #include <SDL3/SDL_rect.h>
 
-#include "detail/serialization/BufferedNodeSerialization.h"
+#include <novalis/detail/serialization/BufferedNodeSerialization.h>
 #include "EditedObjectData.h"
+#include "PolygonOutline.h"
 #include "SpecialPoint.h"
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
@@ -63,7 +64,7 @@ namespace nv {
 					if (!m_screenPoints.empty()) {
 						m_firstPoint.point = m_screenPoints.front();
 						m_firstPoint.render(renderer);
-						detail::renderScreenPoints(renderer, 255, m_screenPoints);
+						nv::detail::renderScreenPoints(renderer, 255, m_screenPoints);
 					}
 
 					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -126,6 +127,7 @@ namespace nv {
 
 			int m_worldX = 0;
 			int m_worldY = 0;
+			bool m_dragging = false;
 			std::string m_worldXLabel;
 			std::string m_worldYLabel;
 
@@ -274,6 +276,17 @@ namespace nv {
 					showXYCoordinateOption(editedObj);
 				}
 
+				//collision outline
+				if constexpr (std::same_as<Object, Texture>) {
+					ImGui::SetNextItemWidth(getInputWidth());
+					if (ImGui::Button("Create collision outline")) {
+						auto collisionOutlines = getPolygonOutlines(renderer, editedObj.obj->obj, m_worldOffsetX, m_worldOffsetY);
+						for (auto& outline : collisionOutlines) {
+							transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
+						}
+					}
+				}
+
 				//deletion
 				showObjectDeletionOption(editedObj);
 			}
@@ -285,35 +298,35 @@ namespace nv {
 					return;
 				}
 				auto& objectHives = m_layers[m_currLayerIdx].objects;
-				detail::forEachDataMember([&, this](auto& currObjectHive) {
+				nv::detail::forEachDataMember([&, this](auto& currObjectHive) {
 					auto selectedObjIt = std::ranges::find_if(currObjectHive, [&](const auto& editedObjData) -> bool {
 						return editedObjData.obj.containsScreenCoord(mouse);
-						});
+					});
 					if (selectedObjIt == currObjectHive.end()) {
-						return detail::STAY_IN_LOOP;
+						return nv::detail::STAY_IN_LOOP;
 					}
 					m_selectedObject = SelectedObjectData{
 						&(*selectedObjIt), &currObjectHive, selectedObjIt
 					};
-					return detail::BREAK_FROM_LOOP;
-					}, objectHives);
+					return nv::detail::BREAK_FROM_LOOP;
+				}, objectHives);
 			}
 
 			void makeCurrLayerMoreVisible() {
 				auto setOpacityImpl = [](auto& hiveTuple, uint8_t opacity) {
-					detail::forEachDataMember([&](auto& objHive) {
+					nv::detail::forEachDataMember([&](auto& objHive) {
 						for (auto& editedObj : objHive) {
 							editedObj.obj.setOpacity(opacity);
 						}
-						return detail::STAY_IN_LOOP;
-						}, hiveTuple);
-					};
+						return nv::detail::STAY_IN_LOOP;
+					}, hiveTuple);
+				};
 
 				auto setOpacity = [&, this](auto layers, uint8_t opacity) {
 					for (auto& [layerName, objects] : layers) {
 						setOpacityImpl(objects, opacity);
 					}
-					};
+				};
 
 				constexpr uint8_t REDUCED_OPACITY = 70;
 
@@ -385,11 +398,11 @@ namespace nv {
 				m_worldOffsetX += change.x;
 				m_worldOffsetY += change.y;
 				for (auto& [name, objects] : m_layers) {
-					detail::forEachDataMember([&](auto& objHive) {
+					nv::detail::forEachDataMember([&](auto& objHive) {
 						for (auto& obj : objHive) {
 							obj.obj.screenMove(change);
 						}
-						return detail::STAY_IN_LOOP;
+						return nv::detail::STAY_IN_LOOP;
 					}, objects);
 				}
 				ImGui::ResetMouseDragDelta();
@@ -407,7 +420,7 @@ namespace nv {
 			void dragSelectedObject(Point mouse) {
 				auto change = toSDLFPoint(ImGui::GetMouseDragDelta());
 				selectiveVisit([&](auto& selectedObject) {
-					if (selectedObject.obj->obj.containsScreenCoord(mouse)) {
+					if (selectedObject.obj->obj.containsScreenCoord(mouse) || ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 						selectedObject.obj->obj.screenMove(change);
 						selectedObject.obj->obj.worldMove(change);
 					}
@@ -426,11 +439,11 @@ namespace nv {
 
 			void render(SDL_Renderer* renderer) const noexcept {
 				for (auto& [layerName, objects] : m_layers) {
-					detail::forEachDataMember([&, this](const auto& hive) {
+					nv::detail::forEachDataMember([&, this](const auto& hive) {
 						for (const auto& editedObj : hive) {
 							editedObj.obj.render(renderer);
 						}
-						return detail::STAY_IN_LOOP;
+						return nv::detail::STAY_IN_LOOP;
 					}, objects);
 				}
 			}
@@ -464,6 +477,16 @@ namespace nv {
 				ImVec2 nodeWindowSize{ toolWindowSize.x, getWindowHeight() - toolWindowSize.y };
 				ImGui::SetNextWindowPos(nodeWindowPos);
 				ImGui::SetNextWindowSize(nodeWindowSize);
+			}
+
+			void showLayerExplorer(SDL_Renderer* renderer) {
+				/*ImGui::Begin(LAYER_EXPLORER_WINDOW_NAME);
+				for (const auto& [name, objects] : m_layers) {
+					if (ImGui::TreeNode(name.c_str())) {
+						ImGui::TreePop();
+					}
+				}*/
+				//ImGui::End();
 			}
 
 			void showNodeWindow(SDL_Renderer* renderer, Point mouse) {
@@ -502,22 +525,22 @@ namespace nv {
 					auto layerName = layerJson[NAME_KEY].get<std::string>();
 					auto& currLayer = ret.m_layers.emplace_back(layerName);
 
-					detail::forEachDataMember([&layerJson]<typename Object>(EditedObjectHive<Object>& objectGroup) {
+					nv::detail::forEachDataMember([&layerJson]<typename Object>(EditedObjectHive<Object>& objectGroup) {
 						using BufferedObject = std::conditional_t<
 							std::same_as<Object, DynamicPolygon>, BufferedPolygon, Object
 						>;
-						auto typeName = detail::getTypeName<BufferedObject>();
+						auto typeName = nv::detail::getTypeName<BufferedObject>();
 						auto objectGroupJsonIt = layerJson.find(typeName);
 						
 						if (objectGroupJsonIt == layerJson.end()) {
-							return detail::STAY_IN_LOOP;
+							return nv::detail::STAY_IN_LOOP;
 						}
 
 						auto& objectGroupJson = *objectGroupJsonIt;
 						for (const auto& objectJson : objectGroupJson) {
 							objectGroup.insert(EditedObjectData<Object>::load(objectJson));
 						}
-						return detail::STAY_IN_LOOP;
+						return nv::detail::STAY_IN_LOOP;
 					}, currLayer.objects);
 				}
 
@@ -528,8 +551,7 @@ namespace nv {
 				if (m_layers.empty()) {
 					return;
 				}
-
-				renderSDLRect(renderer, m_viewport, { 0, 0, 0, 255 });
+				
 				auto viewportIntRect = toSDLRect(m_viewport);
 				SDL_SetRenderViewport(renderer, &viewportIntRect);
 				SDL_RenderClear(renderer);
@@ -537,6 +559,7 @@ namespace nv {
 
 				auto mouse = toSDLFPoint(ImGui::GetMousePos());
 
+				showLayerExplorer(renderer);
 				showNodeWindow(renderer, mouse);
 				zoom(renderer, mouse);
 				render(renderer);
@@ -618,11 +641,11 @@ namespace nv {
 					if constexpr (IsBase) {
 						objectRegionLengths.get<T>() += sizeof(T);
 					}
-					detail::forEachDataMember([&]<typename Field>(const Field & field) {
+					nv::detail::forEachDataMember([&]<typename Field>(const Field & field) {
 						if constexpr (!concepts::Primitive<Field>) {
 							calculateSizeBytes<false>(field, objectRegionLengths);
 						}
-						return detail::STAY_IN_LOOP;
+						return nv::detail::STAY_IN_LOOP;
 					}, t);
 				}
 			}
@@ -630,17 +653,17 @@ namespace nv {
 			template<typename T>
 			static decltype(auto) makeBufferedObject(const T& t) {
 				if constexpr (std::same_as<T, DynamicPolygon>) {
-					return detail::PolygonConverter::makeBufferedPolygon(t);
+					return nv::detail::PolygonConverter::makeBufferedPolygon(t);
 				} else {
 					return (t);
 				}
 			}
 
 			static void writeObjectData(json& currJsonLayer, const Layer::Objects& objects, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
-				detail::forEachDataMember([&]<typename Object>(const EditedObjectHive<Object>& hive) {
+				nv::detail::forEachDataMember([&]<typename Object>(const EditedObjectHive<Object>& hive) {
 					using BufferedObject = std::remove_cvref_t<decltype(makeBufferedObject(std::declval<Object>()))>;
 
-					auto typeName = detail::getTypeName<BufferedObject>();
+					auto typeName = nv::detail::getTypeName<BufferedObject>();
 
 					auto& objGroup = currJsonLayer[typeName] = json::array();
 					for (const auto& obj : hive) {
@@ -663,7 +686,7 @@ namespace nv {
 						}
 					}
 
-					return detail::STAY_IN_LOOP;
+					return nv::detail::STAY_IN_LOOP;
 				}, objects);
 			}
 
@@ -713,8 +736,7 @@ namespace nv {
 						m_lastSavedFilePath = path;
 						return createSceneJson();
 					});
-				}
-				catch (json::exception e) {
+				} catch (json::exception e) {
 					std::println("{}", e.what());
 				}
 			}

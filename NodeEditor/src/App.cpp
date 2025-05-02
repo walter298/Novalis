@@ -17,8 +17,6 @@
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
 
-#include "Node.h"
-
 using namespace nv;
 using namespace nv::editor;
 
@@ -37,14 +35,13 @@ void nv::editor::runApp() {
 	AppData app;
 
 	auto& io = ImGui::GetIO();
-	(void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
 	ImGui::StyleColorsDark();
 	ImGui_ImplSDL3_InitForSDLRenderer(app.instance.window, app.instance.renderer);
 	ImGui_ImplSDLRenderer3_Init(app.instance.renderer);
 
 	while (app.running) {
-		constexpr float FONT_SCALE = 2.1f;
+		constexpr float FONT_SCALE = 3.0f;
 		ImGui::GetIO().FontGlobalScale = FONT_SCALE;
 
 		using namespace std::literals;
@@ -61,8 +58,8 @@ void nv::editor::runApp() {
 		}
 
 		SDL_RenderClear(app.instance.renderer);
-		
-		static constexpr ImVec4 color{ 0.45f, 0.55f, 0.60f, 1.00f };
+
+		static constexpr ImVec4 color{ 0.0f, 0.0f, 0.0f, 1.00f };
 
 		ImGui_ImplSDLRenderer3_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
@@ -77,9 +74,6 @@ void nv::editor::runApp() {
 			std::this_thread::sleep_for(endTime - now);
 		}
 
-		SDL_SetRenderDrawColor(app.instance.renderer,
-			static_cast<uint8_t>(color.x * 255), static_cast<uint8_t>(color.y * 255),
-			static_cast<uint8_t>(color.z * 255), static_cast<uint8_t>(color.w * 255));
 		SDL_SetRenderScale(app.instance.renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
 		ImGui::Render();
 		ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.instance.renderer);
