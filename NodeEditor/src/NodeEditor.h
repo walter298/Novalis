@@ -7,7 +7,7 @@
 #include <novalis/detail/serialization/BufferedNodeSerialization.h>
 #include "EditedObjectData.h"
 #include "PolygonOutline.h"
-#include "SpecialPoint.h"
+#include "PolygonBuilder.h"
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
 
@@ -21,64 +21,8 @@ namespace nv {
 			SDL_FRect m_viewport;
 			std::string m_name;
 			std::string m_lastSavedFilePath;
+			bool m_selectingObject = true;
 
-			class PolygonBuilder {
-			private:
-				std::vector<Point> m_screenPoints;
-				bool m_placingNewPoint = false;
-
-				SpecialPoint m_firstPoint;
-				SpecialPoint m_lastPlacedPoint;
-				bool m_building = false;
-
-				DynamicPolygon createPolygon(float worldOffsetX, float worldOffsetY) {
-					//make the first point of the polygon also be the last so that the shape forms a closed ring
-					auto first = m_screenPoints.front();
-					m_screenPoints.push_back(std::move(first));
-
-					auto makeWorldPoints = m_screenPoints | std::views::transform([&](const Point& point) {
-						return Point{ point.x + worldOffsetX, point.y + worldOffsetY };
-					});
-					std::vector<Point> worldPoints;
-					worldPoints.append_range(makeWorldPoints);
-
-					DynamicPolygon poly{ std::move(m_screenPoints), std::move(worldPoints) };
-					m_screenPoints.clear();
-					m_building = false;
-					return poly;
-				}
-			public:
-				bool building() const noexcept {
-					return m_building;
-				}
-
-				std::optional<DynamicPolygon> operator()(SDL_Renderer* renderer, Point mouse, float worldOffsetX, float worldOffsetY) noexcept {
-					if (!m_building) {
-						m_screenPoints.clear();
-					}
-
-					ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-					m_lastPlacedPoint.point = mouse;
-					m_lastPlacedPoint.render(renderer);
-
-					if (!m_screenPoints.empty()) {
-						m_firstPoint.point = m_screenPoints.front();
-						m_firstPoint.render(renderer);
-						nv::detail::renderScreenPoints(renderer, 255, m_screenPoints);
-					}
-
-					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-						m_building = true;
-						if (m_firstPoint.containsCoord(mouse) && m_screenPoints.size() > 1) {
-							return createPolygon(worldOffsetX, worldOffsetY);
-						} else {
-							m_screenPoints.emplace_back(mouse.x, mouse.y);
-							m_lastPlacedPoint.point = mouse;
-						}
-					}
-					return std::nullopt;
-				}
-			};
 			PolygonBuilder m_polygonBuilder;
 
 			template<typename Object>
@@ -116,9 +60,9 @@ namespace nv {
 			struct Layer {
 				std::string name;
 				using Objects = std::tuple<
-					EditedObjectHive<DynamicPolygon>,
 					EditedObjectHive<Texture>,
-					EditedObjectHive<BufferedNode>
+					EditedObjectHive<BufferedNode>,
+					EditedObjectHive<DynamicPolygon>
 				>;
 				Objects objects;
 			};
@@ -193,12 +137,12 @@ namespace nv {
 			template<concepts::SizeableObject Object>
 			void showSizeOption(SelectedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::InputFloat("width", &editedObj.obj->width)) {
+				if (ImGui::InputFloat("Width", &editedObj.obj->width)) {
 					ImGui::SetNextItemWidth(getInputWidth());
 					editedObj.obj->obj.setSize(editedObj.obj->width, editedObj.obj->height);
 				}
 				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::InputFloat("height", &editedObj.obj->height)) {
+				if (ImGui::InputFloat("Height", &editedObj.obj->height)) {
 					ImGui::SetNextItemWidth(getInputWidth());
 					editedObj.obj->obj.setSize(editedObj.obj->width, editedObj.obj->height);
 				}
@@ -291,24 +235,24 @@ namespace nv {
 				showObjectDeletionOption(editedObj);
 			}
 
-			void selectObject(SDL_Renderer* renderer, Point mouse, ToolDisplay::GrabberTool& grabber) {
-				grabber.render(renderer, mouse);
-
-				if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+			void selectObject(SDL_Renderer* renderer, Point mouse) {
+				/*if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 					return;
-				}
+				}*/
 				auto& objectHives = m_layers[m_currLayerIdx].objects;
 				nv::detail::forEachDataMember([&, this](auto& currObjectHive) {
-					auto selectedObjIt = std::ranges::find_if(currObjectHive, [&](const auto& editedObjData) -> bool {
-						return editedObjData.obj.containsScreenCoord(mouse);
-					});
-					if (selectedObjIt == currObjectHive.end()) {
-						return nv::detail::STAY_IN_LOOP;
+					for (auto it = currObjectHive.begin(); it != currObjectHive.end(); it++) {
+						auto& editedObjData = *it;
+						if (editedObjData.obj.containsScreenCoord(mouse)) {
+							editedObjData.obj.setOpacity(255);
+							m_selectedObject = SelectedObjectData{
+								&(*it), &currObjectHive, it
+							};
+						} else {
+							editedObjData.obj.setOpacity(100);
+						}
 					}
-					m_selectedObject = SelectedObjectData{
-						&(*selectedObjIt), &currObjectHive, selectedObjIt
-					};
-					return nv::detail::BREAK_FROM_LOOP;
+					return nv::detail::STAY_IN_LOOP;
 				}, objectHives);
 			}
 
@@ -418,7 +362,8 @@ namespace nv {
 			}
 
 			void dragSelectedObject(Point mouse) {
-				auto change = toSDLFPoint(ImGui::GetMouseDragDelta());
+				Point change = toSDLFPoint(ImGui::GetMouseDragDelta());
+				change /= m_zoom;
 				selectiveVisit([&](auto& selectedObject) {
 					if (selectedObject.obj->obj.containsScreenCoord(mouse) || ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 						selectedObject.obj->obj.screenMove(change);
@@ -449,18 +394,21 @@ namespace nv {
 			}
 
 			void editSelectedObject(SDL_Renderer* renderer, Point mouse, ToolDisplay::GrabberTool& grabber) {
-				grabber.render(renderer, mouse);
-				selectObject(renderer, mouse, grabber);
-				dragSelectedObject(mouse);
+				auto renderAdjustedMouse = getViewportAdjustedMouse(renderer, mouse, m_zoom);
+				selectObject(renderer, renderAdjustedMouse);
+				dragSelectedObject(renderAdjustedMouse);
 			}
 
 			void runCurrentTool(SDL_Renderer* renderer, Point mouse, ToolDisplay& toolDisplay) {
+				if (toolDisplay.getCurrentTool() == Tool::ObjectSelect && m_selectingObject) {
+					makeCurrLayerMoreVisible();
+				}
 				switch (toolDisplay.getCurrentTool()) {
 				case Tool::Move:
 					scroll();
 					break;
 				case Tool::Polygon:
-					editPolygon(renderer, mouse);
+					editPolygon(renderer, getViewportAdjustedMouse(renderer, mouse, m_zoom));
 					break;
 				case Tool::ObjectSelect:
 					editSelectedObject(renderer, mouse, toolDisplay.grabber);
@@ -477,16 +425,6 @@ namespace nv {
 				ImVec2 nodeWindowSize{ toolWindowSize.x, getWindowHeight() - toolWindowSize.y };
 				ImGui::SetNextWindowPos(nodeWindowPos);
 				ImGui::SetNextWindowSize(nodeWindowSize);
-			}
-
-			void showLayerExplorer(SDL_Renderer* renderer) {
-				/*ImGui::Begin(LAYER_EXPLORER_WINDOW_NAME);
-				for (const auto& [name, objects] : m_layers) {
-					if (ImGui::TreeNode(name.c_str())) {
-						ImGui::TreePop();
-					}
-				}*/
-				//ImGui::End();
 			}
 
 			void showNodeWindow(SDL_Renderer* renderer, Point mouse) {
@@ -559,12 +497,16 @@ namespace nv {
 
 				auto mouse = toSDLFPoint(ImGui::GetMousePos());
 
-				showLayerExplorer(renderer);
 				showNodeWindow(renderer, mouse);
 				zoom(renderer, mouse);
 				render(renderer);
+
+				viewportIntRect = toSDLRect(getViewport(1.0f));
+				SDL_SetRenderViewport(renderer, &viewportIntRect);
+				SDL_SetRenderScale(renderer, 1.0f, 1.0f);
+
 				if (windowContainsCoord(NODE_WINDOW_NAME, mouse)) {
-					runCurrentTool(renderer, getViewportAdjustedMouse(renderer, mouse, m_zoom), toolDisplay);
+					runCurrentTool(renderer, mouse, toolDisplay);
 				}
 				showNodeOptions();
 

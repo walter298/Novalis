@@ -134,7 +134,12 @@ namespace nv {
 			SDL_Color originalDrawColor;
 			SDL_GetRenderDrawColor(renderer, &originalDrawColor.r, &originalDrawColor.g, &originalDrawColor.b, &originalDrawColor.a);
 
-			SDL_SetRenderDrawColor(renderer, 0, 255, 0, opacity);
+			SDL_BlendMode originalBlendMode;
+			SDL_GetRenderDrawBlendMode(renderer, &originalBlendMode);
+
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
+
 			auto pointPairs = std::views::zip(points, points | std::views::drop(1));
 			for (const auto& [p1, p2] : pointPairs) {
 				SDL_RenderLine(renderer, p1.x, p1.y, p2.x, p2.y);
@@ -144,6 +149,7 @@ namespace nv {
 			SDL_RenderLine(renderer, first.x, first.y, last.x, last.y);
 
 			SDL_SetRenderDrawColor(renderer, originalDrawColor.r, originalDrawColor.g, originalDrawColor.b, originalDrawColor.a);
+			SDL_SetRenderDrawBlendMode(renderer, originalBlendMode);
 		}
 
 		struct PolygonConverter;

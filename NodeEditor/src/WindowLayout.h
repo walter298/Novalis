@@ -61,6 +61,7 @@ namespace nv {
 		inline Point getViewportAdjustedMouse(SDL_Renderer* renderer, Point mouse, float zoom) {
 			SDL_Rect viewport;
 			SDL_GetRenderViewport(renderer, &viewport);
+
 			mouse.x -= viewport.x;
 			mouse.y -= viewport.y;
 			mouse.x /= zoom;

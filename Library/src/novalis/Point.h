@@ -23,6 +23,22 @@ namespace nv {
 			x /= other.x;
 			y /= other.y;
 		}
+		void operator-=(float a) noexcept {
+			x -= a;
+			y -= a;
+		}
+		void operator+=(float a) noexcept {
+			x += a;
+			y += a;
+		}
+		void operator*=(float a) noexcept {
+			x *= a;
+			y *= a;
+		}
+		void operator/=(float a) noexcept {
+			x /= a;
+			y /= a;
+		}
 
 		bool operator==(Point other) const noexcept {
 			return x == other.x && y == other.y;

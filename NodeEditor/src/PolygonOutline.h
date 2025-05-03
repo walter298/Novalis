@@ -36,13 +36,12 @@ namespace nv {
             cv::Canny(gray, edges, 50, 150);
 
             std::vector<std::vector<cv::Point>> contours;
-			cv::findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+			cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
 			std::vector<DynamicPolygon> polygons;
-            for (auto& polygon : contours) {
-				if (polygon.size() < 5) {
-					continue; 
-				}
+            for (auto& contour : contours) {
+                std::vector<cv::Point> polygon;
+                cv::approxPolyDP(contour, polygon, 2.0, true);
 
                 //close the polygon
 				auto firstPoint = polygon.front();
