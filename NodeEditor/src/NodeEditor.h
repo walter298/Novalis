@@ -6,6 +6,7 @@
 
 #include <novalis/detail/serialization/BufferedNodeSerialization.h>
 #include "EditedObjectData.h"
+#include "EditedObjectGroup.h"
 #include "PolygonOutline.h"
 #include "PolygonBuilder.h"
 #include "ToolDisplay.h"
@@ -22,8 +23,9 @@ namespace nv {
 			std::string m_name;
 			std::string m_lastSavedFilePath;
 			bool m_selectingObject = true;
-
 			PolygonBuilder m_polygonBuilder;
+			EditedObjectGroupManager m_objectGroups;
+			ID<EditedObjectGroup> m_currObjectGroupID = ID<EditedObjectGroup>::None();
 
 			template<typename Object>
 			struct SelectedObjectData {
@@ -118,19 +120,22 @@ namespace nv {
 			void showObjectDeletionOption(SelectedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Delete")) {
+					for (auto& objectGroupID : editedObj.obj->groupIDs) {
+						m_objectGroups.getGroup(objectGroupID).removeObject(editedObj.obj);
+					}
 					editedObj.objLayer->erase(editedObj.it);
 					editedObj.obj = nullptr;
+					m_currObjectGroupID = ID<EditedObjectGroup>::None();
 					deselectSelectedObject();
 				}
 			}
 
 			template<typename Object>
-			void showOpacityOption(SelectedObjectData<Object>& editedObj) {
+			void showOpacityOption(EditedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
-				auto opacityInt = static_cast<int>(editedObj.obj->opacity);
+				auto opacityInt = static_cast<int>(editedObj.opacity);
 				if (ImGui::SliderInt("Opacity", &opacityInt, 0, 255)) {
-					editedObj.obj->opacity = static_cast<uint8_t>(opacityInt);
-					editedObj.obj->obj.setOpacity(editedObj.obj->opacity);
+					m_objectGroups.setOpacity(editedObj, static_cast<uint8_t>(opacityInt));
 				}
 			}
 
@@ -154,10 +159,10 @@ namespace nv {
 			}
 
 			template<concepts::ScaleableObject Object>
-			void showScaleOption(SelectedObjectData<Object>& editedObj) {
+			void showScaleOption(EditedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::SliderFloat("Scale", &editedObj.obj->scale, 1.0f, 5.0f)) {
-					editedObj.obj->obj.screenScale(editedObj.obj->scale);
+				if (ImGui::SliderFloat("Scale", &editedObj.scale, 1.0f, 5.0f)) {
+					m_objectGroups.scale(editedObj, editedObj.scale);
 				}
 			}
 
@@ -175,7 +180,89 @@ namespace nv {
 				}
 			}
 
-			template<concepts::RenderableObject Object>
+			void createCollisionOutline(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex) {
+				ImGui::SetNextItemWidth(getInputWidth());
+				if (ImGui::Button("Create collision outline")) {
+					ID<EditedObjectGroup> groupID;
+					EditedObjectGroup collisionGroup;
+
+					editedTex.groupIDs.insert(groupID);
+					collisionGroup.addObject(&editedTex);
+
+					auto collisionOutlines = getPolygonOutlines(renderer, editedTex.obj, m_worldOffsetX, m_worldOffsetY);
+					for (auto& outline : collisionOutlines) {
+						auto& object = transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
+						object.groupIDs.insert(groupID);
+						collisionGroup.addObject(&object);
+					}
+
+					m_objectGroups.addGroup(groupID, std::move(collisionGroup));
+				}
+			}
+
+			void showObjectGroupOptions(EditedObjectGroup& objectGroup) {
+				ImGui::SetNextItemWidth(getInputWidth());
+				ImGui::InputText("Group name", &objectGroup.name);
+
+				auto showSyncOption = [](const char* label, EditedObjectGroup::SyncOption& syncOption) {
+					bool temp = syncOption;
+					ImGui::SetNextItemWidth(getInputWidth());
+					if (ImGui::Checkbox(label, &temp)) {
+						syncOption = static_cast<EditedObjectGroup::SyncOption>(temp);
+					}
+				};
+				showSyncOption("Sync position", objectGroup.positionSynced);
+				showSyncOption("Sync rotation", objectGroup.rotationSynced);
+				showSyncOption("Sync scale", objectGroup.scaleSynced);
+				showSyncOption("Sync opacity", objectGroup.opacitySynced);
+
+				ImGui::SetNextItemWidth(getInputWidth());
+				if (ImGui::Button("Delete group")) {
+					m_objectGroups.removeGroup(m_currObjectGroupID);
+					m_currObjectGroupID = ID<EditedObjectGroup>::None();
+					int x = 0;
+				}
+			}
+
+			template<typename Object>
+			ID<EditedObjectGroup> getRandomObjectGroupID(const EditedObjectData<Object>& editedObj) {
+				if (editedObj.groupIDs.empty()) {
+					return ID<EditedObjectGroup>::None();
+				}
+				return *editedObj.groupIDs.begin();
+			}
+			
+			template<nv::concepts::RenderableObject Object>
+			void showObjectGroups(EditedObjectData<Object>& editedObj) {
+				const char* previewObjectGroupName = nullptr;
+				if (m_currObjectGroupID == ID<EditedObjectGroup>::None() && !editedObj.groupIDs.empty()) {
+					m_currObjectGroupID = getRandomObjectGroupID(editedObj);
+					previewObjectGroupName = m_objectGroups.getGroup(m_currObjectGroupID).name.c_str();
+				} else {
+					previewObjectGroupName = "No group";
+				}
+				
+				int i = 0;
+				if (ImGui::BeginCombo("Object group", previewObjectGroupName)) {
+					for (const auto& objectGroupID : editedObj.groupIDs) {
+						auto& objectGroup = m_objectGroups.getGroup(objectGroupID);
+						ImGui::SetNextItemWidth(getInputWidth());
+						ImGui::PushID(i);
+						if (ImGui::Selectable(objectGroup.name.c_str(), objectGroupID == m_currObjectGroupID)) {
+							m_currObjectGroupID = objectGroupID;
+						}
+						ImGui::PopID();
+					}
+					ImGui::EndCombo();
+				}
+				if (m_currObjectGroupID == ID<EditedObjectGroup>::None()) {
+					return;
+				}
+				auto& objectGroup = m_objectGroups.getGroup(m_currObjectGroupID);
+				showObjectGroupOptions(objectGroup);
+			}
+
+			template<nv::concepts::RenderableObject Object>
 			void edit(SDL_Renderer* renderer, Point mousePos, SelectedObjectData<Object>& editedObj) {
 				//if we are editing text
 				/*if constexpr (std::same_as<Object, Text>) {
@@ -186,9 +273,11 @@ namespace nv {
 					}
 				}*/
 
-				showOpacityOption(editedObj);
+				//show object group
+				showObjectGroups(*editedObj.obj);
 
-				ImGui::Text("Size");
+				//show opacity
+				showOpacityOption(*editedObj.obj);
 
 				//setting size
 				if constexpr (concepts::SizeableObject<Object>) {
@@ -197,7 +286,7 @@ namespace nv {
 
 				//scaling texture
 				if constexpr (concepts::ScaleableObject<Object>) {
-					showScaleOption(editedObj);
+					showScaleOption(*editedObj.obj);
 				}
 
 				//rotation
@@ -222,13 +311,7 @@ namespace nv {
 
 				//collision outline
 				if constexpr (std::same_as<Object, Texture>) {
-					ImGui::SetNextItemWidth(getInputWidth());
-					if (ImGui::Button("Create collision outline")) {
-						auto collisionOutlines = getPolygonOutlines(renderer, editedObj.obj->obj, m_worldOffsetX, m_worldOffsetY);
-						for (auto& outline : collisionOutlines) {
-							transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
-						}
-					}
+					createCollisionOutline(renderer, *editedObj.obj);
 				}
 
 				//deletion
@@ -365,9 +448,9 @@ namespace nv {
 				Point change = toSDLFPoint(ImGui::GetMouseDragDelta());
 				change /= m_zoom;
 				selectiveVisit([&](auto& selectedObject) {
+					auto groupID = getRandomObjectGroupID(*selectedObject.obj);
 					if (selectedObject.obj->obj.containsScreenCoord(mouse) || ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-						selectedObject.obj->obj.screenMove(change);
-						selectedObject.obj->obj.worldMove(change);
+						m_objectGroups.move(*selectedObject.obj, change);
 					}
 				}, m_selectedObject);
 				ImGui::ResetMouseDragDelta();
@@ -530,10 +613,11 @@ namespace nv {
 			}
 
 			template<typename Object>
-			void transfer(EditedObjectData<Object>&& object) {
+			EditedObjectData<Object>& transfer(EditedObjectData<Object>&& object) {
 				auto& objects = std::get<EditedObjectHive<Object>>(m_layers[m_currLayerIdx].objects);
 				auto insertedObjectIt = objects.insert(std::move(object));
 				m_selectedObject = SelectedObjectData{ &(*insertedObjectIt), &objects, insertedObjectIt };
+				return *insertedObjectIt;
 			}
 
 			void deselectSelectedObject() noexcept {
@@ -583,7 +667,7 @@ namespace nv {
 					if constexpr (IsBase) {
 						objectRegionLengths.get<T>() += sizeof(T);
 					}
-					nv::detail::forEachDataMember([&]<typename Field>(const Field & field) {
+					nv::detail::forEachDataMember([&]<typename Field>(const Field& field) {
 						if constexpr (!concepts::Primitive<Field>) {
 							calculateSizeBytes<false>(field, objectRegionLengths);
 						}
@@ -686,8 +770,7 @@ namespace nv {
 			void save() {
 				if (m_lastSavedFilePath.empty()) {
 					saveAs();
-				}
-				else {
+				} else {
 					saveToExistingFile(m_lastSavedFilePath, createSceneJson());
 				}
 			}

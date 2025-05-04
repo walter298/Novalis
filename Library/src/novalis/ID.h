@@ -10,11 +10,17 @@ namespace nv {
 	class ID {
 	private:
 		int m_ID = 0;
+
+		constexpr ID(int id) noexcept : m_ID(id) {}
 	public:
-		ID() noexcept {
-			thread_local int IDCount = 0;
+		constexpr ID() noexcept {
+			static int IDCount = 0;
 			m_ID = IDCount;
 			IDCount++;
+		}
+
+		static consteval ID None() noexcept {
+			return ID{ -1 };
 		}
 
 		operator int() const noexcept {

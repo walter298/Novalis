@@ -25,8 +25,8 @@ namespace nv {
 
 		inline void scale(float newScale, Point refPoint = { 0.0f, 0.0f }) noexcept {
 			auto scaleFactor = (newScale / currScale);
-			pos.x = pos.x + scaleFactor * (refPoint.x - pos.x);
-			pos.y = pos.y + scaleFactor * (refPoint.y - pos.y);
+			/*pos.x = pos.x + scaleFactor * (refPoint.x - pos.x);
+			pos.y = pos.y + scaleFactor * (refPoint.y - pos.y);*/
 			size.x *= scaleFactor;
 			size.y *= scaleFactor;
 			currScale = newScale;

@@ -1,6 +1,7 @@
 #include <optional>
 #include <ranges>
 #include <vector>
+#include <novalis/Node.h>
 #include <novalis/Point.h>
 #include <novalis/Polygon.h>
 
@@ -25,7 +26,7 @@ namespace nv {
 
 				auto makeWorldPoints = m_screenPoints | std::views::transform([&](const Point& point) {
 					return Point{ point.x + worldOffsetX, point.y + worldOffsetY };
-					});
+				});
 				std::vector<Point> worldPoints;
 				worldPoints.append_range(makeWorldPoints);
 
@@ -58,8 +59,7 @@ namespace nv {
 					m_building = true;
 					if (m_firstPoint.containsCoord(mouse) && m_screenPoints.size() > 1) {
 						return createPolygon(worldOffsetX, worldOffsetY);
-					}
-					else {
+					} else {
 						m_screenPoints.emplace_back(mouse.x, mouse.y);
 						m_lastPlacedPoint.point = mouse;
 					}

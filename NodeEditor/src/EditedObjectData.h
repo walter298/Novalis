@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/unordered/unordered_flat_set.hpp>
+#include <novalis/ID.h>
 #include <novalis/detail/serialization/KeyConstants.h>
 #include <novalis/detail/serialization/TextureSerialization.h>
 #include <novalis/Node.h>
@@ -8,12 +10,15 @@ namespace nv {
 	namespace editor {
 		using namespace nv::detail::json_constants;
 
+		struct EditedObjectGroup;
+
 		template<typename Object>
 		struct EditedObjectDataBase {
 			Object obj;
 			std::string name;
 			uint8_t opacity = 255;
 			float scale = 1.0f;
+			boost::unordered_flat_set<ID<EditedObjectGroup>> groupIDs;
 
 			template<typename... Args>
 			constexpr EditedObjectDataBase(Args&&... args) requires(std::constructible_from<Object, Args...>)
