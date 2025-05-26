@@ -1,7 +1,7 @@
 #include <optional>
 #include <ranges>
 #include <vector>
-#include <novalis/Node.h>
+#include <novalis/BufferedNode.h>
 #include <novalis/Point.h>
 #include <novalis/Polygon.h>
 

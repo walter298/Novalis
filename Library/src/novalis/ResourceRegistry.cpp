@@ -1,6 +1,7 @@
 #include "ResourceRegistry.h"
 
 #include "detail/serialization/BufferedNodeSerialization.h"
+#include "detail/serialization/DynamicNodeSerialization.h"
 
 nv::TexturePtr nv::ResourceRegistry::loadTexture(SDL_Renderer* renderer, const std::string& path) {
 	auto texIt = m_textureMap.find(path);
@@ -33,5 +34,5 @@ nv::BufferedNode nv::ResourceRegistry::loadBufferedNode(const std::string& path)
 	return loadNodeImpl(m_bufferedNodeMap, path);
 }
 nv::DynamicNode nv::ResourceRegistry::loadDynamicNode(const std::string& path) {
-	return DynamicNode{}; //todo: write serialization for dynamic nodes
+	return loadNodeImpl(m_dynamicNodeMap, path);
 }

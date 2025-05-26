@@ -29,6 +29,10 @@ struct AppData {
 };
 
 void nv::editor::runApp() {
+	std::thread asyncWorkThread{ [] {
+		startAsyncWork();
+	}};
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	
@@ -83,4 +87,7 @@ void nv::editor::runApp() {
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
+
+	stopAsyncWork();
+	asyncWorkThread.join();
 }

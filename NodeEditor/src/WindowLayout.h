@@ -18,28 +18,28 @@ namespace nv {
 
 		constexpr ImGuiWindowFlags WINDOW_FLAGS = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
-		inline SDL_FRect getWindowRect(const char* windowName) {
+		inline SDL_FRect getWindowRect(const char* windowName) noexcept {
 			auto win = ImGui::FindWindowByName(windowName);
 			auto pos = win->Pos;
 			auto size = win->Size;
 			return { pos.x,  pos.y, size.x, size.y };
 		}
 
-		inline bool windowContainsCoord(const char* windowName, Point p) {
+		inline bool windowContainsCoord(const char* windowName, Point p) noexcept {
 			auto winRect = getWindowRect(windowName);
 			SDL_FPoint sdlP = p;
 			return SDL_PointInRectFloat(&sdlP, &winRect);
 		}
 
-		inline float getSideWindowWidth() {
+		inline float getSideWindowWidth() noexcept {
 			return ImGui::GetIO().DisplaySize.x * 0.2f;
 		}
 
-		inline float getWindowY() {
+		inline float getWindowY() noexcept {
 			return ImGui::GetIO().DisplaySize.y * 0.05f;
 		}
 
-		inline float getWindowHeight() {
+		inline float getWindowHeight() noexcept {
 			return ImGui::GetIO().DisplaySize.y - getWindowY();
 		}
 
@@ -50,15 +50,15 @@ namespace nv {
 			};
 		}*/
 
-		inline float getToolWindowHeight() {
+		inline float getToolWindowHeight() noexcept {
 			return getWindowHeight() * 0.2f;
 		}
 
-		inline float getInputWidth() {
+		inline float getInputWidth() noexcept {
 			return ImGui::GetIO().DisplaySize.x * 0.1f;
 		}
 
-		inline Point getViewportAdjustedMouse(SDL_Renderer* renderer, Point mouse, float zoom) {
+		inline Point getViewportAdjustedMouse(SDL_Renderer* renderer, Point mouse, float zoom) noexcept {
 			SDL_Rect viewport;
 			SDL_GetRenderViewport(renderer, &viewport);
 
@@ -70,7 +70,7 @@ namespace nv {
 			return mouse;
 		}
 
-		inline ImVec2 getAdjacentWindowPos(const char* adjacentWindowName) {
+		inline ImVec2 getAdjacentWindowPos(const char* adjacentWindowName) noexcept {
 			auto leftWindow = ImGui::FindWindowByName(adjacentWindowName);
 			auto leftWindowPos = leftWindow->Pos;
 			auto leftWindowSize = leftWindow->Size;
@@ -81,7 +81,7 @@ namespace nv {
 			return getAdjacentWindowPos(TOOL_WINDOW_NAME);
 		}
 
-		inline ImVec2 getTabWindowSize() {
+		inline ImVec2 getTabWindowSize() noexcept {
 			auto parentWindowSize = ImGui::GetIO().DisplaySize;
 			return {
 				parentWindowSize.x - (2.0f * getSideWindowWidth()),
@@ -102,17 +102,23 @@ namespace nv {
 			};
 		}
 
-		inline Point toSDLFPoint(ImVec2 p) {
+		inline Point toSDLFPoint(ImVec2 p) noexcept {
 			return { p.x, p.y };
 		}
 
-		inline void centerNextText(const char* text) {
+		inline SDL_FRect getScreenDimensions() noexcept {
+			const auto& display = ImGui::GetIO().DisplaySize;
+			return { 0.0f, 0.0f, display.x, display.y };
+		}
+
+
+		inline void centerNextText(const char* text) noexcept {
 			auto windowWidth = ImGui::GetWindowSize().x;
 			auto textWidth = ImGui::CalcTextSize(text).x;
 			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
 		}
 
-		inline void showDisabledMenu(const char* text) {
+		inline void showDisabledMenu(const char* text) noexcept {
 			ImGui::BeginDisabled();
 			if (ImGui::BeginMenu(text)) {
 				ImGui::EndMenu();

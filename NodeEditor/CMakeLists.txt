@@ -28,7 +28,7 @@ find_package(OpenCV REQUIRED)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.h")
 
-add_executable(${PROJECT_NAME} ${SOURCES}  "src/PolygonBuilder.h" "src/EditedObjectGroup.h")
+add_executable(${PROJECT_NAME} ${SOURCES}  "src/PolygonBuilder.h" "src/EditedObjectGroup.h" "src/NodeSerialization.h" "src/Layer.h" "src/AsyncWork.h"  "src/tests/NodeFileTests.h")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     novalis 

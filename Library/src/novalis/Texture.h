@@ -167,10 +167,10 @@ namespace nv {
 			SDL_RenderTextureRotated(renderer, tex.tex, nullptr, &rect, texData.angle, &rotationPoint, texData.flip);
 		}
 
-		void screenScale(float newScale) noexcept {
+		void screenScale(float newScale, SDL_FPoint refPoint = { 0, 0 }) noexcept {
 			texData.ren.scale(newScale);
 		}
-		void worldScale(float newScale) noexcept {
+		void worldScale(float newScale, SDL_FPoint refPoint = { 0, 0 }) noexcept {
 			texData.world.scale(newScale);
 		}
 		float getScreenScale() const noexcept {

@@ -40,12 +40,17 @@ namespace nv {
 			}
 		};
 
+		namespace bg = boost::geometry;
+
 		class EditedObjectGroupManager {
 		private:
 			boost::unordered_flat_map<ID<EditedObjectGroup>, EditedObjectGroup> m_objectGroups;
 		public:
-			void addGroup(ID<EditedObjectGroup> id, EditedObjectGroup&& group) {
-				m_objectGroups.emplace(id, std::move(group));
+			std::pair<const ID<EditedObjectGroup>, EditedObjectGroup&> addGroup() {
+				auto [it, inserted] = m_objectGroups.emplace(
+					std::piecewise_construct, std::forward_as_tuple(), std::forward_as_tuple()
+				);
+				return { it->first, it->second };
 			}
 			void removeGroup(ID<EditedObjectGroup> id) {
 				nv::detail::forEachDataMember([&](auto& objects) {
@@ -57,14 +62,13 @@ namespace nv {
 				m_objectGroups.erase(id);
 			}
 		private:
-			template<typename Object, typename Func>
-			void forEachImpl(EditedObjectData<Object>& object, EditedObjectGroup::SyncOption EditedObjectGroup::* syncOption, Func func) {
-				EditedObjectGroup::Objects consumedObjects;
-				boost::unordered_flat_set<ID<EditedObjectGroup>> syncedObjectGroups;	
+			template<typename Object>
+			EditedObjectGroup::Objects getActedOnObjects(EditedObjectData<Object>& object, EditedObjectGroup::SyncOption EditedObjectGroup::* syncOption) {
+				EditedObjectGroup::Objects actedOnObjects;
+				boost::unordered_flat_set<ID<EditedObjectGroup>> syncedObjectGroups;
 				std::queue<ID<EditedObjectGroup>> unsyncedObjectGroups;
 
-				func(object);
-				std::get<ObjectLookup<Object>>(consumedObjects).insert(&object);
+				std::get<ObjectLookup<Object>>(actedOnObjects).insert(&object);
 				unsyncedObjectGroups.push_range(object.groupIDs);
 
 				while (!unsyncedObjectGroups.empty()) {
@@ -78,33 +82,39 @@ namespace nv {
 					}
 
 					nv::detail::forEachDataMember([&]<typename Object>(ObjectLookup<Object>& objects) { //objects is a pointer
-						for (auto& object : objects) {
-							//if object has been consumed already, continue
-							auto& consumedObjectLookup = std::get<ObjectLookup<Object>>(consumedObjects);
-							if (consumedObjectLookup.contains(object)) {
+						for (EditedObjectData<Object>* object : objects) {
+							//if object has been acted on already, continue
+							auto& actedOnObjectLookup = std::get<ObjectLookup<Object>>(actedOnObjects);
+							if (actedOnObjectLookup.contains(object)) {
 								continue;
 							}
 
-							//mark object as consumed and then invoke function with it
-							consumedObjectLookup.insert(object);
-							func(*object);
-
+							//mark object as acted on and then invoke function with it
+							actedOnObjectLookup.insert(object);
+							
 							//if object is present in any other object groups, other objects in those may also need to be synced up
 							unsyncedObjectGroups.push_range(object->groupIDs | std::views::filter([&, this](const auto& objectGroupID) {
-								return  !syncedObjectGroups.contains(objectGroupID);
+								return !syncedObjectGroups.contains(objectGroupID);
 							}));
 						}
 						return nv::detail::STAY_IN_LOOP;
 					}, group.objects);
 				}
+
+				return actedOnObjects;
 			}
 		public:
 			template<typename Object>
-			void scale(EditedObjectData<Object>& object, float scale) {
-				forEachImpl(object, &EditedObjectGroup::scaleSynced, [scale](auto& object) {
-					object.obj.screenScale(scale);
-					object.obj.worldScale(scale);
-				});
+			void scale(EditedObjectData<Object>& scaledObject, float scale) {
+				auto actedOnObjects = getActedOnObjects(scaledObject, &EditedObjectGroup::scaleSynced);
+				
+				nv::detail::forEachDataMember([&](auto& objects) {
+					for (auto object : objects) { //object is a pointer, so no copy
+						object->obj.screenScale(scale);
+						object->obj.worldScale(scale);
+					}
+					return nv::detail::STAY_IN_LOOP;
+				}, actedOnObjects);
 			}
 			void rotate(ID<EditedObjectGroup> id, float angle) {
 				//forEachImpl(id, &EditedObjectGroup::rotationSynced, [angle](auto& object) {
@@ -112,19 +122,26 @@ namespace nv {
 				//});
 			}
 			template<typename Object>
-			void move(EditedObjectData<Object>& object, Point delta) {
-				forEachImpl(object, &EditedObjectGroup::positionSynced, [delta](auto& object) {
-					object.obj.screenMove(delta);
-					object.obj.worldMove(delta);
-				});
+			void move(EditedObjectData<Object>& movedObject, Point delta) {
+				auto actedOnObjects = getActedOnObjects(movedObject, &EditedObjectGroup::positionSynced);
+				nv::detail::forEachDataMember([&](auto& objects) {
+					for (auto object : objects) { //object is a pointer, so no copy
+						object->obj.screenMove(delta);
+						object->obj.worldMove(delta);
+					}
+					return nv::detail::STAY_IN_LOOP;
+				}, actedOnObjects);
 			}
 
 			template<typename Object>
-			void setOpacity(EditedObjectData<Object>& object, uint8_t opacity) {
-				forEachImpl(object, &EditedObjectGroup::opacitySynced, [opacity](auto& object) {
-					object.obj.setOpacity(opacity);
-					object.opacity = opacity;
-				});
+			void setOpacity(EditedObjectData<Object>& opacifiedObject, uint8_t opacity) {
+				auto actedOnObjects = getActedOnObjects(opacifiedObject, &EditedObjectGroup::opacitySynced);
+				nv::detail::forEachDataMember([&](auto& objects) {
+					for (auto object : objects) { //object is a pointer, so no copy
+						object->obj.setOpacity(opacity);
+					}
+					return nv::detail::STAY_IN_LOOP;
+				}, actedOnObjects);
 			}
 			decltype(auto) getGroup(this auto&& self, ID<EditedObjectGroup> id) {
 				return self.m_objectGroups.at(id);

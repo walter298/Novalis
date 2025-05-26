@@ -4,7 +4,7 @@
 #include <novalis/ID.h>
 #include <novalis/detail/serialization/KeyConstants.h>
 #include <novalis/detail/serialization/TextureSerialization.h>
-#include <novalis/Node.h>
+#include <novalis/BufferedNode.h>
 
 namespace nv {
 	namespace editor {

@@ -15,8 +15,6 @@ namespace nlohmann {
 			auto& instance = *nv::getGlobalInstance();
 			auto& registry = instance.registry;
 
-			std::cout << "Parsing: " << j.dump(2) << '\n';
-
 			//auto& objectJson = j[OBJECT_KEY];
 			auto imagePath = j[IMAGE_PATH_KEY].get<std::string>();
 			return {

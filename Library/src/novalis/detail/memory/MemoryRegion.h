@@ -3,6 +3,7 @@
 #include <cassert>
 #include <memory>
 #include <span>
+#include <print>
 
 namespace nv {
 	namespace detail {
@@ -22,10 +23,12 @@ namespace nv {
 			template<typename T, typename... Args>
 			T* emplace(Args&&... args) noexcept requires(std::is_nothrow_constructible_v<T, Args...>)
 			{
+				//std::println("Allocating: {}", typeid(T).name());
+
 				if (!std::align(alignof(T), sizeof(T), m_nextObjectBegin, m_space)) { //align ptr so we can construct a properly aligned object
 					std::abort();
 				}
-				assert(m_space <= sizeof(T));
+				assert(m_space >= sizeof(T));
 				std::memset(m_nextObjectBegin, 0, sizeof(T));
 				T* obj = new (m_nextObjectBegin) T(std::forward<Args>(args)...);
 				m_space -= sizeof(T);
@@ -45,7 +48,9 @@ namespace nv {
 			}
 
 			template<typename T>
-			inline T* allocate(size_t n) {
+			inline T* allocate(size_t n, bool test = false) noexcept {
+				assert(m_space % sizeof(T) == 0);
+				std::println("Allocating: {} {}", n, typeid(T).name());
 				return reinterpret_cast<T*>(allocateBytes(n * sizeof(T), alignof(T)));
 			}
 
@@ -58,6 +63,10 @@ namespace nv {
 
 			inline size_t getTotalCapacity() const noexcept {
 				return m_capacity;
+			}
+
+			size_t getSpace() const noexcept {
+				return m_space;
 			}
 
 			inline size_t bytesAvailable() const noexcept {

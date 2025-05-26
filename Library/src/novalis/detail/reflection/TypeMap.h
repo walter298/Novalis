@@ -31,7 +31,7 @@ namespace nv {
 			constexpr TypeMap() = default;
 
 			template<typename Key>
-			constexpr bool contains() const noexcept {
+			static constexpr bool containsKey() noexcept {
 				return ((std::same_as<Key, Keys>) || ...);
 			}
 
@@ -46,7 +46,7 @@ namespace nv {
 			}
 		private:
 			template<template<typename> typename Filter, size_t Idx, typename Func>
-			void forEachImpl(this auto&& self, Func f) {
+			constexpr void forEachImpl(this auto&& self, Func f) {
 				using ObjectType = std::tuple_element_t<Idx, std::tuple<Keys...>>;
 				if constexpr (Filter<ObjectType>::value) {
 					f.operator()<ObjectType>(self.m_values[Idx]);
@@ -54,18 +54,39 @@ namespace nv {
 			}
 
 			template<template<typename> typename Filter, typename Func, size_t... Idxs>
-			void forEachImpl(this auto&& self, Func f, std::index_sequence<Idxs...> idxs) {
+			constexpr void forEachImpl(this auto&& self, Func f, std::index_sequence<Idxs...> idxs) {
 				((self.forEachImpl<Filter, Idxs>(f)), ...);
 			}
 		public:
 			template<typename Func>
-			void forEach(this auto&& self, Func f) {
+			constexpr void forEach(this auto&& self, Func f) {
 				self.forEachImpl<NoFilter>(f, std::make_index_sequence<sizeof...(Keys)>{});
 			}
 			template<template<typename> typename Filter, typename Func>
-			void forEachFiltered(this auto&& self, Func f) {
+			constexpr void forEachFiltered(this auto&& self, Func f) {
 				self.forEachImpl<Filter>(f, std::make_index_sequence<sizeof...(Keys)>{});
 			}
+		private:
+			template<size_t N, typename Func>
+			constexpr static void zipImpl(TypeMap& first, TypeMap& second, Func f) {
+				using ObjectType = std::tuple_element_t<N, std::tuple<Keys...>>;
+				f.operator()<ObjectType>(first.m_values[N], second.m_values[N]);
+			};
+
+			template<typename Func, size_t... Idxs>
+			static constexpr void forEachZipImpl(TypeMap& first, TypeMap& second, Func f, std::index_sequence<Idxs...>) {
+				((zipImpl<Idxs>(first, second, f)), ...);
+			}
+		public:
+			template<typename Func>
+			static constexpr void forEachZip(TypeMap& first, TypeMap& second, Func f) {
+				forEachZipImpl(first, second, f, std::make_index_sequence<sizeof...(Keys)>{});
+			}
+
+			bool operator==(const TypeMap& other) const noexcept {
+				return std::ranges::equal(other.m_values, m_values);
+			}
+
 		};
 	}
 }

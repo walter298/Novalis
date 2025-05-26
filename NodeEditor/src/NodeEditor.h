@@ -1,14 +1,21 @@
 #pragma once
 
+#include <atomic>
+#include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 #include <SDL3/SDL_rect.h>
 
 #include <novalis/detail/serialization/BufferedNodeSerialization.h>
+#include "AsyncWork.h"
+#include "NodeSerialization.h"
 #include "EditedObjectData.h"
 #include "EditedObjectGroup.h"
+#include "Layer.h"
 #include "PolygonOutline.h"
 #include "PolygonBuilder.h"
+#include "ProgressBar.h"
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
 
@@ -16,6 +23,8 @@ namespace nv {
 	namespace editor {
 		class NodeEditor {
 		private:
+			static inline int totalSyncSteps                  = 0;
+			static inline std::atomic_int asyncLoadStepsTaken = 0;
 			float m_zoom = 1.0f;
 			float m_worldOffsetX = 0.0;
 			float m_worldOffsetY = 0.0;
@@ -26,6 +35,16 @@ namespace nv {
 			PolygonBuilder m_polygonBuilder;
 			EditedObjectGroupManager m_objectGroups;
 			ID<EditedObjectGroup> m_currObjectGroupID = ID<EditedObjectGroup>::None();
+			bool m_showingProgressBar = 0;
+			std::vector<Layer> m_layers;
+			size_t m_currLayerIdx = 0;
+			int m_worldX = 0;
+			int m_worldY = 0;
+			bool m_dragging = false;
+			std::string m_worldXLabel;
+			std::string m_worldYLabel;
+			bool m_draggingObject = true;
+			bool m_asyncCreatingCollisionOutlines = false;
 
 			template<typename Object>
 			struct SelectedObjectData {
@@ -56,26 +75,6 @@ namespace nv {
 				SelectedObjectData<BufferedNode>
 			>;
 			SelectedObjectVariant m_selectedObject = std::monostate{};
-
-			bool m_draggingObject = true;
-
-			struct Layer {
-				std::string name;
-				using Objects = std::tuple<
-					EditedObjectHive<Texture>,
-					EditedObjectHive<BufferedNode>,
-					EditedObjectHive<DynamicPolygon>
-				>;
-				Objects objects;
-			};
-			std::vector<Layer> m_layers;
-			size_t m_currLayerIdx = 0;
-
-			int m_worldX = 0;
-			int m_worldY = 0;
-			bool m_dragging = false;
-			std::string m_worldXLabel;
-			std::string m_worldYLabel;
 
 			template<typename Object>
 			void moveObjectByMouseDragDelta(SelectedObjectData<Object>& editedObj, Point mousePos) {
@@ -180,23 +179,25 @@ namespace nv {
 				}
 			}
 
-			void createCollisionOutline(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex) {
+			void createCollisionOutlines(SDL_Renderer* renderer, ID<EditedObjectGroup> groupID, 
+				EditedObjectGroup& collisionGroup, EditedObjectData<Texture>& editedTex) 
+			{
+				editedTex.groupIDs.insert(groupID);
+				collisionGroup.addObject(&editedTex);
+
+				auto collisionOutlines = getPolygonOutlines(renderer, editedTex.obj, m_worldOffsetX, m_worldOffsetY);
+				for (auto& outline : collisionOutlines) {
+					auto& object = transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
+					object.groupIDs.insert(groupID);
+					collisionGroup.addObject(&object);
+				}
+			}
+
+			void showCollisionOutlineOption(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Create collision outline")) {
-					ID<EditedObjectGroup> groupID;
-					EditedObjectGroup collisionGroup;
-
-					editedTex.groupIDs.insert(groupID);
-					collisionGroup.addObject(&editedTex);
-
-					auto collisionOutlines = getPolygonOutlines(renderer, editedTex.obj, m_worldOffsetX, m_worldOffsetY);
-					for (auto& outline : collisionOutlines) {
-						auto& object = transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
-						object.groupIDs.insert(groupID);
-						collisionGroup.addObject(&object);
-					}
-
-					m_objectGroups.addGroup(groupID, std::move(collisionGroup));
+					auto [spriteGroupID, spriteGroup] = m_objectGroups.addGroup();
+					createCollisionOutlines(renderer, spriteGroupID, spriteGroup, editedTex);
 				}
 			}
 
@@ -220,7 +221,6 @@ namespace nv {
 				if (ImGui::Button("Delete group")) {
 					m_objectGroups.removeGroup(m_currObjectGroupID);
 					m_currObjectGroupID = ID<EditedObjectGroup>::None();
-					int x = 0;
 				}
 			}
 
@@ -311,7 +311,7 @@ namespace nv {
 
 				//collision outline
 				if constexpr (std::same_as<Object, Texture>) {
-					createCollisionOutline(renderer, *editedObj.obj);
+					showCollisionOutlineOption(renderer, *editedObj.obj);
 				}
 
 				//deletion
@@ -524,7 +524,8 @@ namespace nv {
 				ImGui::End();
 			}
 		public:
-			NodeEditor(const std::string& name) : m_name{ name }, m_viewport{ getViewport(m_zoom) }
+			NodeEditor(const std::string& name = "")
+				: m_name{ name }, m_viewport { getViewport(m_zoom) }
 			{
 			}
 		
@@ -541,6 +542,9 @@ namespace nv {
 				auto nodeJson = nlohmann::json::parse(file);
 
 				NodeEditor ret{ fileName(*filePath) };
+
+				auto& layersJson = nodeJson[LAYERS_KEY];
+				ret.m_layers.reserve(nodeJson.size());
 
 				for (const auto& layerJson : nodeJson[LAYERS_KEY]) {
 					auto layerName = layerJson[NAME_KEY].get<std::string>();
@@ -566,6 +570,7 @@ namespace nv {
 				}
 
 				return ret;
+				//return std::nullopt;
 			}
 
 			void show(SDL_Renderer* renderer, ToolDisplay& toolDisplay) {
@@ -620,6 +625,28 @@ namespace nv {
 				return *insertedObjectIt;
 			}
 
+			void createSpritesheet(SDL_Renderer* renderer, std::vector<EditedObjectData<Texture>> spriteSheet) {
+				//make room for new layers containing each texture in the sprite sheet
+				auto layersLeft = m_layers.size() - m_currLayerIdx;
+				if (spriteSheet.size() > layersLeft) {
+					m_layers.resize(m_layers.size() + (spriteSheet.size() - layersLeft) + 1);
+				}
+
+				int steps = static_cast<int>(spriteSheet.size());
+				
+				auto [spriteGroupID, spriteGroup] = m_objectGroups.addGroup();
+				for (auto& texture : spriteSheet) {
+					auto& currLayer = m_layers[m_currLayerIdx];
+					auto& textures = std::get<EditedObjectHive<Texture>>(currLayer.objects);
+					auto& insertedTex = *textures.insert(std::move(texture));
+					m_asyncCreatingCollisionOutlines = true;
+
+					createCollisionOutlines(renderer, spriteGroupID, spriteGroup, insertedTex);
+
+					m_currLayerIdx++;
+				}
+			}
+
 			void deselectSelectedObject() noexcept {
 				m_selectedObject = std::monostate{};
 				m_draggingObject = false;
@@ -636,131 +663,12 @@ namespace nv {
 			const char* getName() const noexcept {
 				return m_name.c_str();
 			}
-		private:
-			static BufferedNode::TypeMap<size_t> calculateObjectRegionOffsets(const BufferedNode::TypeMap<size_t>& objectRegionLengths) {
-				size_t currOffset = 0;
-				BufferedNode::TypeMap<size_t> offsets{ 0 };
-				objectRegionLengths.forEach([&]<typename Object>(size_t len) {
-					currOffset = alignof(Object) + currOffset - 1;
-					currOffset -= (currOffset % alignof(Object));
 
-					offsets.get<Object>() = currOffset;
-					currOffset += len;
-				});
-				return offsets;
-			}
-
-			template<bool IsBase = true, typename T>
-			static constexpr void calculateSizeBytes(const T& t, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
-				if constexpr (concepts::Primitive<T>) {
-					objectRegionLengths.get<T>() += sizeof(T);
-				} else if constexpr (std::ranges::viewable_range<T>) {
-					using ValueType = typename T::value_type;
-					if constexpr (concepts::Primitive<ValueType>) {
-						objectRegionLengths.get<ValueType>() += (sizeof(ValueType) * std::ranges::size(t));
-					} else {
-						for (const auto& elem : t) {
-							calculateSizeBytes(elem, objectRegionLengths);
-						}
-					}
-				} else {
-					if constexpr (IsBase) {
-						objectRegionLengths.get<T>() += sizeof(T);
-					}
-					nv::detail::forEachDataMember([&]<typename Field>(const Field& field) {
-						if constexpr (!concepts::Primitive<Field>) {
-							calculateSizeBytes<false>(field, objectRegionLengths);
-						}
-						return nv::detail::STAY_IN_LOOP;
-					}, t);
-				}
-			}
-
-			template<typename T>
-			static decltype(auto) makeBufferedObject(const T& t) {
-				if constexpr (std::same_as<T, DynamicPolygon>) {
-					return nv::detail::PolygonConverter::makeBufferedPolygon(t);
-				} else {
-					return (t);
-				}
-			}
-
-			static void writeObjectData(json& currJsonLayer, const Layer::Objects& objects, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
-				nv::detail::forEachDataMember([&]<typename Object>(const EditedObjectHive<Object>& hive) {
-					using BufferedObject = std::remove_cvref_t<decltype(makeBufferedObject(std::declval<Object>()))>;
-
-					auto typeName = nv::detail::getTypeName<BufferedObject>();
-
-					auto& objGroup = currJsonLayer[typeName] = json::array();
-					for (const auto& obj : hive) {
-						decltype(auto) bufferedObject = makeBufferedObject(obj.obj);
-
-						if constexpr (std::same_as<nv::BufferedNode, BufferedObject>) {
-							objectRegionLengths.get<std::byte*>() += obj.obj.getSizeBytes();
-							objectRegionLengths.get<BufferedNode>() += sizeof(BufferedNode);
-							objectRegionLengths.get<BufferedNode*>() += sizeof(BufferedNode*);
-						} else {
-							calculateSizeBytes(bufferedObject, objectRegionLengths);
-						}
-
-						objGroup.emplace_back() = obj;
-
-						if (!obj.name.empty()) {
-							using ObjectMapEntry = BufferedNode::ObjectMapEntry<BufferedObject>;
-							objectRegionLengths.get<char>() += obj.name.size();
-							objectRegionLengths.get<ObjectMapEntry>() += sizeof(ObjectMapEntry);
-						}
-					}
-
-					return nv::detail::STAY_IN_LOOP;
-				}, objects);
-			}
-
-			static void writeLayerData(json& currJsonLayer, const std::string& layerName, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
-				if (!layerName.empty()) {
-					currJsonLayer[NAME_KEY] = layerName;
-					objectRegionLengths.get<char>() += layerName.size();
-				}
-			}
-
-			std::string createSceneJson() {
-				json root;
-				root[NAME_KEY] = m_name;
-				auto& layersRoot = root[LAYERS_KEY] = json::array();
-
-				BufferedNode::TypeMap<size_t> objectRegionLengths{ 0 };
-				objectRegionLengths.get<BufferedNode::Layer>() = m_layers.size() * sizeof(BufferedNode::Layer);
-
-				for (const auto& [layerName, objects] : m_layers) {
-					auto& currJsonLayer = layersRoot.emplace_back();
-
-					if (!layerName.empty()) {
-						currJsonLayer[NAME_KEY] = layerName;
-						objectRegionLengths.get<char>() += layerName.size();
-					}
-
-					writeObjectData(currJsonLayer, objects, objectRegionLengths);
-				}
-
-				using BufferedNodeParser = nlohmann::adl_serializer<BufferedNode>;
-				objectRegionLengths.forEach([&]<typename Object>(size_t size) {
-					root[BufferedNodeParser::typeSizeKey<Object>()] = size;
-				});
-
-				auto offsets = calculateObjectRegionOffsets(objectRegionLengths);
-				offsets.forEach([&]<typename Object>(size_t offset) {
-					root[BufferedNodeParser::typeOffsetKey<Object>()] = offset;
-				});
-
-				root[BYTES_KEY] = offsets.getLast() + objectRegionLengths.getLast();
-				return root.dump(2);
-			}
-		public:
 			void saveAs() {
 				try {
 					saveNewFile({ { "node", "nv_node" } }, [this](const auto& path) {
 						m_lastSavedFilePath = path;
-						return createSceneJson();
+						return createNodeJson(m_layers, m_name);
 					});
 				} catch (json::exception e) {
 					std::println("{}", e.what());
@@ -771,7 +679,7 @@ namespace nv {
 				if (m_lastSavedFilePath.empty()) {
 					saveAs();
 				} else {
-					saveToExistingFile(m_lastSavedFilePath, createSceneJson());
+					saveToExistingFile(m_lastSavedFilePath, createNodeJson(m_layers, m_name));
 				}
 			}
 		};

@@ -1,4 +1,4 @@
-#include "Node.h"
+#include "BufferedNode.h"
 
 using ObjectLookups = nv::BufferedNode::ObjectLookups;
 using Layer = nv::BufferedNode::Layer;
@@ -60,14 +60,14 @@ void nv::BufferedNode::deepCopyChild(const nv::BufferedNode& src, const std::byt
 	copyLookupMaps(srcArena, destArena, src.m_objectLookups, dest.m_objectLookups);
 }
 
-nv::BufferedNode::BufferedNode(const BufferedNode& other) {
-	m_arena = std::make_unique<std::byte[]>(other.m_byteC);
-
+nv::BufferedNode::BufferedNode(const BufferedNode& other) 
+	: m_arena{ detail::AlignedBuffer<std::byte>{ other.m_byteC } } 
+{
 	std::byte* srcArena = nullptr;
-	if (std::holds_alternative<std::unique_ptr<std::byte[]>>(other.m_arena)) {
-		srcArena = std::get<std::unique_ptr<std::byte[]>>(other.m_arena).get();
+	if (std::holds_alternative<detail::AlignedBuffer<std::byte>>(other.m_arena)) {
+		srcArena = std::get<detail::AlignedBuffer<std::byte>>(other.m_arena).data;
 	} else {
 		srcArena = std::get<std::byte*>(other.m_arena);
 	}
-	deepCopyChild(other, srcArena, *this, std::get<std::unique_ptr<std::byte[]>>(m_arena).get());
+	deepCopyChild(other, srcArena, *this, std::get<detail::AlignedBuffer<std::byte>>(m_arena).data);
 }

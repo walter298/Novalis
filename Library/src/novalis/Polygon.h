@@ -36,10 +36,9 @@ namespace nv {
 			Point getPos(size_t i = 0) const noexcept {
 				return points[i];
 			}
-			Point setPos(Point p) noexcept {
-				auto oldFirstCoord = getPos();
-				points.front() = p;
-				return p;
+			Point setPos(Point newPos) noexcept {
+				move(newPos - getPos());
+				return newPos;
 			}
 			void move(Point dMove) noexcept {
 				for (auto& p : points) {

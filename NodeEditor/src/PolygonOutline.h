@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <generator>
 #include <optional>
 
 #include <opencv2/core/core.hpp>
@@ -32,7 +33,7 @@ namespace nv {
 
             cv::Mat gray, edges;
             cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-            cv::GaussianBlur(gray, gray, cv::Size(5, 5), 1.5);
+            cv::GaussianBlur(gray, gray, cv::Size{ 5, 5 }, 1.5);
             cv::Canny(gray, edges, 50, 150);
 
             std::vector<std::vector<cv::Point>> contours;
@@ -47,25 +48,29 @@ namespace nv {
 				auto firstPoint = polygon.front();
                 polygon.push_back(std::move(firstPoint));
 
-                std::vector<nv::Point> screenPoints;
-                screenPoints.append_range(std::views::transform(polygon, [&](const auto& cvPoint) {
-                    return nv::Point{
-                        static_cast<float>(cvPoint.x),
-                        static_cast<float>(cvPoint.y)
-                    };
-                }));
+                std::vector<nv::Point> screenPoints{
+                    std::from_range,
+                    std::views::transform(polygon, [&](const auto& cvPoint) {
+                        return nv::Point{
+                            static_cast<float>(cvPoint.x),
+                            static_cast<float>(cvPoint.y)
+                        }; 
+                    })
+                };
 				
-                std::vector<nv::Point> worldPoints;
-				worldPoints.append_range(std::views::transform(screenPoints, [&](const auto& point) {
-					return nv::Point{
-						point.x + worldOffsetX,
-						point.y + worldOffsetY
-					};
-				}));
+                std::vector worldPoints{
+                    std::from_range,
+                    std::views::transform(screenPoints, [&](const auto& point) {
+                        return nv::Point{
+                            point.x + worldOffsetX,
+                            point.y + worldOffsetY
+                        };
+                    })
+                };
 
-				polygons.emplace_back(std::move(screenPoints), std::move(worldPoints));
+                auto& poly = polygons.emplace_back(std::move(screenPoints), std::move(worldPoints));
+                poly.opacity = 255;
             }
-
             return polygons;
         }
     }

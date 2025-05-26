@@ -4,7 +4,8 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
-#include "Node.h"
+#include "BufferedNode.h"
+#include "DynamicNode.h"
 
 namespace nv {
 	class ResourceRegistry {

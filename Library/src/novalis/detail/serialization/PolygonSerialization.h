@@ -21,11 +21,18 @@ namespace nlohmann {
 		static inline nv::detail::MemoryRegion* currentPointRegion = nullptr;
 		
 		static nv::BufferedPolygon from_json(const json& j) {
+			static size_t pointsAllocated = 0;
+
 			assert(currentPointRegion);
 
 			auto makePointSpan = [&](const char* key) {
 				auto points = j[key].get<std::vector<nv::Point>>();
-				auto pointsPtr = currentPointRegion->allocate<nv::Point>(points.size());
+				pointsAllocated += points.size();
+
+				auto pointsPtr = currentPointRegion->allocate<nv::Point>(points.size(), true);
+				/*std::println("# of points allocated: {}", pointsAllocated);
+				std::println("# of point bytes allocated: {}", pointsAllocated * sizeof(nv::Point));*/
+
 				std::ranges::move(points, pointsPtr);
 				return std::span{ pointsPtr, points.size() };
 			};
@@ -39,7 +46,7 @@ namespace nlohmann {
 	template<>
 	struct adl_serializer<nv::DynamicPolygon> : public PolygonSerializerBase {
 		static nv::DynamicPolygon from_json(const json& j) {
-			std::println("Polygon Json: \n{}", j.dump(2));
+			//std::println("Polygon Json: \n{}", j.dump(2));
 			auto screenPoints = j[SCREEN_POINTS_KEY].get<std::vector<nv::Point>>();
 			auto worldPoints = j[WORLD_POINTS_KEY].get<std::vector<nv::Point>>();
 			return nv::DynamicPolygon{ std::move(screenPoints), std::move(worldPoints) };
