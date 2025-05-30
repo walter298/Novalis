@@ -29,7 +29,7 @@ namespace nlohmann {
 				auto points = j[key].get<std::vector<nv::Point>>();
 				pointsAllocated += points.size();
 
-				auto pointsPtr = currentPointRegion->allocate<nv::Point>(points.size(), true);
+				auto pointsPtr = currentPointRegion->allocate<nv::Point>(points.size());
 				/*std::println("# of points allocated: {}", pointsAllocated);
 				std::println("# of point bytes allocated: {}", pointsAllocated * sizeof(nv::Point));*/
 

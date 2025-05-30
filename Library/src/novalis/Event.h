@@ -1,10 +1,12 @@
 #pragma once
 
+#include <bitset>
 #include <functional>
 
 #include <boost/unordered/unordered_flat_map.hpp>
 
 #include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_keyboard.h>
 
 #include "detail/reflection/FunctionTraits.h"
 

@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.15)
 
 project(novalis VERSION 0.1 LANGUAGES CXX)
 
+option(BUILD_BENCHMARKS "Build benchmark executable(s)" OFF)
+
+if (BUILD_BENCHMARKS)
+    message("Building Benchmarks...")
+    add_subdirectory(benchmarks)
+endif()
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -10,7 +17,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/novalis/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/novalis/*.h")
 
-# find_package(Boost REQUIRED COMPONENTS type_erasure)
+find_package(nfd CONFIG REQUIRED)
 find_package(sdl3 CONFIG REQUIRED)
 
 set(SDLIMAGE_VENDORED ON)
@@ -31,7 +38,7 @@ target_include_directories(novalis
 )
 
 target_link_libraries(novalis
-    PUBLIC SDL3::SDL3 SDL3_image::SDL3_image
+    PUBLIC SDL3::SDL3 SDL3_image::SDL3_image nfd::nfd
 )
 
 include(CMakePackageConfigHelpers)

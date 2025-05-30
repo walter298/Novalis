@@ -9,4 +9,5 @@
 **/debug_run.bat
 **/vcpkg-properties.json
 **/.vs/
+**/build-benchmarks
 Redmane/

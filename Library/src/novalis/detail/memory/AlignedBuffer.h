@@ -24,7 +24,6 @@ namespace nv {
 		public:
 			T* data = nullptr;
 		
-		public:
 			AlignedBuffer() noexcept = default;
 			AlignedBuffer(size_t n) noexcept : data{ allocImpl(n) } {
 				assert(data);

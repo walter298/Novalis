@@ -88,7 +88,8 @@ namespace nlohmann {
 				);
 				createLookup(nodeJson[METADATA_KEY], charRegion, map, *objectPtr);
 			}
-			return childNodePtrRegion.interpretAsSpan<nv::BufferedNode*>();
+			//return childNodePtrRegion.interpretAsSpan<nv::BufferedNode*>();
+			return std::span<nv::BufferedNode*>{};
 		}
 
 		template<typename Object>
@@ -96,33 +97,17 @@ namespace nlohmann {
 			nv::detail::MemoryRegion& charRegion, nv::detail::MemoryRegion& objectRegion,
 			nv::BufferedNode::Map<Object>& map)
 		{
-			static size_t pointBytesAllocated = 0;
-			static size_t polygonC = 0;
-
-			static size_t unaccountedForPolygons = 0;
-
-			size_t i = 0;
-
-			std::println("Actual # of polygons: {}", objectGroupJson.size());
-
-			for (const auto& json : objectGroupJson) {
+			auto objectGroupPtr = objectRegion.allocate<Object>(objectGroupJson.size());
+			std::span<Object> objectSpan{ objectGroupPtr, objectGroupJson.size() };
+			
+			for (const auto& [idx, json] : std::views::enumerate(objectGroupJson)) {
 				auto& objectJson = json[OBJECT_KEY];
 				auto& metadataJson = json[METADATA_KEY];
-
-				auto pointRegion = adl_serializer<nv::BufferedPolygon>::currentPointRegion;
-				if (pointRegion->getSpace() == 0 && std::same_as<Object, nv::BufferedPolygon>) {
-					unaccountedForPolygons += (objectGroupJson.size() - i);
-					return objectRegion.interpretAsSpan<Object>();
-				}
-
-				auto object = objectJson.get<Object>();
-
-				auto objectPtr = objectRegion.emplace<Object>(std::move(object));
-				createLookup(metadataJson, charRegion, map, objectPtr);
-
-				i++;
+				objectSpan[idx] = objectJson.get<Object>();
+				createLookup(metadataJson, charRegion, map, &objectSpan[idx]);
 			}
-			return objectRegion.interpretAsSpan<Object>();
+
+			return objectSpan;
 		}
 
 		static nv::BufferedNode from_json(const json& root) {
@@ -134,72 +119,54 @@ namespace nlohmann {
 			auto regionMap = makeRegionMap(std::get<nv::detail::AlignedBuffer<std::byte>>(ret.m_arena).data, root);
 			ret.m_objectLookups = makeObjectMap(regionMap);
 			
+			//allocate layers
+			auto& layersJson = root[LAYERS_KEY];
 			auto& layerRegion = regionMap.get<nv::BufferedNode::Layer>();
-			ret.m_objectLayers = layerRegion.interpretAsSpan<nv::BufferedNode::Layer>();
+			ret.m_objectLayers = { layerRegion.allocate<nv::BufferedNode::Layer>(
+				layersJson.size()
+			), layersJson.size() };
 
-			auto& jsonLayers = root[LAYERS_KEY];
-			
 			//make polygon serializer allocate memory from our specified point region
 			auto pointRegion = &regionMap.get<nv::Point>();
 			adl_serializer<nv::BufferedPolygon>::currentPointRegion = pointRegion;
 
-			std::println("Point space before: {}", pointRegion->getSpace());
+			size_t objectCount = 0;
 
-			std::println("Json Layers Size: {}", jsonLayers.size());
-
-			for (auto&& [layerIdx, jsonLayer] : std::views::enumerate(jsonLayers)) {
-				nv::BufferedNode::Layer nodeLayer;
-
+			for (auto&& [objectLayer, jsonLayer] : std::views::zip(ret.m_objectLayers, layersJson)) {
 				nv::detail::forEachDataMember([&]<typename Object>(std::span<Object>& objectSpan) {
+					objectSpan = std::span<Object>{}; //default initialize object span
+
 					auto typeName = nv::detail::getTypeName<Object>();
-					auto objectGroupJson = jsonLayer.find(typeName);
-					if (objectGroupJson == jsonLayer.end()) {
+					auto objectGroupJsonIt = jsonLayer.find(typeName);
+					if (objectGroupJsonIt == jsonLayer.end()) {
 						return nv::detail::STAY_IN_LOOP;
 					}
 
+					auto& objectGroupJson = *objectGroupJsonIt;
+
 					using ObjectMap = nv::BufferedNode::Map<std::remove_pointer_t<Object>>;
 
-					if constexpr (std::same_as<Object, nv::BufferedPolygon>) {
-						std::println("{} # of polygons", objectGroupJson->size());
-					}
 					auto& objectRegion     = regionMap.get<Object>();
-					auto objectLayerRegion = objectRegion.makeSubregion(0, objectGroupJson->size() * sizeof(Object));
+
+					auto objectLayerRegion = objectRegion.makeSubregion(0, objectGroupJson.size() * sizeof(Object));
 					auto& objectMap        = std::get<ObjectMap>(ret.m_objectLookups);
 					auto& charRegion       = regionMap.get<char>();
 
 					if constexpr (!std::same_as<Object, nv::BufferedNode*>) {
 						objectSpan = parseObjectGroup<Object>(
-							*objectGroupJson, charRegion, objectRegion, objectMap
+							objectGroupJson, charRegion, objectRegion, objectMap
 						);
+						/*std::println("Buffered JSON Size: {}", objectGroupJson.size());
+						std::println("Buffered Span Size: {}", objectSpan.size());*/
+						objectCount += objectSpan.size();
 					}
 
-					//for (const auto& objectJson : *objectGroupJson) {
-					//	if constexpr (std::same_as<Object, nv::BufferedNode*>) {
-					//		/*auto& childNodeRegion = regionMap.get<nv::BufferedNode*>();
-					//		auto& childNodeArenaRegion = regionMap.get<std::byte*>();
-					//		objectSpan = parseNodeGroup(
-					//			objGroupJson, charRegion, objectRegion, childNodeRegion,
-					//			childNodeArenaRegion, objectMap
-					//		);*/
-					//	} else {
-					//		/*objectSpan = parseObjectGroup<Object>(
-					//			objGroupJson, charRegion, objectRegion, objectMap
-					//		);*/
-					//		if constexpr (std::same_as<Object, nv::BufferedPolygon>) {
-					//			objectSpan = parseObjectGroup<Object>(
-					//				*objectGroupJson, charRegion, objectRegion, objectMap
-					//			);
-					//		}
-					//	}
-					//}
-
 					return nv::detail::STAY_IN_LOOP;
-				}, nodeLayer);
-				ret.m_objectLayers.storage[layerIdx] = std::move(nodeLayer);
+				}, objectLayer);
 			}
 
-			std::println("Point space after: {}", pointRegion->getSpace());
-			
+			std::println("Buffered Object Count: {}", objectCount);
+
 			return ret;
 		}
 	};

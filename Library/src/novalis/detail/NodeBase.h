@@ -4,6 +4,7 @@
 
 #include "memory/MemoryRegion.h"
 #include "reflection/ClassIteration.h"
+#include "reflection/ClassMemberFilter.h"
 #include "reflection/TypeInfo.h"
 #include "reflection/TypeMap.h"
 #include "../Polygon.h"
@@ -38,12 +39,12 @@ namespace nv {
 				for (auto& layer : self.storage) {
 					forEachDataMember([layer, &callable](auto& objHive) {
 						for (auto& obj : objHive) {
-							if (callable(layer, obj) == BREAK_FROM_LOOP) {
+							if (callable(layer, unptrwrap(obj)) == BREAK_FROM_LOOP) {
 								return BREAK_FROM_LOOP;
 							}
 						}
 						return STAY_IN_LOOP;
-						}, layer);
+					}, layer);
 				}
 			}
 
@@ -51,12 +52,32 @@ namespace nv {
 			void forEach(this auto&& self, Callable callable, size_t layer) {
 				forEachDataMember([layer, &callable](auto& objHive) {
 					for (auto& obj : objHive) {
-						if (callable(layer, obj) == BREAK_FROM_LOOP) {
+						if (callable(layer, unptrwrap(obj)) == BREAK_FROM_LOOP) {
 							return BREAK_FROM_LOOP;
 						}
 					}
 					return STAY_IN_LOOP;
-					}, self.storage[layer]);
+				}, self.storage[layer]);
+			}
+
+			template<typename Callable>
+			void forEachExcept(this auto&& self, Callable callable, size_t excludedLayer) {
+				auto exec = [](auto& layer) {
+					forEachDataMember([layer, &callable](auto& objHive) {
+						for (auto& obj : objHive) {
+							if (callable(layer, unptrwrap(obj)) == BREAK_FROM_LOOP) {
+								return BREAK_FROM_LOOP;
+							}
+						}
+						return STAY_IN_LOOP;
+					}, layer);
+				};
+				for (size_t i = 0; i < excludedLayer; i++) {
+					exec(self.storage[i]);
+				}
+				for (size_t i = excludedLayer + 1; i < self.storage.size(); i++) {
+					exec(self.storage[i]);
+				}
 			}
 
 			template<typename Callable>
@@ -66,7 +87,7 @@ namespace nv {
 						if (callable(layerIdx, objHive) == BREAK_FROM_LOOP) {
 							return BREAK_FROM_LOOP;
 						}
-						}, objects);
+					}, objects);
 				}
 			}
 
@@ -74,7 +95,7 @@ namespace nv {
 			void forEachHive(this auto&& self, Callable callable, size_t layerIdx) {
 				forEachDataMember([layerIdx, &callable](auto& objHive) {
 					return callable(layerIdx, objHive) == BREAK_FROM_LOOP;
-					}, self.storage[layerIdx]);
+				}, self.storage[layerIdx]);
 			}
 
 			template<typename... Us>
@@ -101,6 +122,9 @@ namespace nv {
 			typename NodeTraits::LayerMap m_layerMap;
 			typename NodeTraits::ObjectLookups m_objectLookups;
 
+			template<typename Object>
+			using ObjectGroup = typename NodeTraits::template ObjectGroup<Object>;
+
 			size_t m_currLayer = 0;
 			float m_screenScale = 1.0f;
 			float m_worldScale = 1.0f;
@@ -108,9 +132,9 @@ namespace nv {
 		public:
 			template<typename T, typename StringComp>
 			decltype(auto) find(this auto&& self, const StringComp& name) noexcept {
-				return std::get<
+				return unptrwrap(std::get<
 					typename NodeTraits::template ObjectLookupMap<typename NodeTraits::String, T>
-				>(self.m_objectLookups).at(name);
+				>(self.m_objectLookups).at(name));
 			}
 
 			void render(SDL_Renderer* renderer) const noexcept {
@@ -152,6 +176,10 @@ namespace nv {
 			void forEach(Func f) {
 				m_objectLayers.forEach(f);
 			}
+			template<typename Func>
+			void forEachExcept(Func f, size_t excludedLayer) {
+				m_objectLayers.forEachExcept(f, excludedLayer);
+			}
 
 			inline Point getScreenPos() const noexcept {
 				return { 0.0f, 0.0f };
@@ -165,7 +193,13 @@ namespace nv {
 				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
 					unptrwrap(obj).setOpacity(opacity);
 					return STAY_IN_LOOP;
-					});
+				});
+			}
+		public:
+			template<typename Object>
+			decltype(auto) getObjects(this auto&& self, size_t layer) {
+				
+				return std::get<ObjectGroup<Object>>(self.m_objectLayers.storage[layer]);
 			}
 
 			inline uint8_t getOpacity() const {
@@ -180,7 +214,7 @@ namespace nv {
 						return BREAK_FROM_LOOP;
 					}
 					return STAY_IN_LOOP;
-					});
+				});
 				return containsCoord;
 			}
 			bool containsWorldCoord(Point p) const noexcept {
@@ -191,7 +225,7 @@ namespace nv {
 						return BREAK_FROM_LOOP;
 					}
 					return STAY_IN_LOOP;
-					});
+				});
 				return containsCoord;
 			}
 
@@ -207,43 +241,13 @@ namespace nv {
 				m_objectLayers.forEach([&](auto layer, auto& obj) {
 					unptrwrap(obj).worldScale(scale);
 					return STAY_IN_LOOP;
-					});
+				});
 			}
 			float getScreenScale() const noexcept {
 				return m_screenScale;
 			}
 			float getWorldScale() const noexcept {
 				return m_worldScale;
-			}
-		};
-
-		struct BufferedString {
-			static constexpr const char* LEN_KEY = "Offset";
-
-			char* buff = nullptr;
-			size_t len = 0;
-
-			inline bool operator==(const BufferedString& other) const noexcept {
-				if (len != other.len) {
-					return false;
-				}
-				return strncmp(buff, other.buff, len) == 0;
-			}
-
-			template<concepts::String String>
-			inline bool operator==(const String& other) const noexcept {
-				if (len != std::ranges::size(other)) {
-					return false;
-				}
-				return strncmp(buff, other.data(), len) == 0;
-			}
-
-			template<size_t N>
-			inline bool operator==(const char(&other)[N]) const noexcept {
-				if (len != N) {
-					return false;
-				}
-				return strncmp(buff, other, len) == 0;
 			}
 		};
 	}

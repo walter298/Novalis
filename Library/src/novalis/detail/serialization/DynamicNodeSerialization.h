@@ -12,6 +12,8 @@ namespace nlohmann {
 
 			nv::DynamicNode ret;
 
+			size_t objectCount = 0;
+
 			for (const auto& layerJson : nodeJson[LAYERS_KEY]) {
 				auto& currLayer = ret.m_objectLayers.storage.emplace_back();
 
@@ -34,13 +36,23 @@ namespace nlohmann {
 					}
 
 					auto& objectGroupJson = *objectGroupJsonIt;
+
+					std::println("Dynamic JSON Size: {}", objectGroupJson.size());
+
 					for (const auto& objectJson : objectGroupJson) {
 						if constexpr (!std::same_as<Object, nv::BufferedNode*> && !std::same_as<Object, nv::BufferedNode>) {
 							objectGroup.insert(objectJson[OBJECT_KEY].get<Object>());
 						}
 					}
+
+					std::println("Dynamic Object Group Size: {}", objectGroup.size());
+
+					objectCount += objectGroup.size();
+
 					return nv::detail::STAY_IN_LOOP;
 				}, currLayer);
+
+				std::println("Dynamic Object Count: {}", objectCount);
 			}
 
 			return ret;
