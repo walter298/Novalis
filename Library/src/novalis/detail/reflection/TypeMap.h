@@ -37,6 +37,7 @@ namespace nv {
 
 			template<typename Key>
 			constexpr decltype(auto) get(this auto&& self) noexcept {
+				static_assert(std::disjunction_v<std::is_same<Key, Keys>...>);
 				static constexpr auto typeIdx = getTypeIndex<Key, 0, Keys...>();
 				return self.m_values[typeIdx];
 			}

@@ -14,7 +14,7 @@ namespace nv {
 			using Polygon = DynamicPolygon;
 
 			template<typename T>
-			using ObjectGroup = plf::hive<T>;
+			using ObjectStorage = plf::hive<T>;
 
 			using Layer = std::tuple<
 				plf::hive<Texture>, plf::hive<DynamicPolygon>, plf::hive<Node>
@@ -30,6 +30,14 @@ namespace nv {
 				ObjectLookupMap<std::string, BufferedPolygon>,
 				ObjectLookupMap<std::string, BufferedNode>
 			>;
+
+			using ObjectGroup = std::tuple<
+				std::vector<BufferedNode*>, 
+				std::vector<DynamicPolygon*>, 
+				std::vector<Texture*>
+			>;
+
+			using ObjectGroupMap = boost::unordered_flat_map<std::string, ObjectGroup>;
 		};
 
 		static_assert(NodeTraits<DynamicNodeTraits>);

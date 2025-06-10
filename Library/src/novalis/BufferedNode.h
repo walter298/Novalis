@@ -58,14 +58,15 @@ namespace std {
 }
 
 namespace nv {
-	namespace detail {
+	class BufferedNode; //IMPORTANT: forward declare so that traits can see it
 
+	namespace detail {
 		template<std::equality_comparable Key, typename T>
 		class BufferedObjectMap {
 		public:
 			struct Entry {
 				Key key;
-				T* object;
+				T object;
 				bool isTombstone = true;
 			};
 		private:
@@ -74,9 +75,6 @@ namespace nv {
 			static void deepCopyMapEntry(const std::byte* srcArena, std::byte* destArena,
 				const Entry& srcEntry, Entry& destEntry)
 			{
-				if (srcEntry.isTombstone) {
-					return;
-				}
 				matchOffset(srcArena, srcEntry.key.buff, destArena, destEntry.key.buff);
 				matchOffset(srcArena, srcEntry.object, destArena, destEntry.object);
 			}
@@ -85,21 +83,18 @@ namespace nv {
 				const BufferedObjectMap& srcMap, BufferedObjectMap& destMap)
 			{
 				for (auto&& [srcEntry, destEntry] : std::views::zip(srcMap.m_arr, destMap.m_arr)) {
-					deepCopyMapEntry(srcArena, destArena, srcEntry, destEntry);
+					//deepCopyMapEntry(srcArena, destArena, srcEntry, destEntry);
+					matchOffset(srcArena, srcEntry.key.buff, destArena, destEntry.key.buff);
+					matchOffset(srcArena, srcEntry.object, destArena, destEntry.object);
 				}
 			}
 
 			static constexpr size_t ENTRY_SIZE = sizeof(Entry);
 
-			BufferedObjectMap(MemoryRegion r) : m_arr{ 
-				r.allocate<Entry>((r.getTotalCapacity() / sizeof(Entry))),
-				r.getTotalCapacity() / sizeof(Entry) 
-			}
-			{
-				std::ranges::fill(m_arr, Entry{});
-			}
-
 			BufferedObjectMap() = default;
+			BufferedObjectMap(std::span<Entry> entries) : m_arr{ entries } 
+			{
+			}
 
 			template<typename U>
 			decltype(auto) at(this auto&& self, const U& otherKey) noexcept {
@@ -111,7 +106,7 @@ namespace nv {
 						continue;
 					}
 					if (key.operator==(otherKey)) { //.operator== inhibits argument dependent lookup
-						return std::forward_like<decltype(self)>(*objPtr);
+						return std::forward_like<decltype(self)>(unptrwrap(objPtr));
 					}
 					hashIdx = (hashIdx + 1) % self.m_arr.size();
 				}
@@ -123,16 +118,18 @@ namespace nv {
 				}
 				std::abort();
 				std::unreachable();
-				return std::forward_like<decltype(self)>(*self.m_arr[0].object); //only here so that return type can be deduced
+				return std::forward_like<decltype(self)>(unptrwrap(self.m_arr[0].object)); //only here so that return type can be deduced
 			}
 
-			void insert(const Key& newKey, T* newObjectPtr) noexcept {
+			void insert(const Key& newKey, T object) noexcept {
+				assert(m_arr.data());
+
 				size_t hashIdx = std::hash<Key>{}(newKey) % m_arr.size();
 				for (size_t i = 0; i < m_arr.size(); i++) {
 					auto& [key, objPtr, isTombstone] = m_arr[hashIdx];
 					if (isTombstone) {
 						key = newKey;
-						objPtr = newObjectPtr;
+						objPtr = std::move(object);
 						isTombstone = false;
 						return;
 					}
@@ -153,8 +150,6 @@ namespace nv {
 		};
 	}
 
-	class BufferedNode; //IMPORTANT: forward declare in nv namespace
-
 	namespace detail {
 		struct BufferedNodeTraits {
 			using String = BufferedString;
@@ -162,50 +157,31 @@ namespace nv {
 			using Node    = BufferedNode*;
 			using Polygon = BufferedPolygon;
 
-			template<typename T>
-			using ObjectGroup = std::span<T>;
-
 			template<typename Key, typename Value>
 			using ObjectLookupMap = BufferedObjectMap<Key, Value>;
 
+			template<typename T>
+			using ObjectStorage = std::span<T>;
+
+			using ObjectGroup = std::tuple<
+				std::span<Texture*>, 
+				std::span<BufferedPolygon*>, 
+				std::span<BufferedNode*>
+			>;
+			using ObjectGroupMap = ObjectLookupMap<BufferedString, ObjectGroup>;
+
 			using ObjectLookups = std::tuple<
-				ObjectLookupMap<BufferedString, Texture>,
-				ObjectLookupMap<BufferedString, BufferedPolygon>,
-				ObjectLookupMap<BufferedString, BufferedNode>
+				ObjectLookupMap<BufferedString, Texture*>,
+				ObjectLookupMap<BufferedString, BufferedPolygon*>,
+				ObjectLookupMap<BufferedString, BufferedNode*>
 			>;
 
 			using Layer = std::tuple<
 				std::span<Texture>, std::span<BufferedPolygon>, std::span<Node>
 			>;
-			
 			using Layers   = nv::detail::ObjectLayers<std::span<Layer>>;
 			using LayerMap = ObjectLookupMap<BufferedString, Layer*>;
 		};
-
-		/*struct DynamicNodeTraits {
-			using String = std::string;
-
-			using Node = BufferedNode*;
-			using Polygon = DynamicPolygon;
-
-			template<typename T>
-			using ObjectGroup = plf::hive<T>;
-
-			using Layer = std::tuple<
-				plf::hive<Texture>, plf::hive<BufferedPolygon>, plf::hive<Node>
-			>;
-			using Layers = nv::detail::ObjectLayers<std::vector<Layer>>;
-			using LayerMap = boost::unordered_flat_map<std::string, Layer*>;
-
-			template<typename Key, typename Value>
-			using ObjectLookupMap = boost::unordered_flat_map<Key, Value*>;
-
-			using ObjectLookups = std::tuple<
-				ObjectLookupMap<std::string, Texture>,
-				ObjectLookupMap<std::string, BufferedPolygon>,
-				ObjectLookupMap<std::string, BufferedNode>
-			>;
-		};*/
 
 		static_assert(NodeTraits<BufferedNodeTraits>);
 	}
@@ -263,14 +239,18 @@ namespace nv {
 			char,
 			Point,
 			Texture,
+			Texture*,
 			BufferedPolygon,
+			BufferedPolygon*,
 			BufferedNode,
-			BufferedNode*, //child node pointers (to avoid illegal circular dependencies)
+			BufferedNode*,
 			std::byte*, //child node arena region
 			detail::BufferedNodeTraits::Layer,
-			ObjectMapEntry<nv::Texture>,
-			ObjectMapEntry<BufferedPolygon>,
-			ObjectMapEntry<BufferedNode>
+			ObjectMapEntry<nv::Texture*>,
+			ObjectMapEntry<BufferedPolygon*>,
+			ObjectMapEntry<BufferedNode*>,
+			ObjectGroupMap::Entry,
+			LayerMap::Entry
 		>;
 		using RegionMap = TypeMap<detail::MemoryRegion>;
 		
@@ -283,68 +263,4 @@ namespace nv {
 
 		friend struct nlohmann::adl_serializer<BufferedNode>;
 	};
-
-	namespace editor {
-		class NodeEditor;
-	}
-
-	//using DynamicNodeMap = boost::unordered_flat_map<std::string, DynamicNode>;
-
-
-	/*class Node {
-	private:
-		boost::unordered_flat_map<std::string, SDL_FPoint> m_specialPoints;
-		ObjectLayers<Texture, Text, Rect, TextureRef, TextRef, RectRef,
-					 type_erased::RenderableObject, type_erased::MoveableObject, NodePtr, Node*
-		> m_objectLayers;
-
-		template<typename... Ts>
-		using NameMap = std::tuple<boost::unordered_flat_map<std::string, Ts*>...>;
-
-		NameMap<Texture, Text, Rect, Node> m_nameMap;
-	public:
-		Node(std::string_view path, Instance& instance);
-
-		void render(SDL_Renderer* renderer) const noexcept;
-
-		template<typename Object>
-		decltype(auto) addObject(Object&& object, int layer) {
-			decltype(auto) objects = std::get<plf::hive<std::remove_cvref_t<Object>>>(m_objectLayers.layers[layer]);
-			return *objects.insert(std::forward<Object>(object));
-		}
-
-		template<typename Object>
-		decltype(auto) addCustomObject(Object&& object, int layer) {
-			if constexpr (concepts::MoveableObject<std::remove_cvref_t<Object>>) {
-				auto& objs = std::get<plf::hive<type_erased::MoveableObject>>(m_objectLayers.layers[layer]);
-				return *objs.insert(std::forward<Object>(object));
-			} else {
-				auto& objs = std::get<plf::hive<type_erased::RenderableObject>>(m_objectLayers.layers[layer]);
-				return *objs.insert(std::forward<Object>(object));
-			}
-		}
-
-		template<typename Object>
-		decltype(auto) find(this auto&& self, std::string_view name) requires(concepts::RenderableObject<Object>) {
-			return std::get<boost::unordered_flat_map<std::string, Object>>(self.nameMap).at(name).get();
-		}
-
-		inline void move(SDL_FPoint change) noexcept {}
-		inline void screenMove(SDL_FPoint change) noexcept {}
-		inline void worldMove(SDL_FPoint change) noexcept {}
-
-		inline void setScreenPos(SDL_FPoint size) noexcept {}
-		inline void setWorldPos(SDL_FPoint size) noexcept {}
-		inline SDL_FPoint getScreenPos() const noexcept { return {}; }
-		inline SDL_FPoint getWorldPos() const noexcept { return {}; }
-
-		void setScreenSize(SDL_FPoint size) noexcept {};
-		void setWorldSize(SDL_FPoint size) noexcept {};
-		SDL_FPoint getScreenSize() const noexcept { return {}; };
-		SDL_FPoint getWorldSize() const noexcept { return {}; };
-
-		void setOpacity(uint8_t opacity) {}
-
-		bool containsCoord(SDL_FPoint p) const noexcept { return false; }
-	};*/
 }

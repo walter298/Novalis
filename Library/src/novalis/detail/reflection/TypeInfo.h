@@ -57,5 +57,10 @@ namespace nv {
 				return name.substr(start, length);
 			}
 		}
+
+		// template<typename T>
+		// struct Type {
+		// 	using 
+		// }
 	}
 }

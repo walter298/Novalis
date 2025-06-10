@@ -1,4 +1,7 @@
+#pragma once
+
 #include "EditedObjectData.h"
+#include "NodeSerialization.h"
 
 namespace nv {
 	namespace editor {
@@ -116,7 +119,7 @@ namespace nv {
 					return nv::detail::STAY_IN_LOOP;
 				}, actedOnObjects);
 			}
-			void rotate(ID<EditedObjectGroup> id, float angle) {
+			void rotate(ID<EditedObjectGroup> id, float angle) { //todo: support rotation
 				//forEachImpl(id, &EditedObjectGroup::rotationSynced, [angle](auto& object) {
 				//	//object.obj.rotate(angle);
 				//});
@@ -145,6 +148,10 @@ namespace nv {
 			}
 			decltype(auto) getGroup(this auto&& self, ID<EditedObjectGroup> id) {
 				return self.m_objectGroups.at(id);
+			}
+
+			size_t getObjectGroupByteCount() const {
+				size_t bytes = 0;
 			}
 		};
 	}

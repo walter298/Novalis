@@ -18,6 +18,7 @@ namespace nv {
 			std::string name;
 			uint8_t opacity = 255;
 			float scale = 1.0f;
+			ID<void> id;
 			boost::unordered_flat_set<ID<EditedObjectGroup>> groupIDs;
 
 			template<typename... Args>
@@ -87,12 +88,17 @@ namespace nv {
 			}
 		};
 
-		template<typename Object>
+		/*template<typename Object>
 		void to_json(json& j, const EditedObjectData<Object>& obj) {
 			auto& metadataJson = j[METADATA_KEY];
 			auto& objectJson   = j[OBJECT_KEY];
 
 			metadataJson[NAME_KEY] = obj.name;
+			auto& objectGroupsJson = metadataJson[OBJECT_GROUP_KEY] = json::array();
+			for (const auto& id : obj.groupIDs) {
+				const auto& objectGroup = objectGroups.getGroup(id);
+				objectGroupsJson.push_back(objectGroup.name);
+			}
 
 			if constexpr (std::same_as<Object, BufferedNode>) {
 				metadataJson[PATH_KEY] = obj.filePath;
@@ -106,7 +112,7 @@ namespace nv {
 			} else {
 				objectJson = obj.obj;
 			}
-		}
+		}*/
 
 		template<typename Object>
 		using EditedObjectHive = plf::hive<EditedObjectData<Object>>;

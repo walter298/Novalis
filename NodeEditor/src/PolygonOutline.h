@@ -31,18 +31,18 @@ namespace nv {
         inline std::vector<DynamicPolygon> getPolygonOutlines(SDL_Renderer* renderer, const Texture& tex, float worldOffsetX, float worldOffsetY) noexcept {
             auto image = pixelDataToMat(tex.calcPixelData(renderer));
 
-            cv::Mat gray, edges;
+            cv::Mat gray, edges, morph;
             cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
             cv::GaussianBlur(gray, gray, cv::Size{ 5, 5 }, 1.5);
             cv::Canny(gray, edges, 50, 150);
-
+            
             std::vector<std::vector<cv::Point>> contours;
 			cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
 			std::vector<DynamicPolygon> polygons;
             for (auto& contour : contours) {
                 std::vector<cv::Point> polygon;
-                cv::approxPolyDP(contour, polygon, 2.0, true);
+                cv::approxPolyDP(contour, polygon, 20.0, true);
 
                 //close the polygon
 				auto firstPoint = polygon.front();
@@ -68,8 +68,11 @@ namespace nv {
                     })
                 };
 
-                auto& poly = polygons.emplace_back(std::move(screenPoints), std::move(worldPoints));
-                poly.opacity = 255;
+                DynamicPolygon poly{ std::move(screenPoints), std::move(worldPoints) };
+                if (poly.isValid()) {
+                    poly.opacity = 255;
+                    polygons.push_back(std::move(poly));
+                }
             }
             return polygons;
         }

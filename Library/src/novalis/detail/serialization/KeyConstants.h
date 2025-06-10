@@ -17,6 +17,7 @@ namespace nv {
 			inline constexpr const char* IMAGE_PATH_KEY = "Image_Path";
 			inline constexpr const char* RENDER_DATA_KEY = "Render_Data";
 			inline constexpr const char* METADATA_KEY = "Metadata";
+			inline constexpr const char* OBJECT_GROUP_KEY = "Object_Group";
 		}
 	}
 }

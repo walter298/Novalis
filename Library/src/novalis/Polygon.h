@@ -143,10 +143,7 @@ namespace nv {
 			for (const auto& [p1, p2] : pointPairs) {
 				SDL_RenderLine(renderer, p1.x, p1.y, p2.x, p2.y);
 			}
-			auto first = points.front();
-			auto last = points.back();
-			SDL_RenderLine(renderer, first.x, first.y, last.x, last.y);
-
+			
 			SDL_SetRenderDrawColor(renderer, originalDrawColor.r, originalDrawColor.g, originalDrawColor.b, originalDrawColor.a);
 			SDL_SetRenderDrawBlendMode(renderer, originalBlendMode);
 		}
@@ -175,6 +172,10 @@ namespace nv {
 			PolygonNode(Polygon<PointStorage>&& ren, Polygon<PointStorage>&& world)
 				: m_ren{ std::move(ren) }, m_world{ std::move(world) }
 			{
+			}
+
+			bool isValid() const noexcept {
+				return boost::geometry::is_valid(m_ren);
 			}
 
 			uint8_t opacity = 0;

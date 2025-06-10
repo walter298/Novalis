@@ -1,6 +1,10 @@
 #pragma once
 
+#include <novalis/detail/serialization/KeyConstants.h>
+
+#include "EditedObjectGroup.h"
 #include "Layer.h"
+#include "ObjectByteSizeCalculator.h"
 
 namespace nv {
 	namespace editor {
@@ -13,37 +17,11 @@ namespace nv {
 			auto currOffset = alignof(std::max_align_t);
 			BufferedNode::TypeMap<size_t> offsets{ 0 };
 			objectRegionLengths.forEach([&]<typename Object>(size_t len) {
-				roundUpToNearestAlignment<Object>(currOffset);
-				offsets.get<Object>() = currOffset;
-				currOffset += len;
+				// roundUpToNearestAlignment<Object>(currOffset);
+				// offsets.get<Object>() = currOffset;
+				// currOffset += len;
 			});
 			return offsets;
-		}
-
-		template<bool IsBase = true, typename T>
-		static constexpr void calculateSizeBytes(const T& t, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
-			if constexpr (IsBase) {
-				roundUpToNearestAlignment<T>(objectRegionLengths.get<T>()); //take care of padding
-			}
-
-			if constexpr (concepts::Primitive<T>) {
-				objectRegionLengths.get<T>() += sizeof(T);
-			} else if constexpr (std::ranges::viewable_range<T>) {
-				using ValueType = typename T::value_type;
-				for (const auto& elem : t) {
-					calculateSizeBytes(elem, objectRegionLengths);
-				}
-			} else {
-				if constexpr (IsBase) {
-					objectRegionLengths.get<T>() += sizeof(T);
-				}
-				nv::detail::forEachDataMember([&]<typename Field>(const Field& field) {
-					if constexpr (!concepts::Primitive<Field>) {
-						calculateSizeBytes<false>(field, objectRegionLengths);
-					}
-					return nv::detail::STAY_IN_LOOP;
-				}, t);
-			}
 		}
 
 		template<typename T>
@@ -76,7 +54,7 @@ namespace nv {
 					objGroup.emplace_back() = obj;
 
 					if (!obj.name.empty()) {
-						using ObjectMapEntry = BufferedNode::ObjectMapEntry<BufferedObject>;
+						using ObjectMapEntry = BufferedNode::ObjectMapEntry<std::remove_pointer_t<BufferedObject>*>;
 						objectRegionLengths.get<char>() += obj.name.size();
 						objectRegionLengths.get<ObjectMapEntry>() += sizeof(ObjectMapEntry);
 					}
@@ -87,6 +65,8 @@ namespace nv {
 		}
 
 		std::string createNodeJson(const std::vector<Layer>& layers, std::string_view nodeName) {
+			using namespace nv::detail::json_constants;
+
 			json root;
 			root[NAME_KEY] = nodeName;
 			auto& layersRoot = root[LAYERS_KEY] = json::array();
@@ -110,7 +90,7 @@ namespace nv {
 
 			auto offsets = calculateObjectRegionOffsets(objectRegionLengths);
 			offsets.forEach([&]<typename Object>(size_t offset) {
-				root[BufferedNodeParser::typeOffsetKey<Object>()] = offset;
+				//root[BufferedNodeParser::typeOffsetKey<Object>()] = offset;
 			});
 
 			root[BYTES_KEY] = offsets.getLast() + objectRegionLengths.getLast();

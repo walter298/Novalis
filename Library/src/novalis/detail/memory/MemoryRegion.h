@@ -76,6 +76,15 @@ namespace nv {
 				assert(m_capacity - offset >= len);
 				return { static_cast<std::byte*>(m_begin) + offset, len };
 			}
+
+			template<typename T>
+			std::span<T> interpretAsSpan() {
+				assert(reinterpret_cast<uintptr_t>(m_begin) % alignof(T) == 0);
+				assert(m_capacity % sizeof(T) == 0);
+				return std::span{
+					reinterpret_cast<T*>(m_begin), m_capacity / sizeof(T)
+				};
+			}
 		};
 	}
 }

@@ -49,7 +49,6 @@ void nv::BufferedNode::copyLayers(const std::byte* srcArena, std::byte* destAren
 
 	for (auto [srcLayer, destLayer] : std::views::zip(srcLayers, destLayers)) {
 		deepCopyLayer(srcArena, destArena, srcLayer, destLayer);
-		int k = 0;
 	}
 }
 

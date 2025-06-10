@@ -29,10 +29,6 @@ struct AppData {
 };
 
 void nv::editor::runApp() {
-	std::thread asyncWorkThread{ [] {
-		startAsyncWork();
-	}};
-
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	
@@ -70,7 +66,7 @@ void nv::editor::runApp() {
 		ImGui::NewFrame();
 
 		app.taskBar.show(app.instance.renderer, app.tabs);
-		app.toolDisplay.show(app.tabs.makingPolygon());
+		app.toolDisplay.show(app.tabs.currentTab().has_value() && app.tabs.currentTab()->isBusy());
 		app.tabs.show(app.instance.renderer, app.toolDisplay);
 
 		const auto now = std::chrono::system_clock::now();
@@ -87,7 +83,4 @@ void nv::editor::runApp() {
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
-
-	stopAsyncWork();
-	asyncWorkThread.join();
 }

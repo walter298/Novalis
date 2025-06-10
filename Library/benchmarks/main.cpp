@@ -27,6 +27,6 @@ int main() {
 
     constexpr int ITERATIONS = 100;
     using std::chrono::microseconds;
-    std::println("Average dynamic node render time: {}", average<microseconds>([&]() { std::println("Dynamic");  render(dynamicNode); }, ITERATIONS));
-    std::println("Average buffered node render time: {}", average<microseconds>([&]() { std::println("Buffered"); render(bufferedNode); }, ITERATIONS));
+    std::println("Average dynamic node render time: {}", average<microseconds>([&]() { render(dynamicNode); }, ITERATIONS));
+    std::println("Average buffered node render time: {}", average<microseconds>([&]() { render(bufferedNode); }, ITERATIONS));
 }

@@ -112,6 +112,8 @@ namespace nv {
 			typename T::Layers;
 			typename T::LayerMap;
 			typename T::ObjectLookups;
+			typename T::ObjectGroup;
+			typename T::ObjectGroupMap;
 			typename T::String;
 		};
 
@@ -121,9 +123,10 @@ namespace nv {
 			typename NodeTraits::Layers m_objectLayers;
 			typename NodeTraits::LayerMap m_layerMap;
 			typename NodeTraits::ObjectLookups m_objectLookups;
-
+			typename NodeTraits::ObjectGroupMap m_objectGroupMap;
+			
 			template<typename Object>
-			using ObjectGroup = typename NodeTraits::template ObjectGroup<Object>;
+			using ObjectStorage = typename NodeTraits::template ObjectStorage<Object>;
 
 			size_t m_currLayer = 0;
 			float m_screenScale = 1.0f;
@@ -135,6 +138,17 @@ namespace nv {
 				return unptrwrap(std::get<
 					typename NodeTraits::template ObjectLookupMap<typename NodeTraits::String, T>
 				>(self.m_objectLookups).at(name));
+			}
+			template<typename Object>
+			decltype(auto) findObjectsInLayer(this auto&& self, size_t layer) {
+				return std::get<ObjectStorage<Object>>(self.m_objectLayers.storage[layer]);
+			}
+			template<typename Object>
+			decltype(auto) findObjectsInLayer(this auto&& self, std::string_view layerName) {
+				return std::get<ObjectStorage<Object>>(*self.m_layerMap.at(layerName));
+			}
+			decltype(auto) findObjectGroup(this auto&& self, std::string_view layerName) {
+				return self.m_objectGroupMap.at(layerName);
 			}
 
 			void render(SDL_Renderer* renderer) const noexcept {
@@ -194,12 +208,6 @@ namespace nv {
 					unptrwrap(obj).setOpacity(opacity);
 					return STAY_IN_LOOP;
 				});
-			}
-		public:
-			template<typename Object>
-			decltype(auto) getObjects(this auto&& self, size_t layer) {
-				
-				return std::get<ObjectGroup<Object>>(self.m_objectLayers.storage[layer]);
 			}
 
 			inline uint8_t getOpacity() const {

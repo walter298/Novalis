@@ -111,6 +111,7 @@
         "spanstream": "cpp",
         "barrier": "cpp",
         "semaphore": "cpp",
-        "stacktrace": "cpp"
+        "stacktrace": "cpp",
+        "*.inc": "cpp"
     }
 }

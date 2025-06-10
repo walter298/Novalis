@@ -7,12 +7,15 @@
 #include <vector>
 #include <SDL3/SDL_rect.h>
 
+#include <novalis/detail/reflection/TypeMap.h>
 #include <novalis/detail/serialization/BufferedNodeSerialization.h>
-#include "AsyncWork.h"
+
+#include "imgui/imgui.h"
 #include "NodeSerialization.h"
 #include "EditedObjectData.h"
 #include "EditedObjectGroup.h"
 #include "Layer.h"
+#include "ObjectGroupCreator.h"
 #include "PolygonOutline.h"
 #include "PolygonBuilder.h"
 #include "ProgressBar.h"
@@ -35,37 +38,21 @@ namespace nv {
 			PolygonBuilder m_polygonBuilder;
 			EditedObjectGroupManager m_objectGroups;
 			ID<EditedObjectGroup> m_currObjectGroupID = ID<EditedObjectGroup>::None();
-			bool m_showingProgressBar = 0;
 			std::vector<Layer> m_layers;
+			ObjectSearch m_objectSearch;
+			ObjectGroupCreator m_objectGroupCreator;
 			size_t m_currLayerIdx = 0;
 			int m_worldX = 0;
 			int m_worldY = 0;
-			bool m_dragging = false;
-			std::string m_worldXLabel;
-			std::string m_worldYLabel;
 			bool m_draggingObject = true;
-			bool m_asyncCreatingCollisionOutlines = false;
-
+			nv::detail::TypeMap<bool, BufferedNode, DynamicPolygon, Texture> m_objectSelectionFilter{ true };
+			bool m_creatingObjectGroup = false;
+			
 			template<typename Object>
 			struct SelectedObjectData {
 				EditedObjectData<Object>* obj = nullptr;
 				EditedObjectHive<Object>* objLayer = nullptr;
 				EditedObjectHive<Object>::iterator it;
-
-				void resetToRandomElement(EditedObjectHive<Object>* newObjLayer) {
-					obj = &(*newObjLayer->begin());
-					objLayer = newObjLayer;
-					it = newObjLayer->begin();
-				}
-				void reset() {
-					obj = nullptr;
-					objLayer = nullptr;
-				}
-				void select(EditedObjectHive<Object>& hive, EditedObjectHive<Object>::iterator it) {
-					obj = &(*it);
-					objLayer = &hive;
-					this->it = it;
-				}
 			};
 
 			using SelectedObjectVariant = std::variant<
@@ -109,9 +96,10 @@ namespace nv {
 			void showObjectDuplicationOption(SelectedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Duplicate")) {
-					auto it = editedObj.objLayer->insert(*editedObj.obj);
-					editedObj.obj = &(*it);
-					editedObj.it = it;
+					assert(editedObj.objLayer);
+					auto copiedObjectIt = editedObj.objLayer->insert(*editedObj.obj);
+					editedObj.obj = &(*copiedObjectIt);
+					editedObj.it = copiedObjectIt;
 				}
 			}
 
@@ -224,6 +212,12 @@ namespace nv {
 				}
 			}
 
+			void showObjectGroupCreationWindow() {
+				if (!m_objectGroupCreator.show()) {
+					m_creatingObjectGroup = false;
+				}
+			}
+
 			template<typename Object>
 			ID<EditedObjectGroup> getRandomObjectGroupID(const EditedObjectData<Object>& editedObj) {
 				if (editedObj.groupIDs.empty()) {
@@ -264,6 +258,7 @@ namespace nv {
 
 			template<nv::concepts::RenderableObject Object>
 			void edit(SDL_Renderer* renderer, Point mousePos, SelectedObjectData<Object>& editedObj) {
+				ImGui::BeginDisabled(isBusy());
 				//if we are editing text
 				/*if constexpr (std::same_as<Object, Text>) {
 					ImGui::SetNextItemWidth(getInputWidth());
@@ -295,12 +290,10 @@ namespace nv {
 				}
 
 				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::InputText("Name", &editedObj.obj->name)) {
-					return;
-				}
+				ImGui::InputText("Name", &editedObj.obj->name);
 
 				//duplication 
-				if constexpr (std::copyable<Object>) {
+				if constexpr (std::copy_constructible<Object>) {
 					showObjectDuplicationOption(editedObj);
 				}
 
@@ -316,14 +309,20 @@ namespace nv {
 
 				//deletion
 				showObjectDeletionOption(editedObj);
+
+				ImGui::EndDisabled();
 			}
 
 			void selectObject(SDL_Renderer* renderer, Point mouse) {
-				/*if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+				if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 					return;
-				}*/
-				auto& objectHives = m_layers[m_currLayerIdx].objects;
-				nv::detail::forEachDataMember([&, this](auto& currObjectHive) {
+				}
+
+				nv::detail::forEachDataMember([&, this]<typename Object>(EditedObjectHive<Object>& currObjectHive) {
+					if (!m_objectSelectionFilter.get<Object>()) {
+						return nv::detail::STAY_IN_LOOP;
+					}
+
 					for (auto it = currObjectHive.begin(); it != currObjectHive.end(); it++) {
 						auto& editedObjData = *it;
 						if (editedObjData.obj.containsScreenCoord(mouse)) {
@@ -336,7 +335,7 @@ namespace nv {
 						}
 					}
 					return nv::detail::STAY_IN_LOOP;
-				}, objectHives);
+				}, m_layers[m_currLayerIdx].objects);
 			}
 
 			void makeCurrLayerMoreVisible() {
@@ -399,16 +398,40 @@ namespace nv {
 				}
 			}
 
-			void showNodeOptions() {
+			void showObjectFilterOptions() {
+				ImGui::SetNextItemWidth(getInputWidth());
+				ImGui::Text("Object Filters");
+				auto showSelectionOption = [this]<typename T>(const char* label, std::type_identity<T>) {
+					ImGui::SetNextItemWidth(getInputWidth());
+					auto& filtered = m_objectSelectionFilter.get<T>();
+					auto temp = filtered;
+					if (ImGui::Checkbox(label, &temp)) {
+						filtered = !filtered;
+						if (!filtered && std::holds_alternative<SelectedObjectData<T>>(m_selectedObject)) {
+							m_selectedObject = std::monostate{};
+						}
+					}
+				};
+				showSelectionOption("Nodes", std::type_identity<BufferedNode>{});
+				showSelectionOption("Polygons", std::type_identity<DynamicPolygon>{});
+				showSelectionOption("Textures", std::type_identity<Texture>{});
+			}
+
+			void showNodeOptions(bool disabled) {
+				ImGui::BeginDisabled(disabled);
+
 				ImGui::SetNextWindowPos({ getNodeOptionsWindowPos(), });
 				ImGui::SetNextWindowSize({ getSideWindowWidth(), getWindowHeight() });
 				ImGui::Begin(NODE_OPTIONS_WINDOW_NAME);
 
+				showObjectFilterOptions();
 				editNodeName();
 				editLayerName();
 				selectLayer();
 
 				ImGui::End();
+
+				ImGui::EndDisabled();
 			}
 
 			void zoom(SDL_Renderer* renderer, Point mouse) {
@@ -525,7 +548,7 @@ namespace nv {
 			}
 		public:
 			NodeEditor(const std::string& name = "")
-				: m_name{ name }, m_viewport { getViewport(m_zoom) }
+				: m_name{ name }, m_viewport{ getViewport(m_zoom) }
 			{
 			}
 		
@@ -577,7 +600,7 @@ namespace nv {
 				if (m_layers.empty()) {
 					return;
 				}
-				
+
 				auto viewportIntRect = toSDLRect(m_viewport);
 				SDL_SetRenderViewport(renderer, &viewportIntRect);
 				SDL_RenderClear(renderer);
@@ -589,19 +612,25 @@ namespace nv {
 				zoom(renderer, mouse);
 				render(renderer);
 
+				if (windowContainsCoord(NODE_WINDOW_NAME, mouse)) {
+					runCurrentTool(renderer, mouse, toolDisplay);
+				}
+
 				viewportIntRect = toSDLRect(getViewport(1.0f));
 				SDL_SetRenderViewport(renderer, &viewportIntRect);
 				SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 
-				if (windowContainsCoord(NODE_WINDOW_NAME, mouse)) {
-					runCurrentTool(renderer, mouse, toolDisplay);
+				if (m_creatingObjectGroup) {
+					showObjectGroupCreationWindow();
 				}
-				showNodeOptions();
+				showNodeOptions(m_creatingObjectGroup);
 
 				SDL_SetRenderViewport(renderer, nullptr);
 			}
 
 			void addLayer(const std::string& layerName) {
+				m_selectedObject = std::monostate{};
+
 				if (m_layers.empty()) {
 					m_layers.emplace_back(layerName);
 				} else {
@@ -639,12 +668,17 @@ namespace nv {
 					auto& currLayer = m_layers[m_currLayerIdx];
 					auto& textures = std::get<EditedObjectHive<Texture>>(currLayer.objects);
 					auto& insertedTex = *textures.insert(std::move(texture));
-					m_asyncCreatingCollisionOutlines = true;
-
+					
 					createCollisionOutlines(renderer, spriteGroupID, spriteGroup, insertedTex);
 
 					m_currLayerIdx++;
 				}
+			}
+
+			void createObjectGroup() {
+				m_creatingObjectGroup = true;
+				m_objectGroupCreator.setNewObjects(m_layers);
+				ImGui::OpenPopup(OBJECT_GROUP_CREATION_WINDOW_NAME);
 			}
 
 			void deselectSelectedObject() noexcept {
@@ -656,8 +690,8 @@ namespace nv {
 				return m_layers.empty();
 			}
 
-			bool makingPolygon() const noexcept {
-				return m_polygonBuilder.building();
+			bool isBusy() {
+				return m_polygonBuilder.building() || m_creatingObjectGroup;
 			}
 
 			const char* getName() const noexcept {

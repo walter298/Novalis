@@ -158,7 +158,7 @@ namespace nv {
 				}
 			public:
 				void show(SDL_Renderer* renderer, NodeTabList& tabs) {
-					if (!tabs.currentTab() || tabs.currentTab()->hasNoLayers()) {
+					if (!tabs.currentTab() || tabs.currentTab()->hasNoLayers() || tabs.currentTab()->isBusy()) {
 						showDisabledMenu("Object");
 						return;
 					}
@@ -188,6 +188,10 @@ namespace nv {
 						if (ImGui::MenuItem("Upload Node(s)")) {
 							insertNodeFromFile(*tabs.currentTab());
 						}
+						ImGui::Separator();
+						if (ImGui::MenuItem("Create Object Group")) {
+							tabs.currentTab()->createObjectGroup();
+						}
 						ImGui::EndMenu();
 					}
 				}
@@ -201,8 +205,7 @@ namespace nv {
 				void showLayerCreationWindow(NodeEditor& currTab) {
 					m_showingAddNewLayerPopup = true;
 
-					auto center = ImGui::GetMainViewport()->GetCenter();
-					ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2{ 0.5f, 0.5f });
+					centerNextWindow();
 
 					ImGui::OpenPopup(LAYER_CREATION_POPUP_NAME);
 					ImGui::BeginPopupContextWindow(LAYER_CREATION_POPUP_NAME);
@@ -223,7 +226,7 @@ namespace nv {
 				}
 			public:
 				void show(NodeTabList& tabs) {
-					if (tabs.empty()) {
+					if (!tabs.currentTab() || tabs.currentTab()->isBusy()) {
 						showDisabledMenu("Layer");
 						return;
 					}

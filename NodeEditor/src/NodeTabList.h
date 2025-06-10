@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include "NodeEditor.h"
 
 namespace nv {
@@ -11,6 +13,7 @@ namespace nv {
 
 			ImVec2 getTabWindowPos() noexcept {
 				auto leftWindow = ImGui::FindWindowByName(TOOL_WINDOW_NAME);
+				assert(leftWindow);
 				auto leftWindowPos = leftWindow->Pos;
 				auto leftWindowSize = leftWindow->Size;
 				return ImVec2{ (leftWindowPos.x + leftWindowSize.x), leftWindowPos.y };
@@ -85,10 +88,6 @@ namespace nv {
 
 			bool empty() const noexcept {
 				return m_tabs.empty();
-			}
-
-			bool makingPolygon() const noexcept {
-				return m_currTab ? m_currTab->makingPolygon() : false;
 			}
 		};
 	}

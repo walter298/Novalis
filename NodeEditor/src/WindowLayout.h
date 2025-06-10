@@ -15,8 +15,14 @@ namespace nv {
 		inline constexpr const char* NODE_WINDOW_NAME = "Nodes";
 		inline constexpr const char* NODE_OPTIONS_WINDOW_NAME = "Current Node";
 		inline constexpr const char* LAYER_EXPLORER_WINDOW_NAME = "Layer Explorer";
-
+		inline constexpr const char* OBJECT_GROUP_CREATION_WINDOW_NAME = "Create Object Group";
+		
 		constexpr ImGuiWindowFlags WINDOW_FLAGS = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+
+		inline void centerNextWindow() {
+			auto center = ImGui::GetMainViewport()->GetCenter();
+			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2{ 0.5f, 0.5f });
+		}
 
 		inline SDL_FRect getWindowRect(const char* windowName) noexcept {
 			auto win = ImGui::FindWindowByName(windowName);
@@ -72,6 +78,7 @@ namespace nv {
 
 		inline ImVec2 getAdjacentWindowPos(const char* adjacentWindowName) noexcept {
 			auto leftWindow = ImGui::FindWindowByName(adjacentWindowName);
+			assert(leftWindow);
 			auto leftWindowPos = leftWindow->Pos;
 			auto leftWindowSize = leftWindow->Size;
 			return ImVec2{ (leftWindowPos.x + leftWindowSize.x), leftWindowPos.y };
