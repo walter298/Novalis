@@ -49,6 +49,7 @@ namespace nlohmann {
 		static RegionMap makeRegionMap(std::byte* arena, const json& root) {
 			RegionMap ret;
 			ret.forEach([&]<typename Object>(nv::detail::MemoryRegion & region) {
+				std::println("Offset Key: {}", typeOffsetKey<Object>());
 				auto offset = root[typeOffsetKey<Object>()].get<size_t>();
 				auto regionLen = root[typeSizeKey<Object>()].get<size_t>();
 				region = { arena + offset, regionLen };
@@ -81,11 +82,32 @@ namespace nlohmann {
 			using ObjectGroupMap = nv::BufferedNode::ObjectGroupMap;
 
 			ObjectGroupMap m_objectGroupMap;
-			//std::reference_wrapper<nv::BufferedNode::ObjectGroupMap> m_objectGroupMap;
 		public:
-			ObjectGroupCreator(nv::detail::MemoryRegion& objectGroupEntryRegion) 
-				: m_objectGroupMap{ objectGroupEntryRegion.interpretAsSpan<ObjectGroupMap::Entry>() }
+			ObjectGroupCreator(RegionMap& regionMap, const json& root) 
+				: m_objectGroupMap{ 
+					regionMap.get<nv::BufferedNode::ObjectGroupMap::Entry>().interpretAsSpan<ObjectGroupMap::Entry>()
+				}
 			{
+				auto& objectGroupNode = root[OBJECT_GROUP_KEY];
+				for (const auto& objectGroupJson : objectGroupNode) {
+					nv::BufferedNode::ObjectGroup objectGroup;
+
+					//allocate memory for each object group
+					nv::detail::forEachDataMember([&]<typename T>(std::span<T*>& span) {
+						auto objectPtrCount = objectGroupJson[typeCountKey<T*>()].get<size_t>();
+						if (objectPtrCount == 0) {
+							return nv::detail::STAY_IN_LOOP;
+						}
+						auto objectPtrSpanPtr = regionMap.get<T*>().allocate<T*>(objectPtrCount);
+						span = { objectPtrSpanPtr, objectPtrCount };
+						return nv::detail::STAY_IN_LOOP;
+					}, objectGroup);
+
+					auto objectGroupName = makeBufferedString(objectGroupJson[NAME_KEY].get<std::string>(), regionMap.get<char>());
+					m_objectGroupMap.insert(std::move(objectGroupName), std::move(objectGroup));
+				}
+
+				//initialize span index map
 				for (const auto& [mapName, key, isTombstone] : m_objectGroupMap) {
 					m_spanIndexMap.emplace(
 						std::piecewise_construct, 
@@ -95,10 +117,10 @@ namespace nlohmann {
 			}
 
 			template<typename T>
-			void add(std::string_view objectGroupName, T* objectPtr) {
+			void add(const std::string& objectGroupName, T* objectPtr) {
 				auto& objectGroupMap     = m_objectGroupMap.at(objectGroupName);
 				auto& objectSpan         = std::get<std::span<T*>>(objectGroupMap);
-				auto& objectPtrIdx       = m_spanIndexMap.at(m_spanIndexMap.at(objectGroupName)).get<T*>();
+				auto& objectPtrIdx       = m_spanIndexMap.at(objectGroupName).get<T*>();
 				objectSpan[objectPtrIdx] = objectPtr;
 				objectPtrIdx++;
 			}
@@ -109,11 +131,12 @@ namespace nlohmann {
 		};
 
 		template<typename T>
-		static void addToObjectGroup(const json& metadataJson, ObjectGroupCreator& objectGroupCreator, T* objectPtr) 
+		static void addToObjectGroups(const json& metadataJson, ObjectGroupCreator& objectGroupCreator, T* objectPtr) 
 		{
-			auto objectGroupName = metadataJson[OBJECT_GROUP_KEY].get<std::string>();
-			using ObjectStorage = typename nv::BufferedNode::template ObjectStorage<T>;
-			objectGroupCreator.add(objectGroupName, objectPtr);
+			auto objectGroupNames = metadataJson[OBJECT_GROUP_KEY].get<std::vector<std::string>>();
+			for (const auto& objectGroupName : objectGroupNames) {
+				objectGroupCreator.add(objectGroupName, objectPtr);
+			}
 		}
 
 		static nv::BufferedNode* loadChildNode(const json& nodeJson, 
@@ -150,8 +173,11 @@ namespace nlohmann {
 		template<typename Object>
 		static std::span<Object> parseObjectGroup(const json& objectGroupJson,
 			nv::detail::MemoryRegion& charRegion, nv::detail::MemoryRegion& objectRegion,
-			nv::BufferedNode::Map<Object*>& map)
+			nv::BufferedNode::Map<Object*>& map, ObjectGroupCreator& objectGroupCreator)
 		{
+			if (objectGroupJson.size() == 0) {
+				return std::span<Object>{};
+			}
 			auto objectGroupPtr = objectRegion.allocate<Object>(objectGroupJson.size());
 			std::span<Object> objectSpan{ objectGroupPtr, objectGroupJson.size() };
 			
@@ -160,32 +186,10 @@ namespace nlohmann {
 				auto& metadataJson = json[METADATA_KEY];
 				objectSpan[idx] = objectJson.get<Object>();
 				createLookup(metadataJson, charRegion, map, &objectSpan[idx]);
+				addToObjectGroups(metadataJson, objectGroupCreator, &objectSpan[idx]);
 			}
 
 			return objectSpan;
-		}
-
-		static ObjectGroupCreator makeObjectGroupCreator(const json& root, nv::BufferedNode::ObjectGroupMap& objectGroupMap, 
-												  RegionMap& regionMap) 
-		{
-			using namespace nv::detail::json_constants;
-			using ObjectGroup = nv::BufferedNode::ObjectGroup;
-
-			auto& objectGroupNode = root[OBJECT_GROUP_KEY];
-			for (const auto& objectGroupJson : objectGroupNode) {
-				ObjectGroup objectGroup;
-
-				nv::detail::forEachDataMember([&]<typename T>(std::span<T*>& span) {
-					auto objectPtrCount = objectGroupJson[typeCountKey<T*>()].get<size_t>();
-					auto objectPtrSpanPtr = regionMap.get<T*>().allocate<T*>(objectPtrCount);
-					span = { objectPtrSpanPtr, objectPtrCount };
-					return nv::detail::STAY_IN_LOOP;
-				}, objectGroup);
-
-				auto objectGroupName = makeBufferedString(objectGroupJson[NAME_KEY].get<std::string>(), regionMap.get<char>());
-				objectGroupMap.insert(std::move(objectGroupName), std::move(objectGroup));
-			}
-			return ObjectGroupCreator{ regionMap.get<nv::BufferedNode::ObjectGroupMap::Entry>() };
 		}
 
 		static nv::BufferedNode from_json(const json& root) {
@@ -196,8 +200,7 @@ namespace nlohmann {
 
 			auto regionMap      = makeRegionMap(std::get<nv::detail::AlignedBuffer<std::byte>>(ret.m_arena).data, root);
 			ret.m_objectLookups = makeObjectMap(regionMap);
-
-			auto objectGroupCreator = makeObjectGroupCreator(root, ret.m_objectGroupMap, regionMap);
+			ObjectGroupCreator objectGroupCreator{ regionMap, root };
 
 			//allocate layers
 			auto& layersJson = root[LAYERS_KEY];
@@ -222,7 +225,6 @@ namespace nlohmann {
 
 					auto& objectGroupJson = *objectGroupJsonIt;
 
-
 					using ObjectMap = nv::BufferedNode::Map<std::remove_pointer_t<Object>*>;
 
 					auto& objectRegion     = regionMap.get<Object>();
@@ -231,7 +233,7 @@ namespace nlohmann {
 		
 					if constexpr (!std::same_as<Object, nv::BufferedNode*>) {
 						objectSpan = parseObjectGroup(
-							objectGroupJson, regionMap.get<char>(), objectRegion, objectMap
+							objectGroupJson, regionMap.get<char>(), objectRegion, objectMap, objectGroupCreator
 						);
 					}
 

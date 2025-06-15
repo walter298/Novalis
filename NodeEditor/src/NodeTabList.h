@@ -42,7 +42,7 @@ namespace nv {
 
 				if (ImGui::BeginTabBar("Tabs")) {
 					for (auto it = m_tabs.begin(); it != m_tabs.end(); it++) {
-						ImGui::PushID(std::distance(m_tabs.begin(), it));
+						ImGui::PushID(getUniqueImGuiID());
 						auto& tab = *it;
 
 						if (ImGui::BeginTabItem(tab.getName())) {

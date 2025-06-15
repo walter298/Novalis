@@ -36,6 +36,7 @@ namespace nv {
 			}
 
 			inline std::byte* allocateBytes(size_t bytes, size_t alignment = sizeof(std::max_align_t)) noexcept {
+				assert(bytes > 0);
 				if (std::align(alignment, bytes, m_nextObjectBegin, m_space)) {
 					auto temp = m_nextObjectBegin;
 					m_nextObjectBegin = static_cast<std::byte*>(m_nextObjectBegin) + bytes;
@@ -47,20 +48,19 @@ namespace nv {
 			}
 
 			template<typename T>
-			inline T* allocate(size_t n) noexcept {
-				assert(m_space % sizeof(T) == 0);
-				//std::println("Allocating: {} {}", n, typeid(T).name());
+			T* allocate(size_t n) noexcept {
+				assert(n > 0);
 				return reinterpret_cast<T*>(allocateBytes(n * sizeof(T), alignof(T)));
 			}
 
-			inline void deallocate(void* p, size_t n) noexcept {}
+			void deallocate(void* p, size_t n) noexcept {}
 
-			inline void clear() noexcept {
+			void clear() noexcept {
 				m_space = m_capacity;
 				m_nextObjectBegin = m_begin;
 			}
 
-			inline size_t getTotalCapacity() const noexcept {
+			size_t getTotalCapacity() const noexcept {
 				return m_capacity;
 			}
 
@@ -68,11 +68,11 @@ namespace nv {
 				return m_space;
 			}
 
-			inline size_t bytesAvailable() const noexcept {
+			size_t bytesAvailable() const noexcept {
 				return m_space;
 			}
 
-			inline MemoryRegion makeSubregion(size_t offset, size_t len) noexcept {
+			MemoryRegion makeSubregion(size_t offset, size_t len) noexcept {
 				assert(m_capacity - offset >= len);
 				return { static_cast<std::byte*>(m_begin) + offset, len };
 			}

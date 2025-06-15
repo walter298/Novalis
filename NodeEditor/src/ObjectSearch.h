@@ -9,6 +9,7 @@
 #include "imgui/ImGui.h"
 #include "imgui/imgui_stdlib.h"
 
+#include "ImGuiID.h"
 #include "Layer.h"
 #include "ObjectIndex.h"
 #include "WindowLayout.h"
@@ -28,15 +29,9 @@ namespace nv {
                 }
             }
 
-            using Objects = Index<
-                EditedObjectData<BufferedNode>, 
-                EditedObjectData<DynamicPolygon>, 
-                EditedObjectData<Texture>
-            >;
-            
-            Objects m_objects;
-            Objects m_filteredObjects;
-            std::optional<Objects::ValueType> m_selectedObject;
+            UniformObjectVector m_objects;
+            UniformObjectVector m_filteredObjects;
+            std::optional<UniformObjectVector::ValueType> m_selectedObject;
             
             std::string m_currSearchedName;
 
@@ -59,7 +54,7 @@ namespace nv {
                 m_filteredObjects.addRange(m_objects.objects);
             }
         
-            std::optional<Objects::ValueType> getSelectedObject() {
+            std::optional<UniformObjectVector::ValueType> getSelectedObject() {
                 return m_selectedObject;
             }
         private:
@@ -67,7 +62,7 @@ namespace nv {
                 auto appendedText = m_currSearchedName.c_str() + oldNameLen;
                 auto appendedTextLen = m_currSearchedName.size() - oldNameLen;
                 m_filteredObjects.eraseIf([&, this](auto objectRef) {
-                    const auto& objectName = objectRef.get().name;
+                    const auto& objectName = objectRef.get().getName();
                     return objectName.size() < m_currSearchedName.size() ||
                            std::string_view{ objectName }.substr(oldNameLen, appendedTextLen) != appendedText;
                 });
@@ -76,7 +71,7 @@ namespace nv {
             void prependFilter() {
                 m_filteredObjects.clear();
                 m_objects.forEach([this](auto objectRef) {
-                    if (objectRef.get().name.starts_with(m_currSearchedName)) {
+                    if (objectRef.get().getName().starts_with(m_currSearchedName)) {
                         m_filteredObjects.add(objectRef);
                     }
                     return nv::detail::STAY_IN_LOOP;
@@ -114,14 +109,14 @@ namespace nv {
                     }
                 }
 
-                int id = 0;
+                int unnamedObjectCount = 0;
+
                 m_filteredObjects.forEach([&, this](auto& objectRef) {
                     bool selected = m_selectedObject.has_value() && 
                                     std::visit([](auto& object) { return object.get().id; }, *m_selectedObject) == objectRef.get().id;
-                    ImGui::PushID(id);
-                    id++;
-                    if (ImGui::Selectable(objectRef.get().name.c_str(), selected)) {
-                        m_selectedObject = std::make_optional<Objects::ValueType>(objectRef);
+                    ImGui::PushID(getUniqueImGuiID());
+                    if (ImGui::Selectable(objectRef.get().getName().c_str(), selected)) {
+                        m_selectedObject = std::make_optional<UniformObjectVector::ValueType>(objectRef);
                     }
                     ImGui::PopID();
                     return nv::detail::STAY_IN_LOOP;

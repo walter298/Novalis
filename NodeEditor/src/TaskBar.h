@@ -20,7 +20,6 @@ namespace nv {
 				try {
 					auto nodeJson = json::parse(file);
 					EditedObjectData<BufferedNode> ret{ nodeJson.get<BufferedNode>() };
-					ret.name = fileName(*filePath);
 					ret.filePath = *filePath;
 					return ret;
 				} catch (std::exception e) {
@@ -64,7 +63,6 @@ namespace nv {
 							continue;
 						}
 						auto& editedTex = textures.emplace_back(std::move(tex));
-						editedTex.name = fileName(texPath);
 						editedTex.texPath = texPath;
 					}
 
@@ -105,7 +103,7 @@ namespace nv {
 				}
 
 				void setGridLayout() {
-					std::visit([](auto& objects) {
+					/*std::visit([](auto& objects) {
 						auto maxHeight = std::ranges::max(objects, [](const auto& a, const auto& b) {
 							return a.obj.getWorldSize().y > b.obj.getWorldSize().y;
 						}).obj.getWorldSize().x;
@@ -122,7 +120,7 @@ namespace nv {
 								x += obj.obj.getScreenSize().x;
 							}
 						}
-					}, m_currentlyLoadedObjects);
+					}, m_currentlyLoadedObjects);*/
 				}
 
 				void showLayoutOption() {

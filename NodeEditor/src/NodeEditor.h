@@ -12,8 +12,7 @@
 
 #include "imgui/imgui.h"
 #include "NodeSerialization.h"
-#include "EditedObjectData.h"
-#include "EditedObjectGroup.h"
+#include "ObjectGroupManager.h"
 #include "Layer.h"
 #include "ObjectGroupCreator.h"
 #include "PolygonOutline.h"
@@ -26,8 +25,6 @@ namespace nv {
 	namespace editor {
 		class NodeEditor {
 		private:
-			static inline int totalSyncSteps                  = 0;
-			static inline std::atomic_int asyncLoadStepsTaken = 0;
 			float m_zoom = 1.0f;
 			float m_worldOffsetX = 0.0;
 			float m_worldOffsetY = 0.0;
@@ -36,11 +33,12 @@ namespace nv {
 			std::string m_lastSavedFilePath;
 			bool m_selectingObject = true;
 			PolygonBuilder m_polygonBuilder;
-			EditedObjectGroupManager m_objectGroups;
-			ID<EditedObjectGroup> m_currObjectGroupID = ID<EditedObjectGroup>::None();
+			NameManager m_objectNameManager{ "Unnamed Object" };
+			NameManager m_objectGroupNameManager{ "Unnamed Object Group" };
+			ObjectGroupManager m_objectGroupManager;
+			ObjectGroupCreator m_objectGroupCreator;
 			std::vector<Layer> m_layers;
 			ObjectSearch m_objectSearch;
-			ObjectGroupCreator m_objectGroupCreator;
 			size_t m_currLayerIdx = 0;
 			int m_worldX = 0;
 			int m_worldY = 0;
@@ -96,10 +94,10 @@ namespace nv {
 			void showObjectDuplicationOption(SelectedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Duplicate")) {
-					assert(editedObj.objLayer);
+					/*assert(editedObj.objLayer);
 					auto copiedObjectIt = editedObj.objLayer->insert(*editedObj.obj);
 					editedObj.obj = &(*copiedObjectIt);
-					editedObj.it = copiedObjectIt;
+					editedObj.it = copiedObjectIt;*/
 				}
 			}
 
@@ -107,12 +105,9 @@ namespace nv {
 			void showObjectDeletionOption(SelectedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Delete")) {
-					for (auto& objectGroupID : editedObj.obj->groupIDs) {
-						m_objectGroups.getGroup(objectGroupID).removeObject(editedObj.obj);
-					}
+					m_objectGroupManager.removeFromAllObjectGroups(*editedObj.obj);
 					editedObj.objLayer->erase(editedObj.it);
 					editedObj.obj = nullptr;
-					m_currObjectGroupID = ID<EditedObjectGroup>::None();
 					deselectSelectedObject();
 				}
 			}
@@ -122,7 +117,7 @@ namespace nv {
 				ImGui::SetNextItemWidth(getInputWidth());
 				auto opacityInt = static_cast<int>(editedObj.opacity);
 				if (ImGui::SliderInt("Opacity", &opacityInt, 0, 255)) {
-					m_objectGroups.setOpacity(editedObj, static_cast<uint8_t>(opacityInt));
+					m_objectGroupManager.setOpacity(editedObj, static_cast<uint8_t>(opacityInt));
 				}
 			}
 
@@ -149,7 +144,7 @@ namespace nv {
 			void showScaleOption(EditedObjectData<Object>& editedObj) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::SliderFloat("Scale", &editedObj.scale, 1.0f, 5.0f)) {
-					m_objectGroups.scale(editedObj, editedObj.scale);
+					m_objectGroupManager.scale(editedObj, editedObj.scale);
 				}
 			}
 
@@ -184,92 +179,20 @@ namespace nv {
 			void showCollisionOutlineOption(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Create collision outline")) {
-					auto [spriteGroupID, spriteGroup] = m_objectGroups.addGroup();
+					auto [spriteGroupID, spriteGroup] = m_objectGroupManager.addGroup();
 					createCollisionOutlines(renderer, spriteGroupID, spriteGroup, editedTex);
 				}
 			}
 
-			void showObjectGroupOptions(EditedObjectGroup& objectGroup) {
-				ImGui::SetNextItemWidth(getInputWidth());
-				ImGui::InputText("Group name", &objectGroup.name);
-
-				auto showSyncOption = [](const char* label, EditedObjectGroup::SyncOption& syncOption) {
-					bool temp = syncOption;
-					ImGui::SetNextItemWidth(getInputWidth());
-					if (ImGui::Checkbox(label, &temp)) {
-						syncOption = static_cast<EditedObjectGroup::SyncOption>(temp);
-					}
-				};
-				showSyncOption("Sync position", objectGroup.positionSynced);
-				showSyncOption("Sync rotation", objectGroup.rotationSynced);
-				showSyncOption("Sync scale", objectGroup.scaleSynced);
-				showSyncOption("Sync opacity", objectGroup.opacitySynced);
-
-				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::Button("Delete group")) {
-					m_objectGroups.removeGroup(m_currObjectGroupID);
-					m_currObjectGroupID = ID<EditedObjectGroup>::None();
-				}
-			}
-
 			void showObjectGroupCreationWindow() {
-				if (!m_objectGroupCreator.show()) {
+				if (!m_objectGroupCreator.show(m_objectGroupManager, m_objectGroupNameManager)) {
 					m_creatingObjectGroup = false;
 				}
-			}
-
-			template<typename Object>
-			ID<EditedObjectGroup> getRandomObjectGroupID(const EditedObjectData<Object>& editedObj) {
-				if (editedObj.groupIDs.empty()) {
-					return ID<EditedObjectGroup>::None();
-				}
-				return *editedObj.groupIDs.begin();
-			}
-			
-			template<nv::concepts::RenderableObject Object>
-			void showObjectGroups(EditedObjectData<Object>& editedObj) {
-				const char* previewObjectGroupName = nullptr;
-				if (m_currObjectGroupID == ID<EditedObjectGroup>::None() && !editedObj.groupIDs.empty()) {
-					m_currObjectGroupID = getRandomObjectGroupID(editedObj);
-					previewObjectGroupName = m_objectGroups.getGroup(m_currObjectGroupID).name.c_str();
-				} else {
-					previewObjectGroupName = "No group";
-				}
-				
-				int i = 0;
-				if (ImGui::BeginCombo("Object group", previewObjectGroupName)) {
-					for (const auto& objectGroupID : editedObj.groupIDs) {
-						auto& objectGroup = m_objectGroups.getGroup(objectGroupID);
-						ImGui::SetNextItemWidth(getInputWidth());
-						ImGui::PushID(i);
-						if (ImGui::Selectable(objectGroup.name.c_str(), objectGroupID == m_currObjectGroupID)) {
-							m_currObjectGroupID = objectGroupID;
-						}
-						ImGui::PopID();
-					}
-					ImGui::EndCombo();
-				}
-				if (m_currObjectGroupID == ID<EditedObjectGroup>::None()) {
-					return;
-				}
-				auto& objectGroup = m_objectGroups.getGroup(m_currObjectGroupID);
-				showObjectGroupOptions(objectGroup);
 			}
 
 			template<nv::concepts::RenderableObject Object>
 			void edit(SDL_Renderer* renderer, Point mousePos, SelectedObjectData<Object>& editedObj) {
 				ImGui::BeginDisabled(isBusy());
-				//if we are editing text
-				/*if constexpr (std::same_as<Object, Text>) {
-					ImGui::SetNextItemWidth(getInputWidth());
-					std::string temp = editedObj.obj->obj.value().data();
-					if (ImGui::InputText("Value", &temp)) {
-						editedObj.obj->obj = temp;
-					}
-				}*/
-
-				//show object group
-				showObjectGroups(*editedObj.obj);
 
 				//show opacity
 				showOpacityOption(*editedObj.obj);
@@ -289,9 +212,9 @@ namespace nv {
 					showObjectRotationOption(editedObj);
 				}
 
-				ImGui::SetNextItemWidth(getInputWidth());
-				ImGui::InputText("Name", &editedObj.obj->name);
-
+				//name input
+				editedObj.obj->inputName();
+				
 				//duplication 
 				if constexpr (std::copy_constructible<Object>) {
 					showObjectDuplicationOption(editedObj);
@@ -428,6 +351,7 @@ namespace nv {
 				editNodeName();
 				editLayerName();
 				selectLayer();
+				m_objectGroupManager.showAllObjectGroups(m_objectGroupNameManager);
 
 				ImGui::End();
 
@@ -471,9 +395,8 @@ namespace nv {
 				Point change = toSDLFPoint(ImGui::GetMouseDragDelta());
 				change /= m_zoom;
 				selectiveVisit([&](auto& selectedObject) {
-					auto groupID = getRandomObjectGroupID(*selectedObject.obj);
 					if (selectedObject.obj->obj.containsScreenCoord(mouse) || ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-						m_objectGroups.move(*selectedObject.obj, change);
+						m_objectGroupManager.move(*selectedObject.obj, change);
 					}
 				}, m_selectedObject);
 				ImGui::ResetMouseDragDelta();
@@ -533,14 +456,25 @@ namespace nv {
 				ImGui::SetNextWindowSize(nodeWindowSize);
 			}
 
+			template<typename Object>
+			void showObjectGroupsOfSelectedObject(EditedObjectData<Object>& object) {
+				bool wasCreatingObjectGroup = m_creatingObjectGroup;
+				m_objectGroupManager.showObjectGroupsOfObject(object, m_creatingObjectGroup);
+				if (!wasCreatingObjectGroup && m_creatingObjectGroup) {
+					m_objectGroupCreator.setNewObjects(m_layers);
+					ImGui::OpenPopup(OBJECT_GROUP_CREATION_WINDOW_NAME);
+				}
+			}
+
 			void showNodeWindow(SDL_Renderer* renderer, Point mouse) {
 				configureNodeWindow();
 
 				ImGui::Begin(OBJECT_WINDOW_NAME, nullptr, WINDOW_FLAGS);
 
-				selectiveVisit([&, this](auto& selectedObj) {
-					if (selectedObj.obj != nullptr) {
-						edit(renderer, mouse, selectedObj);
+				selectiveVisit([&, this](auto& selectedObject) {
+					if (selectedObject.obj != nullptr) {
+						edit(renderer, mouse, selectedObject);
+						showObjectGroupsOfSelectedObject(*selectedObject.obj);
 					}
 				}, m_selectedObject);
 
@@ -574,10 +508,7 @@ namespace nv {
 					auto& currLayer = ret.m_layers.emplace_back(layerName);
 
 					nv::detail::forEachDataMember([&layerJson]<typename Object>(EditedObjectHive<Object>& objectGroup) {
-						using BufferedObject = std::conditional_t<
-							std::same_as<Object, DynamicPolygon>, BufferedPolygon, Object
-						>;
-						auto typeName = nv::detail::getTypeName<BufferedObject>();
+						auto typeName = nv::detail::getTypeName<BufferedObject<Object>>();
 						auto objectGroupJsonIt = layerJson.find(typeName);
 						
 						if (objectGroupJsonIt == layerJson.end()) {
@@ -663,7 +594,7 @@ namespace nv {
 
 				int steps = static_cast<int>(spriteSheet.size());
 				
-				auto [spriteGroupID, spriteGroup] = m_objectGroups.addGroup();
+				auto [spriteGroupID, spriteGroup] = m_objectGroupManager.addGroup();
 				for (auto& texture : spriteSheet) {
 					auto& currLayer = m_layers[m_currLayerIdx];
 					auto& textures = std::get<EditedObjectHive<Texture>>(currLayer.objects);
@@ -702,7 +633,7 @@ namespace nv {
 				try {
 					saveNewFile({ { "node", "nv_node" } }, [this](const auto& path) {
 						m_lastSavedFilePath = path;
-						return createNodeJson(m_layers, m_name);
+						return createNodeJson(m_layers, m_name, m_objectGroupManager);
 					});
 				} catch (json::exception e) {
 					std::println("{}", e.what());
@@ -713,7 +644,11 @@ namespace nv {
 				if (m_lastSavedFilePath.empty()) {
 					saveAs();
 				} else {
-					saveToExistingFile(m_lastSavedFilePath, createNodeJson(m_layers, m_name));
+					try {
+						saveToExistingFile(m_lastSavedFilePath, createNodeJson(m_layers, m_name, m_objectGroupManager));
+					} catch (json::exception e) {
+						std::println("{}", e.what());
+					}
 				}
 			}
 		};

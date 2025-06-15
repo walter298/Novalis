@@ -10,6 +10,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include "EditedObjectData.h"
+#include "ImGuiID.h"
 #include "NodeEditor.h"
 #include "NodeTabList.h"
 #include "SpecialPoint.h"
@@ -41,6 +42,8 @@ void nv::editor::runApp() {
 	ImGui_ImplSDLRenderer3_Init(app.instance.renderer);
 
 	while (app.running) {
+		resetImGuiIDs();
+		
 		constexpr float FONT_SCALE = 3.0f;
 		ImGui::GetIO().FontGlobalScale = FONT_SCALE;
 

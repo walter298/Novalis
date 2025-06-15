@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <novalis/detail/reflection/ClassIteration.h>
+#include "EditedObjectData.h"
 
 namespace nv {
     namespace editor {
@@ -54,5 +55,11 @@ namespace nv {
                 objects.clear();
             }
         };
+
+        using UniformObjectVector = Index<
+            EditedObjectData<BufferedNode>,
+            EditedObjectData<DynamicPolygon>,
+            EditedObjectData<Texture>
+        >;
     }
 }
