@@ -13,12 +13,7 @@ namespace nv {
     static constexpr size_t MAX_TEXT_INPUT_LEN = 256;
     static boost::container::static_vector<char, MAX_TEXT_INPUT_LEN> textInputBuff;
     static bool isTypingImpl = false;
-    static KeyState keystate;
     static MouseData mouseState;
-
-    inline KeyState getKeystate() {
-        return keystate;
-    }
 
     inline bool isTyping() {
         return isTypingImpl;
@@ -35,18 +30,6 @@ namespace nv {
     inline MouseData getMouseState() {
         return mouseState;
     }
-
-     static KeyState getPressedKeys() {
-		static auto keyState = SDL_GetKeyboardState(nullptr);
-
-		KeyState key{ 0 };
-
-		for (int i = 0; i < SDL_SCANCODE_COUNT; i++) {
-			key |= static_cast<uint64_t>((keyState[i] << i));
-		}
-
-		return key;
-	}
 
     static void pumpSDLEvents() {
         auto deltaX = 0.0f;
@@ -100,14 +83,16 @@ namespace nv {
         mouseState.deltaX = static_cast<float>(deltaX);
         mouseState.deltaY = static_cast<float>(deltaY);
 
-        keystate = getPressedKeys();
+        /*keystate = getPressedKeys();
         if (keystate & keys::BACKSPACE) {
             textInputBuff.pop_back();
-        }
+        }*/
     }
 
     template<typename Node, typename Rep, typename Period>
     void showScene(Node& root, SDL_Renderer* renderer, EventHandler& handler, std::chrono::duration<Rep, Period> frameRate) {
+        running = true;
+        
         while (running) {
             auto endTime = std::chrono::system_clock::now() + frameRate;
 

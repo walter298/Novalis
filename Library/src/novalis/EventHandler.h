@@ -1,14 +1,15 @@
 #pragma once
 
 #include <chrono>
-#include <functional>
+#include <ranges>
+#include <tuple>
+#include <vector>
 #include <boost/unordered/unordered_flat_map.hpp>
-#include <SDL3/SDL_keyboard.h>
 
 #include "detail/reflection/FunctionTraits.h"
-#include "detail/reflection/ClassIteration.h"
 #include "Event.h"
 #include "ID.h"
+#include "KeyState.h"
 
 namespace nv {
 	class EventHandler {
@@ -21,13 +22,13 @@ namespace nv {
 		template<typename T>
 		struct IDParameter {};
 
-		template<typename P>
-		struct IDParameter<ID<P>> { using Param = P; };
+		template<typename R>
+		struct IDParameter<ID<Event<R>>> { using Ret = R; };
 
 		template<typename ID>
 		constexpr decltype(auto) getEvents() {
-			using Param = typename IDParameter<ID>::Param;
-			return std::get<boost::unordered_flat_map<ID, Event<Param>>>(m_events);
+			using Param = typename IDParameter<ID>::Ret;
+			return std::get<Events<Param>>(m_events);
 		}
 	public:
 		using EventID            = ID<Event<void>>;
@@ -35,85 +36,88 @@ namespace nv {
 	private:
 		std::tuple<std::vector<EventID>, std::vector<CancellableEventID>> m_cancelledEventQueues;
 	public:
-		template<typename Event>
-		void cancel(ID<Event> id) {
-			//std::get<std::vector<ID<Event>>(m_cancelledEventQueues).push_back(id);
+		static constexpr bool CONTINUE_EVENT = false;
+		static constexpr bool END_EVENT      = true;
+
+		static bool isKeyPressed(keys::Key key) {
+			static auto keys = SDL_GetKeyboardState(nullptr);
+			return keys[static_cast<SDL_Scancode>(key)];
+		}
+
+		template<typename T>
+		void cancel(ID<T> id) {
+			//std::get<std::vector<ID<T>>(m_cancelledEventQueues).push_back(id);
 		}
 
 		template<typename Func>
 		auto add(Func&& func) {
-			// using FuncInfo = FunctionTraits<std::decay_t<Func>>;
-			// using FuncRet  = typename FuncInfo::Ret;
+			using FuncInfo = detail::FunctionTraits<std::decay_t<Func>>;
+			using FuncRet  = typename FuncInfo::Ret;
 			
-			// using IDSpecialization = ID<typename GetParameterizedTypeFromTuple<Event, FuncRet>::type>;
-			// IDSpecialization id;
+			using IDSpecialization = ID<Event<FuncRet>>;
+			IDSpecialization id;
 		
-			// //getEvents<IDSpecialization>().emplace(id, std::forward<Func>(func));
+			getEvents<IDSpecialization>().emplace(id, std::forward<Func>(func));
 			
-			// return id;
-			return 0;
+			return id;
+		}
+
+		template<typename FirstEvent, typename SecondEvent, typename... Events>
+		void chain(FirstEvent firstEvent, SecondEvent secondEvent, Events... chainedEvents) {
+			add([this, first = firstEvent, next = std::move(secondEvent), 
+						... chainedEvents = std::move(chainedEvents)]() mutable
+			{
+				if (first()) {
+					if constexpr (sizeof...(Events) > 0) {
+						chain(std::move(next), std::move(chainedEvents)...);
+					} else {
+						add(std::move(next));
+					}
+					return END_EVENT;
+				}
+				return CONTINUE_EVENT;
+			});
 		}
 				
 		template<typename Func, typename Rep, typename Period>
 		auto add(Func&& func, std::chrono::duration<Rep, Period> period) {
-			// using FuncInfo = detail::FunctionTraits<std::decay_t<Func>>;
-			// using FuncRet  = typename FuncInfo::Ret;
+			using FuncInfo = detail::FunctionTraits<std::decay_t<Func>>;
+			using FuncRet  = typename FuncInfo::Ret;
 			
-			// using Duration = std::chrono::duration<Rep, Period>;
+			using Duration = std::chrono::duration<Rep, Period>;
 		
-			// auto periodicEvtWrapper = [func = std::forward<Func>(func), 
-			// 							period = period,
-			// 							lastExecuted = std::chrono::system_clock::now()](auto... args) mutable 
-			// {
-			// 	auto now = std::chrono::system_clock::now();
+			auto periodicEvtWrapper = [func = std::forward<Func>(func), 
+			 							period = period,
+			 							lastExecuted = std::chrono::system_clock::now()]() mutable 
+			{
+			 	auto now = std::chrono::system_clock::now();
 						
-			// 	auto timeElapsed = duration_cast<Duration>(now - lastExecuted);
+			 	auto timeElapsed = std::chrono::duration_cast<Duration>(now - lastExecuted);
 						
-			// 	if (timeElapsed < period) {
-			// 		if constexpr (std::same_as<FuncRet, bool>) {
-			// 			return false;
-			// 		} else {
-			// 			return;
-			// 		}
-			// 	}
-			// 	lastExecuted = now;
-			// 	auto timesToExecute = timeElapsed / period;
+			 	if (timeElapsed < period) {
+			 		if constexpr (std::same_as<FuncRet, bool>) {
+			 			return false;
+			 		} else {
+			 			return;
+			 		}
+			 	}
+			 	lastExecuted = now;
+			 	auto timesToExecute = timeElapsed / period;
 		
-			// 	for (auto i : views::iota(0, timesToExecute)) {
-			// 		if constexpr (std::same_as<FuncRet, bool>) {
-			// 			if (func(args...)) {
-			// 				return true;
-			// 			}
-			// 		} else {
-			// 			func(args...);
-			// 		}
-			// 	}
-			// };
+			 	for (auto i : std::views::iota(0, timesToExecute)) {
+			 		if constexpr (std::same_as<FuncRet, bool>) {
+			 			if (func()) {
+			 				return true;
+			 			}
+			 		} else {
+			 			func();
+			 		}
+			 	}
+			};
 
-			// return add(std::move(periodicEvtWrapper));
+			return add(std::move(periodicEvtWrapper));
 		}
 
-		void operator()() {
-			// //cancelled all events queued to be cancelled
-			// detail::forEachDataMember([this]<typename ID>(std::vector<ID>& ids) {
-			// 	auto& events = getEvents<ID>();
-			// 	for (const auto& id : ids) {
-			// 		events.erase(id);
-			// 	}
-			// 	ids.clear();
-			// 	return detail::STAY_IN_LOOP;
-			// }, m_cancelledEventQueues);
-
-			// auto& events = std::get<Events<void>>(m_events);
-			// for (auto& [id, event] : events) {
-			// 	event();
-			// }
-			// auto& cancellableEvents = std::get<Events<bool>>(m_events);
-			// for (auto& [id, event] : cancellableEvents) {
-			// 	if (event()) {
-			// 		std::get<std::vector<CancellableEventID>>(m_cancelledEventQueues).push_back(id);
-			// 	}
-			// }
-		}
+		void operator()();
 	};
 }

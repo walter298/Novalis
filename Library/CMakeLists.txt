@@ -28,7 +28,7 @@ set(SDLIMAGE_WEBP ON)
 set(SDLIMAGE_PNG ON)
 find_package(sdl3_image CONFIG REQUIRED)
 
-add_library(novalis STATIC ${SOURCES} ${HEADERS} "src/novalis/NodeFileVerification.h" "src/novalis/DynamicNode.h" "src/novalis/detail/NodeBase.h" "src/novalis/detail/serialization/DynamicNodeSerialization.h")
+add_library(novalis STATIC ${SOURCES} ${HEADERS})
 add_library(Novalis::novalis ALIAS novalis)
 
 target_include_directories(novalis

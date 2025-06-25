@@ -2,34 +2,36 @@
 
 #include <cmath>
 #include <span>
+#include <ranges>
 #include <vector>
-
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
-#include <boost/geometry/geometries/register/point.hpp>
 #include <boost/geometry/geometries/register/ring.hpp>
-
+#include <boost/geometry/algorithms/transform.hpp>
+#include <boost/geometry/strategies/transform/matrix_transformers.hpp>
+#include <nlohmann/adl_serializer.hpp>
 #include <SDL3/SDL_render.h>
 
 #include "detail/memory/PointerUtil.h"
 #include "detail/reflection/ClassIteration.h"
+#include "physics/Pi.h"
 #include "Point.h"
 
 namespace nv {
 	namespace detail {
-		//using BGPoint = bg::model::point<float, 2, bg::cs::cartesian>;
-		using BGTransform = boost::geometry::strategy::transform::translate_transformer<float, 2, 2>;
-
 		template<std::ranges::viewable_range PointStorage>
 		struct Polygon {
 			using Points = PointStorage;
 			Points points;
-
+			float currAngle = 0.0f;
 			float currScale = 1.0f;
+			Point rotationPoint;
 
-			template<typename... StorageArgs>
-			Polygon(PointStorage&& storage) : points{ std::move(storage) }
+			Polygon(PointStorage&& storage) : points{ std::move(storage) } {}
+
+			Polygon(PointStorage&& storage, float angle, float scale) noexcept
+				: points{ std::move(storage) }, currAngle{ angle }, currScale{ scale }
 			{
 			};
 
@@ -40,9 +42,29 @@ namespace nv {
 				move(newPos - getPos());
 				return newPos;
 			}
+
+			Point calcCentroid() const noexcept {
+				Point ret;
+				boost::geometry::centroid(points, ret);
+				return ret;
+			}
+
 			void move(Point dMove) noexcept {
 				for (auto& p : points) {
 					p += dMove;
+				}
+			}
+
+			void setRotation(float degrees, Point rotationPoint = {}) noexcept {
+				currAngle = degrees;
+				auto rad = degrees * (physics::pi / 180.0f);
+				for (auto& [x, y] : points) {
+					auto dx = x - rotationPoint.x;
+					auto dy = y - rotationPoint.y;
+					auto newX = (dx * std::cos(rad)) - (dy * std::sin(rad));
+					auto newY = (dx * std::sin(rad)) + (dy * std::cos(rad));
+					x = newX + rotationPoint.x;
+					y = newY + rotationPoint.y;
 				}
 			}
 
@@ -60,7 +82,7 @@ namespace nv {
 				}
 			}
 
-			MAKE_INTROSPECTION(points, currScale)
+			MAKE_INTROSPECTION(points, currAngle, currScale, rotationPoint)
 		};
 
 		using BufferedPolygonRep = Polygon<std::span<Point>>;
@@ -68,7 +90,6 @@ namespace nv {
 	}
 }
 
-BOOST_GEOMETRY_REGISTER_POINT_2D(nv::Point, float, boost::geometry::cs::cartesian, x, y)
 BOOST_GEOMETRY_REGISTER_RING(std::span<nv::Point>)
 BOOST_GEOMETRY_REGISTER_RING(std::vector<nv::Point>)
 BOOST_GEOMETRY_REGISTER_RING(std::vector<std::vector<nv::Point>>)
@@ -128,8 +149,9 @@ namespace nlohmann {
 
 namespace nv {
 	namespace detail {
-		template<typename PointStorage>
-		void renderScreenPoints(SDL_Renderer* renderer, uint8_t opacity, const PointStorage& points) {
+		/*void renderScreenPoints(SDL_Renderer* renderer, uint8_t opacity, const std::span<Point>& points, 
+			SDL_Color color = { 255, 255, 255 }) 
+		{
 			SDL_Color originalDrawColor;
 			SDL_GetRenderDrawColor(renderer, &originalDrawColor.r, &originalDrawColor.g, &originalDrawColor.b, &originalDrawColor.a);
 
@@ -137,7 +159,7 @@ namespace nv {
 			SDL_GetRenderDrawBlendMode(renderer, &originalBlendMode);
 
 			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
-			SDL_SetRenderDrawColor(renderer, 255, 255, 255, opacity);
+			SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, opacity);
 
 			auto pointPairs = std::views::zip(points, points | std::views::drop(1));
 			for (const auto& [p1, p2] : pointPairs) {
@@ -146,7 +168,10 @@ namespace nv {
 			
 			SDL_SetRenderDrawColor(renderer, originalDrawColor.r, originalDrawColor.g, originalDrawColor.b, originalDrawColor.a);
 			SDL_SetRenderDrawBlendMode(renderer, originalBlendMode);
-		}
+		}*/
+
+		void renderScreenPoints(SDL_Renderer* renderer, uint8_t opacity, const std::span<const Point>& points,
+			SDL_Color color = { 255, 255, 255 });
 
 		struct PolygonConverter;
 
@@ -191,6 +216,13 @@ namespace nv {
 			}
 			Point setWorldPos(Point p) noexcept {
 				return m_world.setPos(p);
+			}
+
+			Point calcScreenCentroid() const noexcept {
+				return m_ren.calcCentroid();
+			}
+			Point calcWorldCentroid() const noexcept {
+				return m_world.calcCentroid();
 			}
 
 			void screenMove(Point p) noexcept {
@@ -241,7 +273,32 @@ namespace nv {
 			}
 
 			void render(SDL_Renderer* renderer) const noexcept {
-				renderScreenPoints(renderer, opacity, m_ren.points);
+				renderScreenPoints(renderer, opacity, std::span{ m_ren.points.data(), m_ren.points.size() });
+				renderScreenPoints(renderer, opacity, std::span{ m_world.points.data(), m_world.points.size() }, { 0, 255, 0 });
+			}
+
+			const PointStorage& getScreenPoints() const noexcept {
+				return m_ren.points;
+			}
+			const PointStorage& getWorldPoints() const noexcept {
+				return m_world.points;
+			}
+
+			void resetWorld() noexcept {
+				std::ranges::copy(m_ren.points, m_world.points.begin());
+			}
+
+			void setScreenRotation(float degrees) noexcept {
+				m_ren.setRotation(degrees);
+			}
+
+			void setWorldRotation(float degrees, Point rotationPoint = {}) noexcept {
+				m_world.setRotation(degrees);
+			}
+
+			void setRotation(double degrees, Point rotationPoint = {}) noexcept {
+				m_ren.setRotation(degrees);
+				m_world.setRotation(degrees);
 			}
 
 			friend struct nlohmann::PolygonSerializerBase;
@@ -258,15 +315,22 @@ namespace nv {
 	namespace detail {
 		struct PolygonConverter {
 			static BufferedPolygon makeBufferedPolygon(const DynamicPolygon& polygon) {
-				return nv::BufferedPolygon{
+				Polygon<std::span<Point>> ren{
 					std::span{ const_cast<Point*>(polygon.m_ren.points.data()), polygon.m_ren.points.size() },
-					std::span{ const_cast<Point*>(polygon.m_world.points.data()), polygon.m_world.points.size() }
+					polygon.m_ren.currAngle, polygon.m_ren.currScale
 				};
+				Polygon<std::span<Point>> world{
+					std::span{ const_cast<Point*>(polygon.m_world.points.data()), polygon.m_world.points.size() },
+					polygon.m_world.currAngle, polygon.m_world.currScale
+				};
+
+				return nv::BufferedPolygon{ std::move(ren), std::move(world) };
 			}
 
 			static void deepCopyBufferedPolygons(const std::byte* srcArena, std::byte* destArena,
 				const nv::BufferedPolygon& srcPoly, nv::BufferedPolygon& destPoly)
 			{
+				//copy points
 				auto copyPointSpan = [&](const std::span<Point>& src, std::span<Point>& dest) {
 					Point* relativePtr{};
 					matchOffset(srcArena, src.data(), destArena, relativePtr);
@@ -275,8 +339,20 @@ namespace nv {
 				};
 				copyPointSpan(srcPoly.m_ren.points, destPoly.m_ren.points);
 				copyPointSpan(srcPoly.m_world.points, destPoly.m_world.points);
+
+				//copy scale
 				destPoly.m_ren.currScale = srcPoly.m_ren.currScale;
 				destPoly.m_world.currScale = srcPoly.m_world.currScale;
+
+				//copy angle
+				destPoly.m_ren.currAngle = srcPoly.m_ren.currAngle;
+				destPoly.m_world.currAngle = srcPoly.m_world.currAngle;
+
+				//copy rotation point
+				destPoly.m_ren.rotationPoint = srcPoly.m_ren.rotationPoint;
+				destPoly.m_world.rotationPoint = srcPoly.m_world.rotationPoint;
+
+				//copy opacity
 				destPoly.opacity = srcPoly.opacity;
 			}
 		};

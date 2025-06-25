@@ -62,7 +62,7 @@ namespace nv {
 
 			template<typename Callable>
 			void forEachExcept(this auto&& self, Callable callable, size_t excludedLayer) {
-				auto exec = [](auto& layer) {
+				auto exec = [&](auto& layer) {
 					forEachDataMember([layer, &callable](auto& objHive) {
 						for (auto& obj : objHive) {
 							if (callable(layer, unptrwrap(obj)) == BREAK_FROM_LOOP) {
@@ -132,11 +132,13 @@ namespace nv {
 			float m_screenScale = 1.0f;
 			float m_worldScale = 1.0f;
 			uint8_t m_opacity = 255;
+			Point m_screenPos{ 0.0f, 0.0f };
+			Point m_worldPos{ 0.0f, 0.0f };
 		public:
 			template<typename T, typename StringComp>
 			decltype(auto) find(this auto&& self, const StringComp& name) noexcept {
 				return unptrwrap(std::get<
-					typename NodeTraits::template ObjectLookupMap<typename NodeTraits::String, T>
+					typename NodeTraits::template ObjectLookupMap<typename NodeTraits::String, T*>
 				>(self.m_objectLookups).at(name));
 			}
 			template<typename Object>
@@ -145,7 +147,7 @@ namespace nv {
 			}
 			template<typename Object>
 			decltype(auto) findObjectsInLayer(this auto&& self, std::string_view layerName) {
-				return std::get<ObjectStorage<Object>>(*self.m_layerMap.at(layerName));
+				return std::get<ObjectStorage<Object>>(self.m_layerMap.at(layerName));
 			}
 			decltype(auto) findObjectGroup(this auto&& self, std::string_view layerName) {
 				return self.m_objectGroupMap.at(layerName);
@@ -159,6 +161,7 @@ namespace nv {
 			}
 
 			void screenMove(Point change) noexcept {
+				m_screenPos += change;
 				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
 					unptrwrap(obj).screenMove(change);
 					return STAY_IN_LOOP;
@@ -166,24 +169,43 @@ namespace nv {
 			}
 
 			void worldMove(Point change) noexcept {
+				m_worldPos += change;
 				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
 					unptrwrap(obj).worldMove(change);
 					return STAY_IN_LOOP;
 				});
 			}
 
+			void move(Point change) noexcept {
+				screenMove(change);
+				worldMove(change);
+			}
+
 			void setScreenPos(Point pos) noexcept {
-				/*m_objectLayers.forEach([&, this](auto layer, auto& obj) {
-					unptrwrap(obj).setScreenPos(pos);
-					return STAY_IN_LOOP;
-				});*/
+				screenMove(pos - m_screenPos);
 			}
 
 			void setWorldPos(Point pos) noexcept {
-				/*m_objectLayers.forEach([&, this](auto layer, auto& obj) {
-					unptrwrap(obj).setWorldPos(pos);
+				worldMove(pos - m_worldPos);
+			}
+
+			void setWorldRotation(float angle, Point rotationPoint) noexcept {
+				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
+					unptrwrap(obj).setWorldRotation(angle, rotationPoint);
 					return STAY_IN_LOOP;
-				});*/
+				});
+			}
+			void setScreenRotation(float angle, Point rotationPoint) noexcept {
+				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
+					unptrwrap(obj).setScreenRotation(angle, rotationPoint);
+					return STAY_IN_LOOP;
+				});
+			}
+			void setRotation(float angle, Point rotationPoint) noexcept {
+				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
+					unptrwrap(obj).setRotation(angle, rotationPoint);
+					return STAY_IN_LOOP;
+				});
 			}
 
 			template<typename Func>
@@ -196,10 +218,17 @@ namespace nv {
 			}
 
 			inline Point getScreenPos() const noexcept {
-				return { 0.0f, 0.0f };
+				return m_screenPos;
 			}
 			inline Point getWorldPos() const noexcept {
-				return { 0.0f, 0.0f };
+				return m_worldPos;
+			}
+
+			void resetWorld() noexcept {
+				m_objectLayers.forEach([](auto layer, auto& obj) {
+					unptrwrap(obj).resetWorld();
+					return STAY_IN_LOOP;
+				});
 			}
 
 			inline void setOpacity(uint8_t opacity) noexcept {

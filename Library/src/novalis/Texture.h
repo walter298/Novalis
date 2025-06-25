@@ -132,11 +132,16 @@ namespace nv {
 		}
 	};
 	
+	struct TextureRotationData {
+		float angle = 0.0f;
+		Point rotationPoint;
+	};
+
 	struct TextureRenderData {
 		Rect ren;
 		Rect world;
-		Point rotationPoint{ 0, 0 };
-		double angle = 0.0;
+		TextureRotationData screenRotationData;
+		TextureRotationData worldRotationData;
 		SDL_FlipMode flip = SDL_FLIP_NONE;
 	};
 
@@ -162,9 +167,10 @@ namespace nv {
 		}
 
 		void render(SDL_Renderer* renderer) const noexcept {
-			SDL_FPoint rotationPoint = texData.rotationPoint;
+			auto [angle, rotationPoint] = texData.screenRotationData;
+			SDL_FPoint rotationPointC = rotationPoint;
 			auto rect = texData.ren.sdlRect();
-			SDL_RenderTextureRotated(renderer, tex.tex, nullptr, &rect, texData.angle, &rotationPoint, texData.flip);
+			SDL_RenderTextureRotated(renderer, tex.tex, nullptr, &rect, static_cast<double>(angle), &rotationPointC, texData.flip);
 		}
 
 		void screenScale(float newScale, SDL_FPoint refPoint = { 0, 0 }) noexcept {
@@ -184,6 +190,10 @@ namespace nv {
 		}
 		void worldMove(Point change) noexcept {
 			texData.world.move(change);
+		}
+		void move(Point change) {
+			screenMove(change);
+			worldMove(change);
 		}
 		Point getScreenPos() const noexcept {
 			return texData.ren.getPos();
@@ -209,9 +219,15 @@ namespace nv {
 		Point setScreenSize(Point p) noexcept {
 			return texData.ren.setSize(p);
 		}
-		void rotate(double angle, Point rotationPoint) noexcept {
-			texData.angle = angle;
-			texData.rotationPoint = rotationPoint;
+		void setScreenRotation(float angle, Point rotationPoint) noexcept {
+			texData.screenRotationData = { angle, rotationPoint };
+		}
+		void setWorldRotation(float angle, Point rotationPoint) noexcept {
+			texData.worldRotationData = { angle, rotationPoint };
+		}
+		void setRotation(float angle, Point rotationPoint) noexcept {
+			setScreenRotation(angle, rotationPoint);
+			setWorldRotation(angle, rotationPoint);
 		}
 		void setOpacity(uint8_t opacity) noexcept {
 			SDL_SetTextureAlphaMod(tex.tex, opacity);
@@ -221,6 +237,10 @@ namespace nv {
 		}
 		bool containsWorldCoord(Point p) const noexcept {
 			return texData.world.containsCoord(p);
+		}
+
+		void resetWorld() noexcept {
+			texData.world = texData.ren;
 		}
 
 		PixelData calcPixelData(SDL_Renderer* renderer) const {

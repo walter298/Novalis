@@ -31,8 +31,9 @@ namespace nv {
 		template<typename Object>
 		concept RotateableObject = requires(Object obj) {
 			{ obj } -> RenderableObject;
-			obj.rotate(0.0, Point{ 0.0f, 0.0f });
-			obj.setRotationCenter();
+			obj.setRotation(0.0f);
+			obj.setScreenRotation(0.0f);
+			obj.setWorldRotation(0.0f);
 		};
 
 		template<typename Object>

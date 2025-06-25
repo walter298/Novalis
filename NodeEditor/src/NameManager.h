@@ -25,11 +25,6 @@ namespace nv {
 					newName += ("(ID=" + std::to_string(m_uniqueTextNum) + ")");
 					m_uniqueTextNum++;
 				}
-				if (newName == "(ID=0)") {
-					static int x = 0;
-					x++;
-					assert(x != 2);
-				}
 				m_takenNames.insert(newName);
 			}
 

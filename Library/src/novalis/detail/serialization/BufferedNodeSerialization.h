@@ -49,7 +49,7 @@ namespace nlohmann {
 		static RegionMap makeRegionMap(std::byte* arena, const json& root) {
 			RegionMap ret;
 			ret.forEach([&]<typename Object>(nv::detail::MemoryRegion & region) {
-				std::println("Offset Key: {}", typeOffsetKey<Object>());
+				//std::println("Offset Key: {}", typeOffsetKey<Object>());
 				auto offset = root[typeOffsetKey<Object>()].get<size_t>();
 				auto regionLen = root[typeSizeKey<Object>()].get<size_t>();
 				region = { arena + offset, regionLen };
@@ -139,35 +139,64 @@ namespace nlohmann {
 			}
 		}
 
-		static nv::BufferedNode* loadChildNode(const json& nodeJson, 
-			nv::detail::MemoryRegion& childNodeRegion, nv::detail::MemoryRegion& childNodeArenaRegion)
+		/*metadataJson[PATH_KEY] = obj.filePath;
+		metadataJson[OPACITY_KEY] = obj.obj.getOpacity();
+		metadataJson[SCREEN_SCALE_KEY] = obj.obj.getScreenScale();
+		metadataJson[SCREEN_POS_KEY] = obj.obj.getScreenPos();
+		metadataJson[WORLD_POS_KEY] = obj.obj.getWorldPos();*/
+
+		static nv::BufferedNode* loadChildNode(const json& nodeJson, RegionMap& regionMap)
 		{
 			auto& registry = nv::getGlobalInstance()->registry;
-			auto child = registry.loadBufferedNode(nodeJson[PATH_KEY]);
+			auto childSrc = registry.loadBufferedNode(nodeJson[PATH_KEY]);
+			auto childSrcArena = std::get<nv::detail::AlignedBuffer<>>(childSrc.m_arena).data;
 
-			auto childCopy = childNodeRegion.allocate<nv::BufferedNode>(1);
-			childCopy->m_byteC = child.m_byteC;
-			childCopy->m_arena = childNodeArenaRegion.allocate<std::byte>(child.m_byteC);
-			nv::BufferedNode::deepCopyChild(child, std::get<std::byte*>(child.m_arena),
-				*childCopy, std::get<std::byte*>(childCopy->m_arena));
-			childCopy->setOpacity(nodeJson[OPACITY_KEY]);
+			assert(childSrc.m_byteC > 0);
 
-			return childCopy;
+			auto& childNodeRegion = regionMap.get<nv::BufferedNode>();
+			auto& childNodeArenaRegion = regionMap.get<std::byte>();
+
+			auto childDest = childNodeRegion.emplace<nv::BufferedNode>();
+			childDest->m_byteC = childSrc.m_byteC;
+			childDest->m_arena = childNodeArenaRegion.allocate<std::byte>(childSrc.m_byteC);
+			auto childDestArena = std::get<std::byte*>(childDest->m_arena);
+
+			nv::BufferedNode::deepCopyChild(childSrc, childSrcArena, *childDest, childDestArena);
+
+			//set metadata
+			childDest->resetWorld();
+			childDest->setOpacity(nodeJson[OPACITY_KEY].get<uint8_t>());
+			childDest->screenScale(nodeJson[SCREEN_SCALE_KEY].get<float>());
+			childDest->setScreenPos(nodeJson[SCREEN_POS_KEY].get<nv::Point>());
+			childDest->setWorldPos(nodeJson[WORLD_POS_KEY].get<nv::Point>());
+
+			return childDest;
 		}
 
 		static std::span<nv::BufferedNode*> parseNodeGroup(
-			const json& nodeGroupJson, nv::detail::MemoryRegion& charRegion,
-			nv::detail::MemoryRegion childNodePtrRegion, nv::detail::MemoryRegion& childNodeRegion, 
-			nv::detail::MemoryRegion& childNodeArenaRegion, nv::BufferedNode::Map<nv::BufferedNode*>& map)
+			const json& nodeGroupJson, RegionMap& regionMap, nv::BufferedNode::Map<nv::BufferedNode*>& map,
+			ObjectGroupCreator& objectGroupCreator)
 		{
-			for (const auto& nodeJson : nodeGroupJson) {
-				auto objectPtr = childNodePtrRegion.emplace<nv::BufferedNode*>(
-					loadChildNode(nodeJson[OBJECT_KEY], childNodeRegion, childNodeArenaRegion)
-				);
-				createLookup(nodeJson[METADATA_KEY], charRegion, map, *objectPtr);
+			//return default null span if there are no nodes in the group
+			if (nodeGroupJson.size() == 0) {
+				return std::span<nv::BufferedNode*>{};
 			}
-			//return childNodePtrRegion.interpretAsSpan<nv::BufferedNode*>();
-			return std::span<nv::BufferedNode*>{}; //TODO: actually implement this
+
+			auto& nodePtrRegion = regionMap.get<nv::BufferedNode*>();
+			auto nodePtrArray = nodePtrRegion.allocate<nv::BufferedNode*>(nodeGroupJson.size());
+			std::span nodePtrSpan{ nodePtrArray, nodeGroupJson.size() };
+
+			for (const auto& [idx, nodeJson] : std::views::enumerate(nodeGroupJson)) {
+				auto& childNodePtrRegion = regionMap.get<nv::BufferedNode*>();
+				auto& metadataJson = nodeJson[METADATA_KEY];
+
+				auto objectPtr = loadChildNode(metadataJson, regionMap);
+				nodePtrSpan[idx] = objectPtr;
+				createLookup(metadataJson, regionMap.get<char>(), map, objectPtr);
+				addToObjectGroups(metadataJson, objectGroupCreator, objectPtr);
+			}
+			
+			return nodePtrSpan;
 		}
 
 		template<typename Object>
@@ -175,6 +204,7 @@ namespace nlohmann {
 			nv::detail::MemoryRegion& charRegion, nv::detail::MemoryRegion& objectRegion,
 			nv::BufferedNode::Map<Object*>& map, ObjectGroupCreator& objectGroupCreator)
 		{
+			//if there are no objects in the group, return default span
 			if (objectGroupJson.size() == 0) {
 				return std::span<Object>{};
 			}
@@ -200,6 +230,11 @@ namespace nlohmann {
 
 			auto regionMap      = makeRegionMap(std::get<nv::detail::AlignedBuffer<std::byte>>(ret.m_arena).data, root);
 			ret.m_objectLookups = makeObjectMap(regionMap);
+
+			//make layer map
+			using LayerMapEntry = nv::BufferedNode::LayerMap::Entry;
+			ret.m_layerMap.arr = regionMap.get<LayerMapEntry>().interpretAsSpan<LayerMapEntry>();
+
 			ObjectGroupCreator objectGroupCreator{ regionMap, root };
 
 			//allocate layers
@@ -210,14 +245,20 @@ namespace nlohmann {
 			), layersJson.size() };
 
 			//make polygon serializer allocate memory from our specified point region
-			auto pointRegion = &regionMap.get<nv::Point>();
-			adl_serializer<nv::BufferedPolygon>::currentPointRegion = pointRegion;
-
 			for (auto&& [objectLayer, jsonLayer] : std::views::zip(ret.m_objectLayers, layersJson)) {
+				//reset point region in case we loaded a child node 
+				auto pointRegion = &regionMap.get<nv::Point>();
+				adl_serializer<nv::detail::Polygon<std::span<nv::Point>>>::currentPointRegion = pointRegion;
+
+				//create layer lookup
+				auto layerName = makeBufferedString(jsonLayer[NAME_KEY].get<std::string>(), regionMap.get<char>());
+				ret.m_layerMap.insert(std::move(layerName), &objectLayer);
+
 				nv::detail::forEachDataMember([&]<typename Object>(std::span<Object>& objectSpan) {
 					objectSpan = std::span<Object>{}; //default initialize object span
 
-					auto typeName = nv::detail::getTypeName<Object>();
+					//remove pointer for nv::BufferedNode*, whose key is nv::BufferedNode
+					auto typeName = nv::detail::getTypeName<std::remove_pointer_t<Object>>();
 					auto objectGroupJsonIt = jsonLayer.find(typeName);
 					if (objectGroupJsonIt == jsonLayer.end()) {
 						return nv::detail::STAY_IN_LOOP;
@@ -230,8 +271,12 @@ namespace nlohmann {
 					auto& objectRegion     = regionMap.get<Object>();
 					auto objectLayerRegion = objectRegion.makeSubregion(0, objectGroupJson.size() * sizeof(Object));
 					auto& objectMap        = std::get<ObjectMap>(ret.m_objectLookups);
-		
-					if constexpr (!std::same_as<Object, nv::BufferedNode*>) {
+					
+					if constexpr (std::same_as<Object, nv::BufferedNode*> || std::same_as<Object, nv::BufferedNode>) {
+						objectSpan = parseNodeGroup(
+							objectGroupJson, regionMap, objectMap, objectGroupCreator
+						);
+					} else {
 						objectSpan = parseObjectGroup(
 							objectGroupJson, regionMap.get<char>(), objectRegion, objectMap, objectGroupCreator
 						);

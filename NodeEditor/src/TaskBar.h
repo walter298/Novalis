@@ -21,6 +21,7 @@ namespace nv {
 					auto nodeJson = json::parse(file);
 					EditedObjectData<BufferedNode> ret{ nodeJson.get<BufferedNode>() };
 					ret.filePath = *filePath;
+					ret.obj.resetWorld();
 					return ret;
 				} catch (std::exception e) {
 					std::println(stderr, "{}", e.what());

@@ -35,7 +35,7 @@ namespace nv {
 
 		template<template<typename... Ts> typename Parameterized, typename... Ts2>
 		struct GetParameterizedTypeFromTuple<Parameterized, std::tuple<Ts2...>> {
-			using type = Parameterized<Ts2...>;
+			using Type = Parameterized<Ts2...>;
 		};
 
 		template<typename Parameterized>

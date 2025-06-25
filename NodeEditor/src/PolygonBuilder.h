@@ -24,13 +24,21 @@ namespace nv {
 				auto first = m_screenPoints.front();
 				m_screenPoints.push_back(std::move(first));
 
-				auto makeWorldPoints = m_screenPoints | std::views::transform([&](const Point& point) {
-					return Point{ point.x + worldOffsetX, point.y + worldOffsetY };
-				});
-				std::vector<Point> worldPoints;
-				worldPoints.append_range(makeWorldPoints);
+				std::vector<Point> convexScreenPoints;
+				boost::geometry::convex_hull(m_screenPoints, convexScreenPoints);
 
-				DynamicPolygon poly{ std::move(m_screenPoints), std::move(worldPoints) };
+				auto convexWorldPoints = convexScreenPoints;
+
+				/*std::vector<Point> worldPoints{
+					std::from_range, 
+					convexScreenPoints | std::views::transform([&](const Point& point) {
+						return Point{ point.x + worldOffsetX, point.y + worldOffsetY };
+					})
+				};*/
+
+				DynamicPolygon poly{ std::move(convexScreenPoints), std::move(convexWorldPoints) };
+				poly.opacity = 255;
+
 				m_screenPoints.clear();
 				m_building = false;
 				return poly;

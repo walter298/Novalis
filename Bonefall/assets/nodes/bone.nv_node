@@ -1,0 +1,162 @@
+{
+  "Bytes": 464,
+  "Layers": [
+    {
+      "Name": "",
+      "nv::BufferedNode": [],
+      "nv::Texture": [
+        {
+          "Metadata": {
+            "Name": "(ID=0)",
+            "Object_Group": [
+              "Unnamed group #0"
+            ]
+          },
+          "Object": {
+            "Image_Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Bonefall\\assets\\images\\Bones\\bone.png",
+            "Render_Data": [
+              [
+                [
+                  496.0,
+                  583.0
+                ],
+                [
+                  291.0,
+                  276.0
+                ],
+                1.0
+              ],
+              [
+                [
+                  -15.0,
+                  -73.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ],
+                1.0
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              0
+            ]
+          }
+        }
+      ],
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >": [
+        {
+          "Metadata": {
+            "Name": "hitbox",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  514.0,
+                  797.0
+                ],
+                [
+                  645.0,
+                  835.0
+                ],
+                [
+                  722.0,
+                  653.0
+                ],
+                [
+                  593.0,
+                  638.0
+                ],
+                [
+                  514.0,
+                  797.0
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  1025.0,
+                  1453.0
+                ],
+                [
+                  1156.0,
+                  1491.0
+                ],
+                [
+                  1233.0,
+                  1309.0
+                ],
+                [
+                  1104.0,
+                  1294.0
+                ],
+                [
+                  1025.0,
+                  1453.0
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "Name": "Bone",
+  "Object_Group": [
+    {
+      "Name": "Unnamed group #0",
+      "nv::BufferedNode*_Count": 0,
+      "nv::Texture*_Count": 1,
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Count": 0
+    }
+  ],
+  "__cdecl nv::detail::getTypeName<char_Offset": 8,
+  "__cdecl nv::detail::getTypeName<char_Size": 28,
+  "nv::BufferedNode*_Offset": 280,
+  "nv::BufferedNode*_Size": 0,
+  "nv::BufferedNode_Offset": 280,
+  "nv::BufferedNode_Size": 0,
+  "nv::Point_Offset": 36,
+  "nv::Point_Size": 80,
+  "nv::Texture*_Offset": 200,
+  "nv::Texture*_Size": 8,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1> >_Offset": 280,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1> >_Size": 48,
+  "nv::Texture_Offset": 120,
+  "nv::Texture_Size": 80,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Offset": 392,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1> > >::Entry_Offset": 392,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1> > >::Entry_Size": 72,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1> > *>::Entry_Offset": 464,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1> > *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Offset": 328,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Size": 32,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Offset": 360,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Size": 32,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Offset": 280,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Size": 0,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Offset": 208,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Size": 72,
+  "std::byte_Offset": 280,
+  "std::byte_Size": 0
+}

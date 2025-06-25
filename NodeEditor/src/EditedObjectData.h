@@ -28,6 +28,7 @@ namespace nv {
 		public:
 			Object obj;
 			uint8_t opacity = 255;
+			float angle = 0.0f;
 			float scale = 1.0f;
 			ID<void> id;
 			boost::unordered_flat_set<ID<EditedObjectGroup>> groupIDs;

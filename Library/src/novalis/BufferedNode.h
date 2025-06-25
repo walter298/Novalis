@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cassert>
 #include <variant>
 #include <boost/functional/hash.hpp>
 #include <boost/unordered/unordered_flat_map.hpp>
 
 #include "detail/NodeBase.h"
 #include "detail/memory/AlignedBuffer.h"
+#include "detail/debug/TrackedValue.h"
 
 namespace nv {
 	namespace detail {
@@ -14,6 +16,21 @@ namespace nv {
 
 			char* buff = nullptr;
 			size_t len = 0;
+
+			BufferedString copy(const std::byte* srcArena, std::byte* destArena) const noexcept {
+				BufferedString ret;
+				ret.len = len;
+
+				//make dest buff point to the same relative address as the src buff
+				char* relativePtr = nullptr;
+				matchOffset(srcArena, buff, destArena, relativePtr);
+				ret.buff = relativePtr;
+
+				//copy the string contents
+				strncpy(ret.buff, buff, len);
+
+				return ret;
+			}
 
 			inline bool operator==(const BufferedString& other) const noexcept {
 				if (len != other.len) {
@@ -32,7 +49,8 @@ namespace nv {
 
 			template<size_t N>
 			inline bool operator==(const char(&other)[N]) const noexcept {
-				if (len != N) {
+				assert(N > 0);
+				if (len != N - 1) { //subtract 1 because N includes the null terminator
 					return false;
 				}
 				return strncmp(buff, other, len) == 0;
@@ -62,53 +80,35 @@ namespace nv {
 
 	namespace detail {
 		template<std::equality_comparable Key, typename T>
-		class BufferedObjectMap {
-		public:
+		struct BufferedObjectMap {
 			struct Entry {
 				Key key;
 				T object;
 				bool isTombstone = true;
 			};
-		private:
-			std::span<Entry> m_arr;
-
-			static void deepCopyMapEntry(const std::byte* srcArena, std::byte* destArena,
-				const Entry& srcEntry, Entry& destEntry)
-			{
-				matchOffset(srcArena, srcEntry.key.buff, destArena, destEntry.key.buff);
-				matchOffset(srcArena, srcEntry.object, destArena, destEntry.object);
-			}
-		public:
-			static void copy(const std::byte* srcArena, std::byte* destArena,
-				const BufferedObjectMap& srcMap, BufferedObjectMap& destMap)
-			{
-				for (auto&& [srcEntry, destEntry] : std::views::zip(srcMap.m_arr, destMap.m_arr)) {
-					//deepCopyMapEntry(srcArena, destArena, srcEntry, destEntry);
-					matchOffset(srcArena, srcEntry.key.buff, destArena, destEntry.key.buff);
-					matchOffset(srcArena, srcEntry.object, destArena, destEntry.object);
-				}
-			}
+		
+			std::span<Entry> arr;
 
 			static constexpr size_t ENTRY_SIZE = sizeof(Entry);
 
 			BufferedObjectMap() = default;
-			BufferedObjectMap(std::span<Entry> entries) : m_arr{ entries } 
+			BufferedObjectMap(std::span<Entry> entries) : arr{ entries }
 			{
 			}
 
 			template<typename U>
 			decltype(auto) at(this auto&& self, const U& otherKey) noexcept {
-				decltype(auto) hashIdx = std::hash<U>{}(otherKey) % self.m_arr.size();
+				decltype(auto) hashIdx = std::hash<U>{}(otherKey) % self.arr.size();
 
-				for (size_t i = 0; i < self.m_arr.size(); i++) {
-					auto& [key, objPtr, isTombstone] = self.m_arr[hashIdx];
+				for (size_t i = 0; i < self.arr.size(); i++) {
+					auto& [key, objPtr, isTombstone] = self.arr[hashIdx];
 					if (isTombstone) {
 						continue;
 					}
-					if (key.operator==(otherKey)) { //.operator== inhibits argument dependent lookup
+					if (key.operator==(otherKey)) { //.operator== inhibits ADL
 						return std::forward_like<decltype(self)>(unptrwrap(objPtr));
 					}
-					hashIdx = (hashIdx + 1) % self.m_arr.size();
+					hashIdx = (hashIdx + 1) % self.arr.size();
 				}
 				if constexpr (concepts::Printable<U>) {
 					std::println("Error: could not find {}", otherKey);
@@ -118,32 +118,32 @@ namespace nv {
 				}
 				std::abort();
 				std::unreachable();
-				return std::forward_like<decltype(self)>(unptrwrap(self.m_arr[0].object)); //only here so that return type can be deduced
+				return std::forward_like<decltype(self)>(unptrwrap(self.arr[0].object)); //only here so that return type can be deduced
 			}
 
 			void insert(const Key& newKey, T object) noexcept {
-				assert(m_arr.data());
+				assert(arr.data());
 
-				size_t hashIdx = std::hash<Key>{}(newKey) % m_arr.size();
-				for (size_t i = 0; i < m_arr.size(); i++) {
-					auto& [key, objPtr, isTombstone] = m_arr[hashIdx];
+				size_t hashIdx = std::hash<Key>{}(newKey) % arr.size();
+				for (size_t i = 0; i < arr.size(); i++) {
+					auto& [key, objPtr, isTombstone] = arr[hashIdx];
 					if (isTombstone) {
 						key = newKey;
 						objPtr = std::move(object);
 						isTombstone = false;
 						return;
 					}
-					hashIdx = (hashIdx + 1) % m_arr.size();
+					hashIdx = (hashIdx + 1) % arr.size();
 				}
 				std::println("Error: no space left in hashmap!");
 				std::abort();
 			}
 
 			auto begin(this auto&& self) {
-				return self.m_arr.begin();
+				return self.arr.begin();
 			}
 			auto end(this auto&& self) {
-				return self.m_arr.end();
+				return self.arr.end();
 			}
 			using mapped_type = T*;
 			using key_type = BufferedString;
@@ -193,8 +193,10 @@ namespace nv {
 		using Arena = std::variant<detail::AlignedBuffer<std::byte>, std::byte*>;
 
 		Arena m_arena = nullptr;
-		size_t m_byteC = 0;
+		size_t m_byteC{ 0 };
 
+		static void copyGroupMaps(const std::byte* srcArena, std::byte* destArena,
+			const ObjectGroupMap& srcObjectGroupMap, ObjectGroupMap& destObjectGroupMap);
 		static void copyNodeSpan(const std::byte* srcArena, std::byte* destArena, const std::span<BufferedNode*>& srcSpan,
 			std::span<BufferedNode*>& destSpan);
 		static void deepCopyLayer(const std::byte* srcArena, std::byte* destArena,
@@ -224,9 +226,9 @@ namespace nv {
 
 		static void deepCopyChild(const nv::BufferedNode& src, const std::byte* srcArena,
 			nv::BufferedNode& dest, std::byte* destArena);
-
-		BufferedNode() = default;
 	public:
+		BufferedNode() noexcept = default;
+
 		template<typename T>
 		using Map = ObjectLookupMap<detail::BufferedString, T>;
 
@@ -244,7 +246,7 @@ namespace nv {
 			BufferedPolygon*,
 			BufferedNode,
 			BufferedNode*,
-			std::byte*, //child node arena region
+			std::byte, //child node arena region
 			detail::BufferedNodeTraits::Layer,
 			ObjectMapEntry<nv::Texture*>,
 			ObjectMapEntry<BufferedPolygon*>,
@@ -262,5 +264,6 @@ namespace nv {
 		}
 
 		friend struct nlohmann::adl_serializer<BufferedNode>;
+		friend class detail::MemoryRegion;
 	};
 }

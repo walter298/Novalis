@@ -13,13 +13,27 @@ namespace nv {
 			ID<EditedObjectGroup> m_currUniversalObjectGroupID        = ID<EditedObjectGroup>::None();
 			ID<EditedObjectGroup> m_currObjectSpecificObjectGroupID = ID<EditedObjectGroup>::None();
 		public:
-			std::pair<const ID<EditedObjectGroup>, EditedObjectGroup&> addGroup() {
+			ID<EditedObjectGroup> addGroup() {
 				auto [it, inserted] = m_objectGroups.emplace(
 					std::piecewise_construct, std::forward_as_tuple(), std::forward_as_tuple()
 				);
 				m_currUniversalObjectGroupID = it->first;
 				it->second.name = "Unnamed group #" + std::to_string(m_currUniversalObjectGroupID);
-				return { it->first, it->second };
+				return it->first;
+			}
+			ID<EditedObjectGroup> addGroup(EditedObjectGroup&& objectGroup) {
+				auto [it, inserted] = m_objectGroups.emplace(
+					std::piecewise_construct, std::forward_as_tuple(), std::forward_as_tuple(std::move(objectGroup))
+				);
+				m_currUniversalObjectGroupID = it->first;
+				it->second.name = "Unnamed group #" + std::to_string(m_currUniversalObjectGroupID);
+				return it->first;
+			}
+
+			template<typename Object>
+			void addObjectToGroup(ID<EditedObjectGroup>& groupID, EditedObjectData<Object>& object) {
+				object.groupIDs.insert(groupID);
+				m_objectGroups.at(groupID).addObject(&object);
 			}
 
 			void removeGroup(ID<EditedObjectGroup> id) {

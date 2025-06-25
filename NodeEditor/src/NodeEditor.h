@@ -40,12 +40,11 @@ namespace nv {
 			std::vector<Layer> m_layers;
 			ObjectSearch m_objectSearch;
 			size_t m_currLayerIdx = 0;
-			int m_worldX = 0;
-			int m_worldY = 0;
 			bool m_draggingObject = true;
 			nv::detail::TypeMap<bool, BufferedNode, DynamicPolygon, Texture> m_objectSelectionFilter{ true };
 			bool m_creatingObjectGroup = false;
-			
+			uint8_t m_externalLayerOpacity = 90;
+
 			template<typename Object>
 			struct SelectedObjectData {
 				EditedObjectData<Object>* obj = nullptr;
@@ -72,14 +71,13 @@ namespace nv {
 
 			template<typename Object>
 			void showObjectRotationOption(SelectedObjectData<Object>& editedObj) {
-				/*ImGui::SetNextItemWidth(getInputWidth());
+				ImGui::SetNextItemWidth(getInputWidth());
 				ImGui::Text("Rotation");
-				auto floatAngle = static_cast<float>(editedObj.obj->angle);
 				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::SliderFloat("Angle", &floatAngle, 0.0f, 360.0f)) {
-					editedObj.obj->obj.rotate(static_cast<double>(floatAngle), editedObj.obj->rotationPoint);
+				if (ImGui::SliderFloat("Angle", &editedObj.obj->angle, 0.0f, 360.0f)) {
+					editedObj.obj->obj.setRotation(editedObj.obj->angle);
 				}
-				ImGui::SetNextItemWidth(getInputWidth());
+				/*ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::InputInt("Rotation x", &editedObj.obj->rotationPoint.x)) {
 					editedObj.obj->obj.rotate(static_cast<double>(floatAngle), editedObj.obj->rotationPoint);
 				}
@@ -148,39 +146,23 @@ namespace nv {
 				}
 			}
 
-			template<concepts::MoveableObject Object>
-			void showXYCoordinateOption(SelectedObjectData<Object>& editedObj) {
-				ImGui::SetNextItemWidth(getInputWidth());
-				bool changedX = ImGui::InputFloat("x", &editedObj.obj->x);
-				ImGui::SetNextItemWidth(getInputWidth());
-				bool changedY = ImGui::InputFloat("y", &editedObj.obj->y);
-
-				if (changedX || changedY) {
-					auto [wx, wy] = editedObj.obj->obj.getWorldPos();
-					Point change{ editedObj.obj->x - wx, editedObj.obj->y - wy };
-					editedObj.obj->obj.move(change);
-				}
-			}
-
 			void createCollisionOutlines(SDL_Renderer* renderer, ID<EditedObjectGroup> groupID, 
-				EditedObjectGroup& collisionGroup, EditedObjectData<Texture>& editedTex) 
+				EditedObjectData<Texture>& editedTex) 
 			{
-				editedTex.groupIDs.insert(groupID);
-				collisionGroup.addObject(&editedTex);
-
+				m_objectGroupManager.addObjectToGroup(groupID, editedTex);
 				auto collisionOutlines = getPolygonOutlines(renderer, editedTex.obj, m_worldOffsetX, m_worldOffsetY);
 				for (auto& outline : collisionOutlines) {
-					auto& object = transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
-					object.groupIDs.insert(groupID);
-					collisionGroup.addObject(&object);
+					auto& editedOutline = transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
+					editedOutline.groupIDs.insert(groupID);
+					m_objectGroupManager.addObjectToGroup(groupID, editedOutline);
 				}
 			}
 
 			void showCollisionOutlineOption(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex) {
 				ImGui::SetNextItemWidth(getInputWidth());
 				if (ImGui::Button("Create collision outline")) {
-					auto [spriteGroupID, spriteGroup] = m_objectGroupManager.addGroup();
-					createCollisionOutlines(renderer, spriteGroupID, spriteGroup, editedTex);
+					auto spriteGroupID = m_objectGroupManager.addGroup();
+					createCollisionOutlines(renderer, spriteGroupID, editedTex);
 				}
 			}
 
@@ -218,11 +200,6 @@ namespace nv {
 				//duplication 
 				if constexpr (std::copy_constructible<Object>) {
 					showObjectDuplicationOption(editedObj);
-				}
-
-				//x-y coordinates
-				if constexpr (concepts::MoveableObject<Object>) {
-					showXYCoordinateOption(editedObj);
 				}
 
 				//collision outline
@@ -271,19 +248,17 @@ namespace nv {
 					}, hiveTuple);
 				};
 
-				auto setOpacity = [&, this](auto layers, uint8_t opacity) {
+				auto setOpacity = [&, this](auto layers) {
 					for (auto& [layerName, objects] : layers) {
-						setOpacityImpl(objects, opacity);
+						setOpacityImpl(objects, m_externalLayerOpacity);
 					}
 				};
 
-				constexpr uint8_t REDUCED_OPACITY = 70;
-
 				//reduce opacity of all layers before the current layer
-				setOpacity(ranges::subrange(m_layers.begin(), m_layers.begin() + m_currLayerIdx), REDUCED_OPACITY);
+				setOpacity(ranges::subrange(m_layers.begin(), m_layers.begin() + m_currLayerIdx));
 
 				//reduce opacity of all layers after the current layer
-				setOpacity(ranges::subrange(m_layers.begin() + m_currLayerIdx + 1, m_layers.end()), REDUCED_OPACITY);
+				setOpacity(ranges::subrange(m_layers.begin() + m_currLayerIdx + 1, m_layers.end()));
 
 				//make the current layer visible in case that its opacity was reduced
 				setOpacityImpl(m_layers[m_currLayerIdx].objects, 255);
@@ -340,6 +315,15 @@ namespace nv {
 				showSelectionOption("Textures", std::type_identity<Texture>{});
 			}
 
+			void showExternalLayerOpacityOption() {
+				ImGui::SetNextItemWidth(getInputWidth());
+				auto temp = static_cast<int>(m_externalLayerOpacity);
+				if (ImGui::SliderInt("External Layer Opacity", &temp, 0, 255)) {
+					m_externalLayerOpacity = static_cast<uint8_t>(temp);
+					makeCurrLayerMoreVisible();
+				}
+			}
+
 			void showNodeOptions(bool disabled) {
 				ImGui::BeginDisabled(disabled);
 
@@ -351,8 +335,9 @@ namespace nv {
 				editNodeName();
 				editLayerName();
 				selectLayer();
+				showExternalLayerOpacityOption();
 				m_objectGroupManager.showAllObjectGroups(m_objectGroupNameManager);
-
+				
 				ImGui::End();
 
 				ImGui::EndDisabled();
@@ -371,10 +356,11 @@ namespace nv {
 				auto change = toSDLFPoint(ImGui::GetMouseDragDelta());
 				m_worldOffsetX += change.x;
 				m_worldOffsetY += change.y;
+
 				for (auto& [name, objects] : m_layers) {
 					nv::detail::forEachDataMember([&](auto& objHive) {
 						for (auto& obj : objHive) {
-							obj.obj.screenMove(change);
+							obj.obj.move(change);
 						}
 						return nv::detail::STAY_IN_LOOP;
 					}, objects);
@@ -405,6 +391,8 @@ namespace nv {
 			void editPolygon(SDL_Renderer* renderer, Point mouse) {
 				auto polygon = m_polygonBuilder(renderer, mouse, m_worldOffsetX, m_worldOffsetY);
 				if (polygon) {
+					polygon->screenScale(1.0f / m_zoom);
+					polygon->worldScale(1.0f / m_zoom);
 					auto& polygons = std::get<EditedObjectHive<DynamicPolygon>>(m_layers[m_currLayerIdx].objects);
 					auto insertedPolygonIt = polygons.insert(std::move(*polygon));
 					m_selectedObject = SelectedObjectData{ &(*insertedPolygonIt), &polygons, insertedPolygonIt };
@@ -543,13 +531,13 @@ namespace nv {
 				zoom(renderer, mouse);
 				render(renderer);
 
-				if (windowContainsCoord(NODE_WINDOW_NAME, mouse)) {
-					runCurrentTool(renderer, mouse, toolDisplay);
-				}
-
 				viewportIntRect = toSDLRect(getViewport(1.0f));
 				SDL_SetRenderViewport(renderer, &viewportIntRect);
 				SDL_SetRenderScale(renderer, 1.0f, 1.0f);
+
+				if (windowContainsCoord(NODE_WINDOW_NAME, mouse)) {
+					runCurrentTool(renderer, mouse, toolDisplay);
+				}
 
 				if (m_creatingObjectGroup) {
 					showObjectGroupCreationWindow();
@@ -569,20 +557,21 @@ namespace nv {
 				}
 			}
 
-			template<ranges::viewable_range Objects>
-			void transfer(Objects& objects) {
-				std::get<plf::hive<typename Objects::value_type>>(m_layers[m_currLayerIdx].objects).insert(
-					std::make_move_iterator(objects.begin()),
-					std::make_move_iterator(objects.end())
-				);
-			}
-
 			template<typename Object>
 			EditedObjectData<Object>& transfer(EditedObjectData<Object>&& object) {
+				object.obj.setScreenPos({ 0.0f, 0.0f });
+				object.obj.setWorldPos({ 0.0f, 0.0f });
 				auto& objects = std::get<EditedObjectHive<Object>>(m_layers[m_currLayerIdx].objects);
 				auto insertedObjectIt = objects.insert(std::move(object));
 				m_selectedObject = SelectedObjectData{ &(*insertedObjectIt), &objects, insertedObjectIt };
 				return *insertedObjectIt;
+			}
+
+			template<ranges::viewable_range Objects>
+			void transfer(Objects& objects) {
+				for (auto& object : objects) {
+					transfer(std::move(object));
+				}
 			}
 
 			void createSpritesheet(SDL_Renderer* renderer, std::vector<EditedObjectData<Texture>> spriteSheet) {
@@ -592,16 +581,12 @@ namespace nv {
 					m_layers.resize(m_layers.size() + (spriteSheet.size() - layersLeft) + 1);
 				}
 
-				int steps = static_cast<int>(spriteSheet.size());
-				
-				auto [spriteGroupID, spriteGroup] = m_objectGroupManager.addGroup();
+				auto spriteGroupID = m_objectGroupManager.addGroup();
 				for (auto& texture : spriteSheet) {
 					auto& currLayer = m_layers[m_currLayerIdx];
 					auto& textures = std::get<EditedObjectHive<Texture>>(currLayer.objects);
 					auto& insertedTex = *textures.insert(std::move(texture));
-					
-					createCollisionOutlines(renderer, spriteGroupID, spriteGroup, insertedTex);
-
+					m_objectGroupManager.addObjectToGroup(spriteGroupID, insertedTex);
 					m_currLayerIdx++;
 				}
 			}

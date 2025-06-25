@@ -14,30 +14,6 @@ namespace nv {
 	template<typename Ret, typename... Args> 
 	using Event = std::move_only_function<Ret(Args...)>;
 
-	template<typename Func>
-	concept CancellableEvent = std::same_as<bool, typename detail::FunctionTraits<Func>::Ret>;
-
-	class EventChain {
-	private:
-		std::vector<Event<bool>> m_events;
-		Event<bool>* m_currEvent = nullptr;
-	public:
-		template<CancellableEvent... Funcs>
-		EventChain(Funcs&&... funcs) requires(sizeof...(Funcs) > 0) {
-			m_events.reserve(sizeof...(Funcs));
-			((m_events.emplace_back(std::forward<Funcs>(funcs))), ...);
-		}
-		EventChain() = default;
-
-		template<CancellableEvent Func>
-		void chain(Func&& func) {
-			assert(m_currEvent != nullptr); //"Error: cannot chain function after event chain has been invoked"
-			m_events.emplace_back(std::forward<Func>(func));
-		}
-
-		bool operator()();
-	};
-
 	enum class MouseButtonState {
 		Down,
 		Released,

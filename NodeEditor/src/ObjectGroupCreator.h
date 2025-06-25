@@ -56,15 +56,17 @@ namespace nv {
 				bool createdObjectGroup = false;
 
 				if (ImGui::Button("Create Object Group")) {
-					auto [groupID, objectGroup] = objectGroupManager.addGroup();
-					objectGroup.name = m_objectGroupName;
+					EditedObjectGroup newObjectGroup;
+					newObjectGroup.name = m_objectGroupName;
+					auto groupID = objectGroupManager.addGroup(std::move(newObjectGroup));
 					for (auto& object : m_currentlyStoredObjects.objects) {
 						std::visit([&](auto& objectRef) {
 							objectRef.get().groupIDs.insert(groupID);
-							objectGroup.addObject(&objectRef.get());
+							newObjectGroup.addObject(&objectRef.get());
 						}, object);
 					}
 					m_currentlyStoredObjects.clear();
+					
 					createdObjectGroup = true;
 				}
 

@@ -33,7 +33,21 @@ namespace nv {
 		};
 
 		template<typename C, typename R, typename... Ts>
+		struct FunctionTraits<R(C::*)(Ts...) const noexcept> { //specialization for const noexcept member functions
+			using Args = std::tuple<Ts...>;
+			using Ret = R;
+			using Sig = std::tuple<R, Ts...>;
+		};
+
+		template<typename C, typename R, typename... Ts>
 		struct FunctionTraits<R(C::*)(Ts...)> { //specialization for mutable member functions
+			using Args = std::tuple<Ts...>;
+			using Ret = R;
+			using Sig = std::tuple<R, Ts...>;
+		};
+
+		template<typename C, typename R, typename... Ts>
+		struct FunctionTraits<R(C::*)(Ts...) noexcept> { //specialization for noexcept mutable member functions
 			using Args = std::tuple<Ts...>;
 			using Ret = R;
 			using Sig = std::tuple<R, Ts...>;

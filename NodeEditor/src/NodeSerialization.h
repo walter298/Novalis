@@ -1,16 +1,54 @@
 #pragma once
 
 #include <novalis/detail/serialization/KeyConstants.h>
+#include <novalis/detail/serialization/PolygonSerialization.h>
 
 #include "ObjectGroupManager.h"
 #include "Layer.h"
-#include "ObjectByteSizeCalculator.h"
 
 namespace nv {
 	namespace editor {
 		template<typename Object>
 		static void roundUpToNearestAlignment(size_t& n) {
-			n = (n + alignof(Object) - 1) & ~(alignof(Object) - 1);
+			constexpr size_t alignment = std::same_as<Object, std::byte> ? alignof(std::max_align_t) : alignof(Object);
+			n = (n + alignment - 1) & ~(alignment - 1);
+		}
+
+		template<typename T>
+		struct IsStdArray : public std::false_type {};
+
+		template<typename T, size_t N>
+		struct IsStdArray<std::array<T, N>> : public std::true_type {};
+
+		template<typename T>
+		concept StaticArray = (std::is_array_v<T> && std::extent_v<T> > 0) || IsStdArray<T>::value;
+
+		template<bool IsBase = true, typename T>
+		static constexpr void calculateSizeBytes(const T& t, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
+			if constexpr (IsBase) {
+				roundUpToNearestAlignment<T>(objectRegionLengths.get<T>());
+			}
+
+			if constexpr (concepts::Primitive<T>) {
+				objectRegionLengths.get<T>() += sizeof(T);
+			} else if constexpr (std::ranges::viewable_range<T>) {
+				using ValueType = typename T::value_type;
+				if constexpr (!StaticArray<T>) {
+					for (const auto& elem : t) {
+						calculateSizeBytes<true>(elem, objectRegionLengths);
+					}
+				}
+			} else {
+				if constexpr (IsBase) {
+					objectRegionLengths.get<T>() += sizeof(T);
+				}
+				nv::detail::forEachDataMember([&]<typename Field>(const Field & field) {
+					if constexpr (!concepts::Primitive<Field>) {
+						calculateSizeBytes<false>(field, objectRegionLengths);
+					}
+					return nv::detail::STAY_IN_LOOP;
+				}, t);
+			}
 		}
 
 		static BufferedNode::TypeMap<size_t> calculateObjectRegionOffsets(const BufferedNode::TypeMap<size_t>& objectRegionLengths) {
@@ -50,10 +88,18 @@ namespace nv {
 				objectJson[RENDER_DATA_KEY] = obj.obj.texData;
 				objectJson[IMAGE_PATH_KEY] = obj.texPath;
 			} else {
-				objectJson = obj.obj;
+				nlohmann::adl_serializer<nv::DynamicPolygon>::to_json(objectJson, obj.obj);	
+				//objectJson = obj.obj;
 			}
 
 			return objectRootJson;
+		}
+
+		void writeChildNodeSizeData(const BufferedNode& node, BufferedNode::TypeMap<size_t>& objectRegionLengths) {
+			objectRegionLengths.get<BufferedNode*>() += sizeof(BufferedNode*);
+			objectRegionLengths.get<BufferedNode>() += sizeof(BufferedNode);
+			objectRegionLengths.get<std::byte>() += node.getSizeBytes();
+			roundUpToNearestAlignment<std::byte>(objectRegionLengths.get<std::byte>());
 		}
 
 		template<typename Object>
@@ -69,20 +115,23 @@ namespace nv {
 			auto handleObject = [&]<typename Object>(json& objectGroupJson, const EditedObjectData<Object>& object) {
 				objectGroupJson.push_back(makeObjectJson(object, objectGroups));
 
+				//calculate size of the object
 				if constexpr (std::same_as<Object, nv::DynamicPolygon>) {
 					auto bufferedPolygon = nv::detail::PolygonConverter::makeBufferedPolygon(object.obj);
 					calculateSizeBytes(bufferedPolygon, objectRegionLengths);
-				} else if constexpr (!std::same_as<Object, nv::BufferedNode>) {
+				} else if constexpr (std::same_as<Object, nv::BufferedNode>) {
+					writeChildNodeSizeData(object.obj, objectRegionLengths);
+				} else {
 					calculateSizeBytes(object.obj, objectRegionLengths);
 				}
 
-				if (!object.getName().empty()) {
-					using ObjectMapEntry = BufferedNode::ObjectMapEntry<
-						std::remove_pointer_t<BufferedObject<Object>>* //buffered nodes are stored as pointers, but we don't need to store double pointers to them
-					>;
-					objectRegionLengths.get<char>() += object.getName().size();
-					objectRegionLengths.get<ObjectMapEntry>() += sizeof(ObjectMapEntry);
-				}
+				assert(!object.getName().empty());
+
+				using ObjectMapEntry = BufferedNode::ObjectMapEntry<
+					std::remove_pointer_t<BufferedObject<Object>>* //buffered nodes are stored as pointers, but we don't need to store double pointers to them
+				>;
+				objectRegionLengths.get<char>() += object.getName().size();
+				objectRegionLengths.get<ObjectMapEntry>() += sizeof(ObjectMapEntry);
 			};
 
 
@@ -110,7 +159,7 @@ namespace nv {
 
 				currJsonLayer[NAME_KEY] = layerName;
 				objectRegionLengths.get<char>() += layerName.size();
-
+				objectRegionLengths.get<BufferedNode::LayerMap::Entry>() += sizeof(BufferedNode::LayerMap::Entry);
 				writeLayerData(currJsonLayer, objects, objectRegionLengths, objectGroups);
 			}
 		}

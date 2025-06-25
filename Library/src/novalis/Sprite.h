@@ -15,6 +15,11 @@ namespace nv {
         }, l);
     }
 
+    template<typename Node>
+    struct Sprite : public Node {
+
+    };
+
     // template<typename Node>
     // Event<void> mapHorizontalMovement(Node& sprite, KeyState input, ) {
         
