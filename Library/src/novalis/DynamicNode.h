@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <boost/unordered/unordered_flat_map.hpp>
 
 #include <nlohmann/json.hpp>
 #include "detail/NodeBase.h"

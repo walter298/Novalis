@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.15)
 
 project(novalis VERSION 0.1 LANGUAGES CXX)
 
-option(BUILD_BENCHMARKS "Build benchmark executable(s)" OFF)
+option(BUILD_BENCHMARKS "Build benchmark executable" OFF)
+option(BUILD_TESTS "Build tests executable" ON)
+
+if (BUILD_TESTS)
+    message("Building Tests...")
+    add_subdirectory(tests)
+endif()
 
 if (BUILD_BENCHMARKS)
     message("Building Benchmarks...")
@@ -28,7 +34,7 @@ set(SDLIMAGE_WEBP ON)
 set(SDLIMAGE_PNG ON)
 find_package(sdl3_image CONFIG REQUIRED)
 
-add_library(novalis STATIC ${SOURCES} ${HEADERS})
+add_library(novalis STATIC ${SOURCES} ${HEADERS} "src/novalis/Spritesheet.h" "src/novalis/detail/memory/TexturePtr.h" "src/novalis/detail/TextureData.h" "src/novalis/detail/serialization/RenderDataSerialization.h" "src/novalis/detail/serialization/SpritesheetSerialization.h" "tests/TexturePtrTests.h" "tests/TexturePtrTests.cpp" "tests/main.cpp")
 add_library(Novalis::novalis ALIAS novalis)
 
 target_include_directories(novalis

@@ -26,7 +26,8 @@ namespace nv {
 			using Objects = std::tuple<
 				ObjectLookup<DynamicPolygon>,
 				ObjectLookup<Texture>,
-				ObjectLookup<BufferedNode>
+				ObjectLookup<BufferedNode>,
+				ObjectLookup<Spritesheet>
 			>;
 
 			Objects objects;

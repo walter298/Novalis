@@ -13,9 +13,8 @@ namespace nv {
 		class GravityManager {
 		private:
 			PolygonStorage m_polygonStorage;
-			std::reference_wrapper<Object> m_object;
+			Object m_object;
 			std::reference_wrapper<ObjectHitbox> m_objectHitbox;
-			Point m_hitboxCentroid;
 			Gravity m_gravity;
 			
 			float m_surfaceX1 = 0.0f;
@@ -24,15 +23,15 @@ namespace nv {
 			bool m_falling = true;
 			float m_dx = 0.0f;
 
-			void move(Point d) noexcept {
-				m_object.get().screenMove(d);
-				m_object.get().worldMove(d);
-				m_hitboxCentroid += d;
+			void move(Point delta) noexcept {
+				nv::detail::unrefwrap(m_object).move(delta);
 			}
 
 			bool collideWithPolygons() noexcept {
 				auto collide = [this](const auto& poly) {
-					auto collisionData = calcCollisionData(unrefwrap(poly), m_objectHitbox.get());
+					using namespace nv::detail; //for unrefwrap
+
+					auto collisionData = calcCollisionData(unrefwrap(poly), unrefwrap(m_objectHitbox));
 					if (collisionData) {
 						auto [mtv, collidedSeg] = *collisionData;
 						m_surfaceSlope = boost::geometry::azimuth(collidedSeg.first, collidedSeg.second);
@@ -51,14 +50,27 @@ namespace nv {
 				return false;
 			}
 		public:
-			GravityManager(PolygonStorage& polygons, Object& object, ObjectHitbox& hitbox, Gravity g = Gravity{})
-				: m_polygonStorage{ polygons }, m_object{ object }, m_objectHitbox{ hitbox },
-				  m_hitboxCentroid{ hitbox.calcWorldCentroid() }, m_gravity{ g }
+			template<typename ObjectFR>
+			GravityManager(PolygonStorage& polygons, ObjectFR&& object, ObjectHitbox& hitbox, Gravity g = Gravity{})
+				: m_polygonStorage{ polygons }, m_object{ std::forward<ObjectFR>(object) }, 
+				m_objectHitbox{ hitbox }, m_gravity{ g }
 			{
 			}
 			
 			void move(float dx) noexcept {
 				m_dx += dx;
+			}
+
+			auto& getPolygons(this auto&& self) noexcept {
+				return unrefwrap(self.m_polygonStorage);
+			}
+
+			auto& getObject(this auto&& self) noexcept {
+				return unrefwrap(self.m_object);
+			}
+
+			auto& getHitbox(this auto&& self) noexcept {
+				return unrefwrap(self.m_objectHitbox);
 			}
 
 			void operator()() {

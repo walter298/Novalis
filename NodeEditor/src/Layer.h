@@ -11,7 +11,8 @@ namespace nv {
 			using Objects = std::tuple<
 				EditedObjectHive<Texture>,
 				EditedObjectHive<BufferedNode>,
-				EditedObjectHive<DynamicPolygon>
+				EditedObjectHive<DynamicPolygon>,
+				EditedObjectHive<Spritesheet>
 			>;
 			Objects objects;
 		};

@@ -2,7 +2,7 @@
 
 #include "../memory/MemoryRegion.h"
 #include "../../Polygon.h"
-#include "AggregateSerialization.h"
+#include "AutoSerialization.h"
 
 namespace nlohmann {
 	struct PolygonSerializerBase {

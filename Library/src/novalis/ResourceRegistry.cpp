@@ -3,10 +3,10 @@
 #include "detail/serialization/BufferedNodeSerialization.h"
 #include "detail/serialization/DynamicNodeSerialization.h"
 
-nv::TexturePtr nv::ResourceRegistry::loadTexture(SDL_Renderer* renderer, const std::string& path) {
+nv::detail::TexturePtr nv::ResourceRegistry::loadTexture(SDL_Renderer* renderer, const std::string& path) {
 	auto texIt = m_textureMap.find(path);
 	if (texIt == m_textureMap.end()) {
-		TexturePtr tex{ renderer, path.c_str() };
+		detail::TexturePtr tex{ renderer, path.c_str() };
 		m_textureMap.emplace(path, tex);
 		return tex;
 	} else {

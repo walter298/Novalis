@@ -1,7 +1,5 @@
 #include "Rect.h"
 
-#include "detail/serialization/AggregateSerialization.h"
-
 bool nv::Rect::isInRegion(float mx, float my, float x, float y, float w, float h) noexcept {
 	return mx > x && mx < x + w &&
 		my > y && my < y + h;

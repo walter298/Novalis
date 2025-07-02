@@ -78,6 +78,23 @@ namespace nv {
 				return CONTINUE_EVENT;
 			});
 		}
+
+		template<typename Rep, typename Period, typename FirstEvent, typename SecondEvent, typename... Events>
+		void chain(std::chrono::duration<Rep, Period> period, FirstEvent firstEvent, SecondEvent secondEvent, Events... chainedEvents) {
+			add([this, period, first = firstEvent, next = std::move(secondEvent),
+				... chainedEvents = std::move(chainedEvents)]() mutable
+			{
+				if (first()) {
+					if constexpr (sizeof...(Events) > 0) {
+						chain(std::move(next), std::move(chainedEvents)...);
+					} else {
+						add(std::move(next), period);
+					}
+					return END_EVENT;
+				}
+				return CONTINUE_EVENT;
+			}, period);
+		}
 				
 		template<typename Func, typename Rep, typename Period>
 		auto add(Func&& func, std::chrono::duration<Rep, Period> period) {
@@ -113,6 +130,12 @@ namespace nv {
 			 			func();
 			 		}
 			 	}
+
+				if constexpr (std::same_as<FuncRet, bool>) {
+					return false;
+				} else {
+					return;
+				}
 			};
 
 			return add(std::move(periodicEvtWrapper));

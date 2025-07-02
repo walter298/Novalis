@@ -20,34 +20,12 @@ namespace nv {
 			{
 			}
 
-			void makeNewName(std::string& newName) {
-				if (m_takenNames.contains(newName) || newName.empty()) {
-					newName += ("(ID=" + std::to_string(m_uniqueTextNum) + ")");
-					m_uniqueTextNum++;
-				}
-				m_takenNames.insert(newName);
-			}
+			std::string makeUniqueName();
+			void makeNewName(std::string& newName);
+			void inputName(const char* inputLabel, std::string& name);
 
-			void inputName(const char* inputLabel, std::string& name) {
-				using namespace std::literals;
-
-				auto oldName = name;
-				if (ImGui::InputText(inputLabel, &name)) {
-					m_wasJustInputtingName = true;
-					if (m_takenNames.contains(oldName)) {
-						m_takenNames.erase(oldName);
-					}
-				}
-				
-				if (!ImGui::IsItemActive() && m_wasJustInputtingName) {
-					if (name.empty()) {
-						name = m_unnamedObjectPrefix + "(ID = "s + std::to_string(m_uniqueTextNum++) + ")";
-					} else if (m_takenNames.contains(name)) {
-						name += (" (Copy ID=" + std::to_string(m_uniqueTextNum++) + ")");
-					}
-					m_takenNames.insert(name);
-					m_wasJustInputtingName = false;
-				} 
+			void deleteName(const std::string& name) {
+				m_takenNames.erase(name);
 			}
 		};
 	}

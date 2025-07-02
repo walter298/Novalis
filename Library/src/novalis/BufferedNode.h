@@ -8,6 +8,7 @@
 #include "detail/NodeBase.h"
 #include "detail/memory/AlignedBuffer.h"
 #include "detail/debug/TrackedValue.h"
+#include "Spritesheet.h"
 
 namespace nv {
 	namespace detail {
@@ -166,18 +167,20 @@ namespace nv {
 			using ObjectGroup = std::tuple<
 				std::span<Texture*>, 
 				std::span<BufferedPolygon*>, 
-				std::span<BufferedNode*>
+				std::span<BufferedNode*>,
+				std::span<Spritesheet*>
 			>;
 			using ObjectGroupMap = ObjectLookupMap<BufferedString, ObjectGroup>;
 
 			using ObjectLookups = std::tuple<
 				ObjectLookupMap<BufferedString, Texture*>,
 				ObjectLookupMap<BufferedString, BufferedPolygon*>,
-				ObjectLookupMap<BufferedString, BufferedNode*>
+				ObjectLookupMap<BufferedString, BufferedNode*>,
+				ObjectLookupMap<BufferedString, Spritesheet*>
 			>;
 
 			using Layer = std::tuple<
-				std::span<Texture>, std::span<BufferedPolygon>, std::span<Node>
+				std::span<Texture>, std::span<BufferedPolygon>, std::span<Node>, std::span<Spritesheet>
 			>;
 			using Layers   = nv::detail::ObjectLayers<std::span<Layer>>;
 			using LayerMap = ObjectLookupMap<BufferedString, Layer*>;
@@ -194,6 +197,7 @@ namespace nv {
 
 		Arena m_arena = nullptr;
 		size_t m_byteC{ 0 };
+		bool m_movedFrom = false;
 
 		static void copyGroupMaps(const std::byte* srcArena, std::byte* destArena,
 			const ObjectGroupMap& srcObjectGroupMap, ObjectGroupMap& destObjectGroupMap);
@@ -220,7 +224,7 @@ namespace nv {
 					nv::detail::PolygonConverter::deepCopyBufferedPolygons(srcArena, destArena, srcPoly, destPoly);
 				}
 			} else {
-				std::ranges::copy_n(srcSpan.begin(), srcSpan.size(), destSpan.begin());
+				std::ranges::uninitialized_copy(srcSpan, destSpan);
 			}
 		}
 
@@ -228,6 +232,7 @@ namespace nv {
 			nv::BufferedNode& dest, std::byte* destArena);
 	public:
 		BufferedNode() noexcept = default;
+		~BufferedNode() noexcept;
 
 		template<typename T>
 		using Map = ObjectLookupMap<detail::BufferedString, T>;
@@ -246,18 +251,23 @@ namespace nv {
 			BufferedPolygon*,
 			BufferedNode,
 			BufferedNode*,
+			Spritesheet,
+			Spritesheet*,
 			std::byte, //child node arena region
 			detail::BufferedNodeTraits::Layer,
 			ObjectMapEntry<nv::Texture*>,
 			ObjectMapEntry<BufferedPolygon*>,
 			ObjectMapEntry<BufferedNode*>,
+			ObjectMapEntry<Spritesheet*>,
 			ObjectGroupMap::Entry,
 			LayerMap::Entry
 		>;
 		using RegionMap = TypeMap<detail::MemoryRegion>;
 		
 		BufferedNode(const BufferedNode& other);
-		BufferedNode(BufferedNode&&) noexcept = default;
+		BufferedNode(BufferedNode&& other) noexcept;
+		BufferedNode& operator=(const BufferedNode&) = delete;
+		BufferedNode& operator=(BufferedNode&&)      = delete;
 
 		size_t getSizeBytes() const noexcept {
 			return m_byteC;

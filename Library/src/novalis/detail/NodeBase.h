@@ -134,6 +134,23 @@ namespace nv {
 			uint8_t m_opacity = 255;
 			Point m_screenPos{ 0.0f, 0.0f };
 			Point m_worldPos{ 0.0f, 0.0f };
+
+			template<std::derived_from<NodeBase<NodeTraits>> T1, std::derived_from<NodeBase<NodeTraits>> T2>
+			static void moveStorageBaseMembers(T1& dest, T2& src) {
+				dest.m_objectLayers   = std::move(src.m_objectLayers);
+				dest.m_layerMap       = std::move(src.m_layerMap);
+				dest.m_objectGroupMap = std::move(src.m_objectGroupMap);
+				dest.m_objectLookups  = std::move(src.m_objectLookups);
+			}
+			template<std::derived_from<NodeBase<NodeTraits>> T1, std::derived_from<NodeBase<NodeTraits>> T2>
+			static void copyTrivialBaseMembers(T1& dest, T2& src) {
+				dest.m_currLayer   = src.m_currLayer;
+				dest.m_screenScale = src.m_screenScale;
+				dest.m_worldScale  = src.m_worldScale;
+				dest.m_opacity     = src.m_opacity;
+				dest.m_screenPos   = src.m_screenPos;
+				dest.m_worldPos    = src.m_worldPos;
+			}
 		public:
 			template<typename T, typename StringComp>
 			decltype(auto) find(this auto&& self, const StringComp& name) noexcept {
@@ -231,7 +248,7 @@ namespace nv {
 				});
 			}
 
-			inline void setOpacity(uint8_t opacity) noexcept {
+			void setOpacity(uint8_t opacity) noexcept {
 				m_opacity = opacity;
 				m_objectLayers.forEach([&, this](auto layer, auto& obj) {
 					unptrwrap(obj).setOpacity(opacity);
@@ -239,7 +256,7 @@ namespace nv {
 				});
 			}
 
-			inline uint8_t getOpacity() const {
+			uint8_t getOpacity() const {
 				return m_opacity;
 			}
 
@@ -267,11 +284,11 @@ namespace nv {
 			}
 
 			void screenScale(float scale) noexcept {
-				/*m_screenScale = scale;
+				m_screenScale = scale;
 				m_objectLayers.forEach([&](auto layer, auto& obj) {
 					unptrwrap(obj).screenScale(scale);
 					return STAY_IN_LOOP;
-				});*/
+				});
 			}
 			void worldScale(float scale) noexcept {
 				m_worldScale = scale;

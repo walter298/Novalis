@@ -16,7 +16,10 @@ namespace nv {
 		inline constexpr const char* NODE_OPTIONS_WINDOW_NAME = "Current Node";
 		inline constexpr const char* LAYER_EXPLORER_WINDOW_NAME = "Layer Explorer";
 		inline constexpr const char* OBJECT_GROUP_CREATION_WINDOW_NAME = "Create Object Group";
-		
+		inline constexpr const char* LAYER_CREATION_POPUP_NAME = "Create Layer";
+		inline constexpr const char* NODE_CREATION_POPUP_NAME = "Create Node";
+		inline constexpr const char* SPRITESHEET_CREATION_POPUP_NAME = "Create Spritesheet";
+
 		constexpr ImGuiWindowFlags WINDOW_FLAGS = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
 		inline void centerNextWindow() {

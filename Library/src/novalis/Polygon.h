@@ -274,7 +274,6 @@ namespace nv {
 
 			void render(SDL_Renderer* renderer) const noexcept {
 				renderScreenPoints(renderer, opacity, std::span{ m_ren.points.data(), m_ren.points.size() });
-				renderScreenPoints(renderer, opacity, std::span{ m_world.points.data(), m_world.points.size() }, { 0, 255, 0 });
 			}
 
 			const PointStorage& getScreenPoints() const noexcept {

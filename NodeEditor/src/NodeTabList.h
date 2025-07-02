@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <boost/optional.hpp>
 
 #include "NodeEditor.h"
 

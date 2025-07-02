@@ -5,6 +5,7 @@
 
 #include "../reflection/TypeInfo.h"
 #include "../serialization/PolygonSerialization.h"
+#include "../serialization/SpritesheetSerialization.h"
 #include "../serialization/TextureSerialization.h"
 #include "../../BufferedNode.h"
 #include "../../Instance.h"
@@ -42,7 +43,8 @@ namespace nlohmann {
 			return nv::BufferedNode::ObjectLookups{
 				regionMap.get<ObjectMapEntry<nv::Texture*>>().interpretAsSpan<ObjectMapEntry<nv::Texture*>>(),
 				regionMap.get<ObjectMapEntry<nv::BufferedPolygon*>>().interpretAsSpan<ObjectMapEntry<nv::BufferedPolygon*>>(),
-				regionMap.get<ObjectMapEntry<nv::BufferedNode*>>().interpretAsSpan<ObjectMapEntry<nv::BufferedNode*>>()
+				regionMap.get<ObjectMapEntry<nv::BufferedNode*>>().interpretAsSpan<ObjectMapEntry<nv::BufferedNode*>>(),
+				regionMap.get<ObjectMapEntry<nv::Spritesheet*>>().interpretAsSpan<ObjectMapEntry<nv::Spritesheet*>>()
 			};
 		}
 
@@ -75,7 +77,13 @@ namespace nlohmann {
 
 		class ObjectGroupCreator {
 		private:
-			using SpanIndices  = nv::detail::TypeMap<size_t, nv::Texture*, nv::BufferedNode*, nv::BufferedPolygon*>;
+			using SpanIndices  = nv::detail::TypeMap<
+				size_t,
+				nv::Texture*, 
+				nv::BufferedNode*, 
+				nv::BufferedPolygon*,
+				nv::Spritesheet*
+			>;
 			using SpanIndexMap = boost::unordered_flat_map<std::string, SpanIndices>;
 			SpanIndexMap m_spanIndexMap;
 
@@ -138,12 +146,6 @@ namespace nlohmann {
 				objectGroupCreator.add(objectGroupName, objectPtr);
 			}
 		}
-
-		/*metadataJson[PATH_KEY] = obj.filePath;
-		metadataJson[OPACITY_KEY] = obj.obj.getOpacity();
-		metadataJson[SCREEN_SCALE_KEY] = obj.obj.getScreenScale();
-		metadataJson[SCREEN_POS_KEY] = obj.obj.getScreenPos();
-		metadataJson[WORLD_POS_KEY] = obj.obj.getWorldPos();*/
 
 		static nv::BufferedNode* loadChildNode(const json& nodeJson, RegionMap& regionMap)
 		{
@@ -214,7 +216,8 @@ namespace nlohmann {
 			for (const auto& [idx, json] : std::views::enumerate(objectGroupJson)) {
 				auto& objectJson = json[OBJECT_KEY];
 				auto& metadataJson = json[METADATA_KEY];
-				objectSpan[idx] = objectJson.get<Object>();
+				auto objectSpanPtr = objectSpan.data() + idx;
+				objectSpanPtr = new (objectSpanPtr) Object{ objectJson.get<Object>() };
 				createLookup(metadataJson, charRegion, map, &objectSpan[idx]);
 				addToObjectGroups(metadataJson, objectGroupCreator, &objectSpan[idx]);
 			}
@@ -251,9 +254,12 @@ namespace nlohmann {
 				adl_serializer<nv::detail::Polygon<std::span<nv::Point>>>::currentPointRegion = pointRegion;
 
 				//create layer lookup
-				auto layerName = makeBufferedString(jsonLayer[NAME_KEY].get<std::string>(), regionMap.get<char>());
-				ret.m_layerMap.insert(std::move(layerName), &objectLayer);
-
+				auto layerName = jsonLayer[NAME_KEY].get<std::string>();
+				if (!layerName.empty()) {
+					auto bufferedLayerName = makeBufferedString(layerName, regionMap.get<char>());
+					ret.m_layerMap.insert(bufferedLayerName, &objectLayer);
+				}
+				
 				nv::detail::forEachDataMember([&]<typename Object>(std::span<Object>& objectSpan) {
 					objectSpan = std::span<Object>{}; //default initialize object span
 

@@ -18,6 +18,7 @@ namespace nv {
 		
 		float currScale = 1.0f;
 
+		Rect(Point pos, Point size) noexcept : pos{ pos }, size{ size } {}
 		Rect() noexcept : pos{ 0.0f, 0.0f }, size{ 0.0f, 0.0f } {}
 		Rect(SDL_FRect rect) noexcept : pos{ rect.x, rect.y }, size{ rect.w, rect.h }
 		{

@@ -2,27 +2,13 @@
 
 #include <print>
 #include <SDL3_image/SDL_image.h>
-//#include <SDL3_ttf/SDL_ttf.h>
-
 #include "detail/file/File.h"
-
-void nv::Instance::quit() {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-
-	//TTF_Quit();
-	//IMG_Quit();
-	/*Mix_Quit();
-	TTF_Quit();*/
-	SDL_Quit();
-}
 
 static nv::Instance* globalInstance = nullptr;
 
 nv::Instance::Instance(const char* windowTitle) noexcept {
 	auto exitWithError = [this] {
 		std::println("{}", SDL_GetError());
-		quit();
 		exit(-1);
 	};
 
@@ -30,37 +16,25 @@ nv::Instance::Instance(const char* windowTitle) noexcept {
 		exitWithError();
 	}
 
-	//if (SDL_Init(SDL_INIT_EVERYTHING) != 0 || //returns zero on sucess
-	//	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0 ||
-	//	TTF_Init() != 0 || 
-	//	IMG_Init(IMG_INIT_PNG) == 0)
-	//{
-	//	exitWithError();
-	//}
-
 	//get screen width and height
 	auto dm = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
 	m_screenWidth = dm->w;
 	m_screenHeight = dm->h;
 
-	window = SDL_CreateWindow(windowTitle, m_screenWidth, m_screenHeight, SDL_WINDOW_OPENGL);
-	if (window == nullptr) {
+	m_guard.window = SDL_CreateWindow(windowTitle, m_screenWidth, m_screenHeight, SDL_WINDOW_OPENGL);
+	if (m_guard.window == nullptr) {
 		exitWithError();
 	}
-	renderer = SDL_CreateRenderer(window, nullptr);
-	if (renderer == nullptr) {
+	m_guard.renderer = SDL_CreateRenderer(m_guard.window, nullptr);
+	if (m_guard.renderer == nullptr) {
 		exitWithError();
 	}
 
-	SDL_SetRenderLogicalPresentation(renderer, m_screenWidth, m_screenHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+	SDL_SetRenderLogicalPresentation(m_guard.renderer, m_screenWidth, m_screenHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
 	workingDirectory(); //initialize local static inside workingDirectory
 
 	globalInstance = this;
-}
-
-nv::Instance::~Instance() noexcept {
-	quit();
 }
 
 int nv::Instance::getScreenWidth() const noexcept {
@@ -71,6 +45,27 @@ int nv::Instance::getScreenHeight() const noexcept {
 	return m_screenHeight;
 }
 
+SDL_Renderer* nv::Instance::getRenderer() noexcept {
+	return m_guard.renderer;
+}
+
+SDL_Window* nv::Instance::getWindow() noexcept {
+	return m_guard.window;
+}
+
 nv::Instance* nv::getGlobalInstance() noexcept {
 	return globalInstance;
+}
+
+void nv::Instance::Guard::quit() {
+	if (renderer && window) {
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+	}
+}
+
+nv::Instance::Guard::~Guard()
+{
+	quit();
 }

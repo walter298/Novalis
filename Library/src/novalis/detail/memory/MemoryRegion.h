@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <memory>
+#include <new>
 #include <span>
 #include <print>
 #include <stacktrace>

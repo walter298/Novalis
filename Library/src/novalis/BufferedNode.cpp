@@ -129,10 +129,20 @@ void nv::BufferedNode::copyLayers(const std::byte* srcArena, std::byte* destAren
 void nv::BufferedNode::deepCopyChild(const nv::BufferedNode& src, const std::byte* srcArena,
 	nv::BufferedNode& dest, std::byte* destArena)
 {
+	copyTrivialBaseMembers(dest, src);                                               //copy trivial members
 	copyLayers(srcArena, destArena, src.m_objectLayers, dest.m_objectLayers);        //copy layers
 	copyLookupMaps(srcArena, destArena, src.m_objectLookups, dest.m_objectLookups);  //copy object maps
 	copyGroupMaps(srcArena, destArena, src.m_objectGroupMap, dest.m_objectGroupMap); //copy object group maps
 	copyPtrMap(srcArena, destArena, src.m_layerMap, dest.m_layerMap);                //copy layer map
+}
+
+nv::BufferedNode::~BufferedNode() noexcept {
+	if (!m_movedFrom) {
+		this->forEach([]<typename Object>(auto layer, Object& object) {
+			object.~Object();
+			return nv::detail::STAY_IN_LOOP;
+		});
+	}
 }
 
 nv::BufferedNode::BufferedNode(const BufferedNode& other) 
@@ -146,4 +156,14 @@ nv::BufferedNode::BufferedNode(const BufferedNode& other)
 		srcArena = std::get<std::byte*>(other.m_arena);
 	}
 	deepCopyChild(other, srcArena, *this, std::get<detail::AlignedBuffer<std::byte>>(m_arena).data);
+}
+
+nv::BufferedNode::BufferedNode(BufferedNode&& other) noexcept :
+	m_arena{ std::move(other.m_arena) }, m_byteC{ other.m_byteC }
+{
+	//assign base members
+	moveStorageBaseMembers(*this, other);
+	copyTrivialBaseMembers(*this, other);
+
+	other.m_movedFrom = true;
 }

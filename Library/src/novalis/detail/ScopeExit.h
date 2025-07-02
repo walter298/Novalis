@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 namespace nv {
 	namespace detail {
 		template<typename Func>

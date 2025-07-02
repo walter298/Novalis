@@ -2,7 +2,10 @@
 
 #include <boost/unordered/unordered_flat_set.hpp>
 #include <novalis/ID.h>
+#include <novalis/detail/serialization/AutoSerialization.h>
 #include <novalis/detail/serialization/KeyConstants.h>
+#include <novalis/detail/serialization/PolygonSerialization.h>
+#include <novalis/detail/serialization/SpritesheetSerialization.h>
 #include <novalis/detail/serialization/TextureSerialization.h>
 #include <novalis/BufferedNode.h>
 
@@ -43,12 +46,16 @@ namespace nv {
 			EditedObjectDataBase(const EditedObjectDataBase&) = delete;
 			EditedObjectDataBase(EditedObjectDataBase&&) noexcept = default;
 
-			void inputName() {
-				objectNameManager.inputName("Object Name", m_name);
+			void inputName(NameManager& nameManager) {
+				nameManager.inputName("Object Name", m_name);
 			}
 
 			const std::string& getName() const noexcept {
 				return m_name;
+			}
+
+			void destroy() {
+				objectNameManager.deleteName(m_name);
 			}
 		};
 
@@ -87,6 +94,25 @@ namespace nv {
 		};
 
 		template<>
+		struct EditedObjectData<Spritesheet> : public EditedObjectDataBase<Spritesheet> {
+			std::string texPath;
+
+			template<typename... Args>
+			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Spritesheet, Args...>)
+				: EditedObjectDataBase<Spritesheet>{ std::forward<Args>(args)... }
+			{
+			}
+
+			static EditedObjectData<Spritesheet> load(const json& objectJson) {
+				EditedObjectData<Spritesheet> ret{ objectJson[OBJECT_KEY].get<Spritesheet>() };
+				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
+				ret.texPath = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<std::string>();
+
+				return ret;
+			}
+		};
+
+		template<>
 		struct EditedObjectData<BufferedNode> : public EditedObjectDataBase<BufferedNode> {
 			std::string filePath;
 
@@ -108,36 +134,10 @@ namespace nv {
 				ret.obj.screenScale(objectJson[METADATA_KEY][SCREEN_SCALE_KEY].get<float>());
 				ret.obj.setScreenPos(objectJson[METADATA_KEY][SCREEN_POS_KEY].get<Point>());
 				ret.obj.setWorldPos(objectJson[METADATA_KEY][WORLD_POS_KEY].get<Point>());
-				
+
 				return ret;
 			}
 		};
-
-		/*template<typename Object>
-		void to_json(json& j, const EditedObjectData<Object>& obj) {
-			auto& metadataJson = j[METADATA_KEY];
-			auto& objectJson   = j[OBJECT_KEY];
-
-			metadataJson[NAME_KEY] = obj.name;
-			auto& objectGroupsJson = metadataJson[OBJECT_GROUP_KEY] = json::array();
-			for (const auto& id : obj.groupIDs) {
-				const auto& objectGroup = objectGroups.getGroup(id);
-				objectGroupsJson.push_back(objectGroup.name);
-			}
-
-			if constexpr (std::same_as<Object, BufferedNode>) {
-				metadataJson[PATH_KEY] = obj.filePath;
-				metadataJson[OPACITY_KEY] = obj.obj.getOpacity();
-				metadataJson[SCREEN_SCALE_KEY] = obj.obj.getScreenScale();
-				metadataJson[SCREEN_POS_KEY] = obj.obj.getScreenPos();
-				metadataJson[WORLD_POS_KEY] = obj.obj.getWorldPos();
-			} else if constexpr (std::same_as<Object, Texture>) {
-				objectJson[RENDER_DATA_KEY] = obj.obj.texData;
-				objectJson[IMAGE_PATH_KEY] = obj.texPath;
-			} else {
-				objectJson = obj.obj;
-			}
-		}*/
 
 		template<typename Object>
 		using EditedObjectHive = plf::hive<EditedObjectData<Object>>;
