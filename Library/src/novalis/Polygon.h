@@ -82,6 +82,19 @@ namespace nv {
 				}
 			}
 
+			void flipHorizontally() noexcept {
+				auto centroid = calcCentroid();
+				for (auto& [x, y] : points) {
+					x = (2 * centroid.x) -x;
+				}
+			}
+			void flipVertically() noexcept {
+				auto centroid = calcCentroid();
+				for (auto& [x, y] : points) {
+					y = (2 * centroid.y) -y;
+				}
+			}
+
 			MAKE_INTROSPECTION(points, currAngle, currScale, rotationPoint)
 		};
 
@@ -149,30 +162,9 @@ namespace nlohmann {
 
 namespace nv {
 	namespace detail {
-		/*void renderScreenPoints(SDL_Renderer* renderer, uint8_t opacity, const std::span<Point>& points, 
-			SDL_Color color = { 255, 255, 255 }) 
-		{
-			SDL_Color originalDrawColor;
-			SDL_GetRenderDrawColor(renderer, &originalDrawColor.r, &originalDrawColor.g, &originalDrawColor.b, &originalDrawColor.a);
-
-			SDL_BlendMode originalBlendMode;
-			SDL_GetRenderDrawBlendMode(renderer, &originalBlendMode);
-
-			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
-			SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, opacity);
-
-			auto pointPairs = std::views::zip(points, points | std::views::drop(1));
-			for (const auto& [p1, p2] : pointPairs) {
-				SDL_RenderLine(renderer, p1.x, p1.y, p2.x, p2.y);
-			}
-			
-			SDL_SetRenderDrawColor(renderer, originalDrawColor.r, originalDrawColor.g, originalDrawColor.b, originalDrawColor.a);
-			SDL_SetRenderDrawBlendMode(renderer, originalBlendMode);
-		}*/
-
 		void renderScreenPoints(SDL_Renderer* renderer, uint8_t opacity, const std::span<const Point>& points,
 			SDL_Color color = { 255, 255, 255 });
-
+		
 		struct PolygonConverter;
 
 		template<typename PointStorage>
@@ -298,6 +290,15 @@ namespace nv {
 			void setRotation(double degrees, Point rotationPoint = {}) noexcept {
 				m_ren.setRotation(degrees);
 				m_world.setRotation(degrees);
+			}
+
+			void flipHorizontally() noexcept {
+				m_ren.flipHorizontally();
+				m_world.flipHorizontally();
+			}
+			void flipVertically() noexcept {
+				m_ren.flipVertically();
+				m_world.flipVertically();
 			}
 
 			friend struct nlohmann::PolygonSerializerBase;

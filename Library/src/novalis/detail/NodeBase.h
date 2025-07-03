@@ -303,6 +303,19 @@ namespace nv {
 			float getWorldScale() const noexcept {
 				return m_worldScale;
 			}
+
+			void flipHorizontally() noexcept {
+				forEach([](auto layer, auto& object) {
+					object.flipHorizontally();
+					return nv::detail::STAY_IN_LOOP;
+				});
+			}
+			void flipVertically() noexcept {
+				forEach([](auto layer, auto& object) {
+					object.flipVertically();
+					return nv::detail::STAY_IN_LOOP;
+				});
+			}
 		};
 	}
 }

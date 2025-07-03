@@ -347,6 +347,18 @@ void nv::editor::NodeEditor::showObjectGroupCreationWindow() {
 	}
 }
 
+template<typename Object>
+void showFlipOption(EditedObjectData<Object>& object) {
+	ImGui::SetNextItemWidth(getInputWidth());
+	if (ImGui::Button("Flip Horizontally")) {
+		object.obj.flipHorizontally();
+	}
+	ImGui::SetNextItemWidth(getInputWidth());
+	if (ImGui::Button("Flip Vertically")) {
+		object.obj.flipVertically();
+	}
+}
+
 void nv::editor::NodeEditor::showNodeWindow(SDL_Renderer* renderer, Point mouse) {
 	configureNodeWindow();
 
@@ -383,6 +395,9 @@ void nv::editor::NodeEditor::showNodeWindow(SDL_Renderer* renderer, Point mouse)
 		if constexpr (std::same_as<Object, Texture>) {
 			showCollisionOutlineOption(renderer, *selectedObject.obj);
 		}
+
+		//flip
+		showFlipOption(*selectedObject.obj);
 
 		//deletion
 		if (showObjectDeletionOption(selectedObject, m_objectGroupManager)) {

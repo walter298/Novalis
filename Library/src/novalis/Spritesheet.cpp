@@ -31,6 +31,7 @@ void nv::Spritesheet::render(SDL_Renderer* renderer) const noexcept {
 	auto destRect = ren.sdlRect();
 	auto angle = static_cast<double>(screenRotationData.angle);
 	SDL_FPoint p = screenRotationData.rotationPoint;
+	SDL_SetTextureAlphaMod(m_tex.tex, opacity);
 	SDL_RenderTextureRotated(renderer, m_tex.tex, &srcRect, &destRect, angle, &p, flip);
 }
 

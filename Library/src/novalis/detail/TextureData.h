@@ -83,6 +83,20 @@ namespace nv {
 			void resetWorld() noexcept {
 				world = ren;
 			}
+			void flipHorizontally() noexcept {
+				if ((flip | SDL_FLIP_HORIZONTAL) == flip) { //if we are already flipped horizontally
+					flip = static_cast<SDL_FlipMode>(flip & ~SDL_FLIP_HORIZONTAL);
+				} else {
+					flip = static_cast<SDL_FlipMode>(flip | SDL_FLIP_HORIZONTAL);
+				}
+			}
+			void flipVertically() noexcept {
+				if ((flip | SDL_FLIP_VERTICAL) == flip) { //if we are already flipped horizontally
+					flip = static_cast<SDL_FlipMode>(flip & ~SDL_FLIP_VERTICAL);
+				} else {
+					flip = static_cast<SDL_FlipMode>(flip | SDL_FLIP_VERTICAL);
+				}
+			}
 		};
 	}
 }
