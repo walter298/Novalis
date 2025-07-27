@@ -133,8 +133,8 @@ void nv::editor::NodeEditor::showExternalLayerOpacityOption() {
 void nv::editor::NodeEditor::showNodeOptions(bool disabled) {
 	ImGui::BeginDisabled(disabled);
 
-	ImGui::SetNextWindowPos({ getNodeOptionsWindowPos(), });
-	ImGui::SetNextWindowSize({ getSideWindowWidth(), getWindowHeight() });
+	ImGui::SetNextWindowPos(getNodeOptionsWindowPos());
+	ImGui::SetNextWindowSize(getNodeOptionsWindowSize());
 	ImGui::Begin(NODE_OPTIONS_WINDOW_NAME);
 
 	showObjectFilterOptions();
@@ -230,17 +230,6 @@ void nv::editor::NodeEditor::runCurrentTool(SDL_Renderer* renderer, Point mouse,
 	}
 }
 
-void nv::editor::NodeEditor::configureNodeWindow() const noexcept {
-	auto toolWindow = ImGui::FindWindowByName(TOOL_WINDOW_NAME);
-	auto toolWindowPos = toolWindow->Pos;
-	auto toolWindowSize = toolWindow->Size;
-
-	ImVec2 nodeWindowPos{ toolWindowPos.x, toolWindowPos.y + toolWindowSize.y + 0.5f };
-	ImVec2 nodeWindowSize{ toolWindowSize.x, getWindowHeight() - toolWindowSize.y };
-	ImGui::SetNextWindowPos(nodeWindowPos);
-	ImGui::SetNextWindowSize(nodeWindowSize);
-}
-
 static void moveObjectByMouseDragDelta(auto& editedObj, Point mousePos) {
 	if (editedObj.obj->obj.containsCoord(mousePos)) {
 		auto mouseChange = toSDLFPoint(ImGui::GetMouseDragDelta());
@@ -270,13 +259,14 @@ static void showObjectRotationOption(EditedObjectData<Object>& editedObj) {
 }
 
 //use auto since SelectedObjectData is private
-static void showObjectDuplicationOption(auto& editedObj) {
+static void showObjectDuplicationOption(auto& editedObj, NameManager& nameManager) {
 	ImGui::SetNextItemWidth(getInputWidth());
 	if (ImGui::Button("Duplicate")) {
-		/*assert(editedObj.objLayer);
+		assert(editedObj.objLayer);
 		auto copiedObjectIt = editedObj.objLayer->insert(*editedObj.obj);
+		copiedObjectIt->loadName(nameManager.makeUniqueName());
 		editedObj.obj = &(*copiedObjectIt);
-		editedObj.it = copiedObjectIt;*/
+		editedObj.it = copiedObjectIt;
 	}
 }
 
@@ -360,9 +350,10 @@ void showFlipOption(EditedObjectData<Object>& object) {
 }
 
 void nv::editor::NodeEditor::showNodeWindow(SDL_Renderer* renderer, Point mouse) {
-	configureNodeWindow();
-
-	ImGui::Begin(OBJECT_WINDOW_NAME, nullptr, WINDOW_FLAGS);
+	ImGui::SetNextWindowPos(getChildNodeWindowPos());
+	ImGui::SetNextWindowSize(getChildNodeWindowSize());
+	
+	ImGui::Begin(CHILD_NODE_WINDOW_NAME, nullptr, DEFAULT_WINDOW_FLAGS);
 
 	selectiveVisit([&, this]<typename Object>(SelectedObjectData<Object>& selectedObject) {
 		ImGui::BeginDisabled(isBusy());
@@ -388,7 +379,7 @@ void nv::editor::NodeEditor::showNodeWindow(SDL_Renderer* renderer, Point mouse)
 
 		//duplication 
 		if constexpr (std::copy_constructible<Object>) {
-			showObjectDuplicationOption(*selectedObject.obj);
+			showObjectDuplicationOption(selectedObject, m_objectNameManager);
 		}
 
 		//collision outline
@@ -410,7 +401,7 @@ void nv::editor::NodeEditor::showNodeWindow(SDL_Renderer* renderer, Point mouse)
 	ImGui::End();
 }
 
-std::optional<nv::editor::NodeEditor> nv::editor::NodeEditor::load() {
+std::optional<nv::editor::NodeEditor> nv::editor::NodeEditor::load(FileID id) {
 	auto filePath = openFile({ { "node", "nv_node" } });
 	if (!filePath) {
 		return std::nullopt;
@@ -422,7 +413,7 @@ std::optional<nv::editor::NodeEditor> nv::editor::NodeEditor::load() {
 	}
 	auto nodeJson = nlohmann::json::parse(file);
 
-	NodeEditor ret{ fileName(*filePath) };
+	NodeEditor ret{ id, fileName(*filePath) };
 
 	auto& layersJson = nodeJson[LAYERS_KEY];
 	ret.m_layers.reserve(nodeJson.size());
@@ -470,7 +461,7 @@ void nv::editor::NodeEditor::show(SDL_Renderer* renderer, ToolDisplay& toolDispl
 	SDL_SetRenderViewport(renderer, &viewportIntRect);
 	SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 
-	if (windowContainsCoord(NODE_WINDOW_NAME, mouse)) {
+	if (windowContainsCoord(TAB_WINDOW_NAME, mouse)) {
 		runCurrentTool(renderer, mouse, toolDisplay);
 	}
 
@@ -494,12 +485,16 @@ void nv::editor::NodeEditor::addLayer(std::string layerName) {
 	}
 }
 
+NodeSerializationResult nv::editor::NodeEditor::serialize() const {
+	return createNodeJson(m_layers, m_objectGroupManager);
+}
+
 void nv::editor::NodeEditor::saveAs() {
 	try {
-		saveNewFile({ { "node", "nv_node" } }, [this](const auto& path) {
+		/*saveNewFile({ { "node", "nv_node" } }, [this](const auto& path) {
 			m_lastSavedFilePath = path;
-			return createNodeJson(m_layers, m_name, m_objectGroupManager);
-		});
+			return createNodeJson(m_layers, m_objectGroupManager);
+		});*/
 	} catch (json::exception e) {
 		std::println("{}", e.what());
 	}
@@ -510,7 +505,7 @@ void nv::editor::NodeEditor::save() {
 		saveAs();
 	} else {
 		try {
-			saveToExistingFile(m_lastSavedFilePath, createNodeJson(m_layers, m_name, m_objectGroupManager));
+			//saveToExistingFile(m_lastSavedFilePath, createNodeJson(m_layers, m_name, m_objectGroupManager));
 		} catch (json::exception e) {
 			std::println("{}", e.what());
 		}

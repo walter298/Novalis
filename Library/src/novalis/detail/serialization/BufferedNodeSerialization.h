@@ -16,6 +16,8 @@ namespace nlohmann {
 
 	template<>
 	struct nlohmann::adl_serializer<nv::BufferedNode> {
+		static constexpr const char* ID_PATH_MAP_KEY = "ID_Path_Map";
+
 		template<typename T>
 		static constexpr const std::string& typeOffsetKey() {
 			static const auto typeStr = nv::detail::getTypeName<T>();
@@ -50,7 +52,7 @@ namespace nlohmann {
 
 		static RegionMap makeRegionMap(std::byte* arena, const json& root) {
 			RegionMap ret;
-			ret.forEach([&]<typename Object>(nv::detail::MemoryRegion & region) {
+			ret.forEach([&]<typename Object>(nv::detail::MemoryRegion& region) {
 				//std::println("Offset Key: {}", typeOffsetKey<Object>());
 				auto offset = root[typeOffsetKey<Object>()].get<size_t>();
 				auto regionLen = root[typeSizeKey<Object>()].get<size_t>();

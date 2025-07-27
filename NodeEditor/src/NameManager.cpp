@@ -17,7 +17,7 @@ void nv::editor::NameManager::makeNewName(std::string& newName) {
 	}
 }
 
-void nv::editor::NameManager::inputName(const char* inputLabel, std::string& name) {
+bool nv::editor::NameManager::inputName(const char* inputLabel, std::string& name) {
 	using namespace std::literals;
 
 	auto oldName = name;
@@ -32,5 +32,8 @@ void nv::editor::NameManager::inputName(const char* inputLabel, std::string& nam
 		makeNewName(name);
 		m_takenNames.insert(name);
 		m_wasJustInputtingName = false;
+		return true;
 	}
+
+	return false;
 }

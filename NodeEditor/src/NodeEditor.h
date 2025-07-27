@@ -16,6 +16,8 @@
 #include "PolygonBuilder.h"
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
+#include "NodeSerialization.h"
+#include "FileID.h"
 
 namespace nv {
 	namespace editor {
@@ -41,6 +43,7 @@ namespace nv {
 			nv::detail::TypeMap<bool, BufferedNode, DynamicPolygon, Texture, Spritesheet> m_objectSelectionFilter{ true };
 			bool m_creatingObjectGroup = false;
 			uint8_t m_externalLayerOpacity = 90;
+			FileID m_id;
 
 			template<typename Object>
 			struct SelectedObjectData {
@@ -85,20 +88,20 @@ namespace nv {
 			void render(SDL_Renderer* renderer) const noexcept;
 			void editSelectedObject(SDL_Renderer* renderer, Point mouse, ToolDisplay::GrabberTool& grabber);
 			void runCurrentTool(SDL_Renderer* renderer, Point mouse, ToolDisplay& toolDisplay);
-			void configureNodeWindow() const noexcept;
 			void showObjectGroupCreationWindow();
 			void showNodeWindow(SDL_Renderer* renderer, Point mouse);
 		public:
-			NodeEditor(const std::string& name = "")
-				: m_name{ name }, m_viewport{ getViewport(m_zoom) }
+			NodeEditor(FileID id, const std::string& name = "")
+				: m_id{ id }, m_name{ name }
 			{
+				m_viewport = getViewport(m_zoom);
 			}
 			
-			static std::optional<NodeEditor> load();
+			static std::optional<NodeEditor> load(FileID id);
 
 			void show(SDL_Renderer* renderer, ToolDisplay& toolDisplay);
-
 			void addLayer(std::string layerName);
+			NodeSerializationResult serialize() const;
 
 			template<typename Object>
 			EditedObjectData<Object>& transfer(EditedObjectData<Object>&& object) {
@@ -140,9 +143,22 @@ namespace nv {
 				return m_name.c_str();
 			}
 
+			FileID getID() const noexcept {
+				return m_id;
+			}
+
 			void saveAs();
 			
 			void save();
 		};
 	}
+}
+
+namespace boost {
+	template<>
+	struct hash<nv::editor::NodeEditor> {
+		size_t operator()(const nv::editor::NodeEditor& nodeEditor) const noexcept {
+			return std::hash<nv::editor::FileID>{}(nodeEditor.getID());
+		}
+	};
 }

@@ -15,6 +15,8 @@ namespace nv {
 	FileOpenResult openFile(const FileExtensionFilters& filters);
 	MultipleFileOpensResult openMultipleFiles(const FileExtensionFilters& filters);
 
+	std::optional<std::string> openDirectory();
+	std::optional<std::string> createNewFile(const FileExtensionFilters& filters);
 	bool saveNewFile(const nv::FileExtensionFilters& filters, const FileContentsGenerator& stringGen);
 	void saveToExistingFile(const std::string& filepath, const std::string& contents);
 
@@ -23,7 +25,7 @@ namespace nv {
 	//returns the path relative to the working directory
 	const std::string& relativePath(std::string_view relativePath);
 
-	std::optional<std::string> fileExtension(const std::string& fileName);
+	std::optional<std::string> parseFileExtension(const std::string& fileName);
 	const std::string& fileName(std::string_view filePath);
 
 	std::string& convertFullToRegularPath(std::string& path);

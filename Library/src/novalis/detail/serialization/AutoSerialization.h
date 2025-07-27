@@ -7,7 +7,7 @@
 namespace nlohmann {
 	template<typename Aggr>
 	void from_json(const json& j, Aggr& aggr) 
-		requires(std::is_aggregate_v<Aggr> && !nv::detail::MemberIterable<Aggr>) 
+		requires(std::is_aggregate_v<Aggr> || nv::detail::MemberIterable<Aggr>) 
 	{
 		using Tuple = decltype(boost::pfr::structure_to_tuple(aggr));
 		auto parsedTuple = j.get<Tuple>();
@@ -28,7 +28,7 @@ namespace nlohmann {
 	template<nv::detail::MemberIterable Iterable>
 	void from_json(const json& j, Iterable& iterable) {
 		using Tuple = typename Iterable::__Tuple;
-		Tuple dummy = j;
+		auto dummy = j.template get<Tuple>();
 		nv::detail::forEachDataMember([](const auto& tupleElem, auto& iterableElem) {
 			iterableElem = tupleElem;
 			return nv::detail::STAY_IN_LOOP;

@@ -7,6 +7,15 @@
 #include <numeric>
 #include <ranges>
 
+std::optional<std::string> nv::openDirectory() {
+	NFD::UniquePath outPath;
+	auto dirResult = NFD::PickFolder(outPath);
+	if (dirResult == NFD_OKAY) {
+		return std::string{ outPath.get() };
+	}
+	return std::nullopt;
+}
+
 nv::FileOpenResult nv::openFile(const nv::FileExtensionFilters& filters) {
 	NFD::UniquePath outPath;
 	
@@ -40,6 +49,14 @@ nv::MultipleFileOpensResult nv::openMultipleFiles(const nv::FileExtensionFilters
 	}
 
 	return strPaths;
+}
+
+std::optional<std::string> nv::createNewFile(const FileExtensionFilters& filters) {
+	NFD::UniquePath path;
+	if (NFD::SaveDialog(path, filters.begin(), static_cast<nfdfiltersize_t>(filters.size())) != NFD_OKAY) {
+		return std::nullopt;
+	}
+	return std::string{ path.get() };
 }
 
 bool nv::saveNewFile(const nv::FileExtensionFilters& filters, const nv::FileContentsGenerator& contentsGen) {
@@ -90,14 +107,14 @@ const std::string& nv::relativePath(std::string_view relativePath) {
 	return global;
 }
 
-std::optional<std::string> nv::fileExtension(const std::string& fileName) {
+std::optional<std::string> nv::parseFileExtension(const std::string& fileName) {
 	using namespace std::literals;
 
 	auto dotPos = std::ranges::find(fileName, '.');
 	if (dotPos == fileName.end()) {
 		return std::nullopt;
 	}
-	return std::accumulate(dotPos, fileName.end(), ""s);
+	return std::accumulate(dotPos + 1, fileName.end(), ""s);
 }
 
 const std::string& nv::fileName(std::string_view filePath) {

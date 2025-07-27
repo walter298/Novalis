@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <boost/unordered/unordered_flat_map.hpp>
@@ -114,7 +116,7 @@ namespace nv {
                 m_filteredObjects.forEach([&, this](auto& objectRef) {
                     bool selected = m_selectedObject.has_value() && 
                                     std::visit([](auto& object) { return object.get().id; }, *m_selectedObject) == objectRef.get().id;
-                    ImGui::PushID(getUniqueImGuiID());
+                    ImGui::PushID(getTemporaryImGuiID());
                     if (ImGui::Selectable(objectRef.get().getName().c_str(), selected)) {
                         m_selectedObject = std::make_optional<UniformObjectVector::ValueType>(objectRef);
                     }

@@ -12,7 +12,8 @@ namespace nv {
 
 			TexturePtr() = default;
 			TexturePtr(SDL_Renderer* renderer, const char* path);
-			
+			explicit TexturePtr(SDL_Texture* tex) noexcept;
+
 			TexturePtr(const TexturePtr& other) noexcept : tex{ other.tex } {
 				if (tex) {
 					tex->refcount++;

@@ -11,6 +11,8 @@ template<typename T>
 static void copyPtrMap(const std::byte* srcArena, std::byte* destArena,
 	const PtrMap<T>& srcMap, PtrMap<T>& destMap) 
 {
+	std::println("Copying PtrMap with size: {}", srcMap.arr.size());
+
 	//make dest map's array point to the same relative address as the src map's array
 	typename PtrMap<T>::Entry* destMapPtr = nullptr;
 	nv::detail::matchOffset(srcArena, srcMap.arr.data(), destArena, destMapPtr);
@@ -33,53 +35,48 @@ static void copyLookupMaps(const std::byte* srcArena, std::byte* destArena,
 	nv::detail::forEachDataMember([&](const auto& srcMap, auto& destMap) {
 		copyPtrMap(srcArena, destArena, srcMap, destMap);
 		return nv::detail::STAY_IN_LOOP;
-		//using Map = std::remove_cvref_t<decltype(srcMap)>;
-
-		////make dest map's array point to the same relative address as the src map's array
-		//typename Map::Entry* destMapPtr = nullptr;
-		//nv::detail::matchOffset(srcArena, srcMap.arr.data(), destArena, destMapPtr);
-		//destMap.arr = { destMapPtr, srcMap.arr.size() }; //set pointer and size of destMap
-
-		////copy each entry from the src map into the dest map
-		//for (auto&& [srcEntry, destEntry] : std::views::zip(srcMap, destMap)) {
-		//	const auto& [srcName, srcObject, srcIsTombstone] = srcEntry;
-		//	auto& [destName, destObject, destIsTombstone]    = destEntry;
-
-		//	destName = srcName.copy(srcArena, destArena); //copy the name string
-		//	nv::detail::matchOffset(srcArena, srcObject, destArena, destObject); //make destObject point to the same relative address as srcObject
-		//	destIsTombstone = srcIsTombstone; //copy the tombstone flag
-		//}
-
-		//return nv::detail::STAY_IN_LOOP;
 	}, srcLookups, destLookups);
+}
+
+using ObjectGroup = nv::detail::BufferedNodeTraits::ObjectGroup;
+
+static ObjectGroup copyObjectGroup(const std::byte* srcArena, std::byte* destArena, const ObjectGroup& srcObjectGroup) {
+	ObjectGroup destObjectGroup;
+	nv::detail::forEachDataMember([&]<typename Object>(const std::span<Object*>& srcObjectPtrSpan,
+		std::span<Object*>& destObjectPtrSpan) 
+	{
+		if (!srcObjectPtrSpan.data() || srcObjectPtrSpan.empty()) {
+			destObjectPtrSpan = std::span<Object*>{};
+			return nv::detail::STAY_IN_LOOP;
+		}
+		//make dest object ptr span point to the same relative address as the src ptr object span
+		Object** destSpanPtr = nullptr;
+		nv::detail::matchOffset(srcArena, srcObjectPtrSpan.data(), destArena, destSpanPtr);
+		destObjectPtrSpan = { destSpanPtr, srcObjectPtrSpan.size() };
+
+		for (auto&& [srcPtr, destPtr] : std::views::zip(srcObjectPtrSpan, destObjectPtrSpan)) {
+			//make dest object ptr point to the same relative address as the src object ptr
+			nv::detail::matchOffset(srcArena, srcPtr, destArena, destPtr);
+		}
+		return nv::detail::STAY_IN_LOOP;
+	}, srcObjectGroup, destObjectGroup);
+	return destObjectGroup;
 }
 
 void nv::BufferedNode::copyGroupMaps(const std::byte* srcArena, std::byte* destArena,
 	const ObjectGroupMap& srcObjectGroupMap, ObjectGroupMap& destObjectGroupMap)
 {
-	for (auto&& [srcEntry, destEntry] : std::views::zip(srcObjectGroupMap, destObjectGroupMap)) {
-		auto& [srcName, srcObjectGroup, srcIsTombstone]    = srcEntry;
+	//make dest map's array point to the same relative address as the src map's array
+	ObjectGroupMap::Entry* destMapPtr = nullptr;
+	nv::detail::matchOffset(srcArena, srcObjectGroupMap.arr.data(), destArena, destMapPtr);
+	destObjectGroupMap.arr = { destMapPtr, srcObjectGroupMap.arr.size() }; //set pointer and size of destObjectGroupMap
+
+	for (const auto& [srcEntry, destEntry] : std::views::zip(srcObjectGroupMap, destObjectGroupMap)) {
+		const auto& [srcName, srcObjectGroup, srcTombstone] = srcEntry;
 		auto& [destName, destObjectGroup, destIsTombstone] = destEntry;
 		destName = srcName.copy(srcArena, destArena); //copy the name string
-
-		//copy each pointer from the src object group map into the dest object group map
-		nv::detail::forEachDataMember([&]<typename Object>(const std::span<Object*>& srcObjectPtrSpan, 
-			std::span<Object*>& destObjectPtrSpan) 
-		{
-			//make dest object ptr span point to the same relative address as the src ptr object span
-			Object** destSpanPtr = nullptr;
-			nv::detail::matchOffset(srcArena, srcObjectPtrSpan.data(), destArena, destSpanPtr);
-			destObjectPtrSpan = { destSpanPtr, srcObjectPtrSpan.size() };
-
-			for (auto&& [srcPtr, destPtr] : std::views::zip(srcObjectPtrSpan, destObjectPtrSpan)) {
-				//make dest object ptr point to the same relative address as the src object ptr
-				nv::detail::matchOffset(srcArena, srcPtr, destArena, destPtr);
-			}
-
-			return nv::detail::STAY_IN_LOOP;
-		}, srcObjectGroup, destObjectGroup);
-
-		destIsTombstone = srcIsTombstone; //copy the tombstone flag
+		destObjectGroup = copyObjectGroup(srcArena, destArena, srcObjectGroup); //copy the object map
+		destIsTombstone = srcTombstone; //copy the tombstone flag
 	}
 }
 

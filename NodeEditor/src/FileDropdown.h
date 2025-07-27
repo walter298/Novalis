@@ -1,15 +1,15 @@
 #include "NodeTabList.h"
+#include "ProjectCreator.h"
+#include "ProjectManager.h"
 
 namespace nv {
 	namespace editor {
 		class FileDropdown {
 		private:
-			std::string m_nodeNameInput;
-			bool m_showingNodeCreationPopupWindow = false;
-
-			void showNodeCreationPopupWindow(NodeTabList& tabs);
+			bool m_creatingProject = false;
+			ProjectCreator m_projectCreator;
 		public:
-			void show(NodeTabList& tabs);
+			void show(ProjectManager& projectManager, ErrorPopup& errorPopup);
 		};
 	}
 }

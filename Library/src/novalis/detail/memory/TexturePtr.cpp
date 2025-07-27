@@ -22,6 +22,12 @@ nv::detail::TexturePtr::TexturePtr(SDL_Renderer* renderer, const char* path)
 	}
 }
 
+nv::detail::TexturePtr::TexturePtr(SDL_Texture* tex) noexcept : tex{ tex }
+{
+	assert(tex);
+	assert(tex->refcount == 1);
+}
+
 static void release(SDL_Texture* tex) {
 	if (tex) {
 		assert(tex->refcount > 0);

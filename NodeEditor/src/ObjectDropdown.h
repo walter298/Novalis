@@ -3,22 +3,28 @@
 #include <variant>
 
 #include "NodeTabList.h"
+#include "Project.h"
+#include "SpritesheetCreator.h"
+#include "MultiSpritesheetCreator.h"
 
 namespace nv {
 	namespace editor {
 		class ObjectDropdown {
 		private:
-			nv::detail::TexturePtr m_tex;
-			std::string m_texPath;
-			int m_rowC = 1;
-			int m_colC = 1;
-			bool m_creatingSpritesheet = false;
-
-			void showSpritesheetCreationWindow(SDL_Renderer* renderer, NodeEditor& currTab);
-			void uploadSpriteSheet(SDL_Renderer* renderer, NodeEditor& currTab);
+			SpritesheetCreator m_spritesheetCreator;
+			MultiSpritesheetCreator m_multiSpritesheetCreator;
+			enum State {
+				CreatingSpritesheetFromMultipleImages,
+				CreatingSpritesheetFromSingleImage,
+				OpeningSingleImageDialog,
+				OpeningMultipleImagesDialog,
+				None
+			} m_state = None;
+			void openMultiImageDialog(SDL_Renderer* renderer, VirtualFilesystem& vfs, ErrorPopup& errorPopup);
+			void openImageDialog(VirtualFilesystem& vfs);
 		public:
-			void show(SDL_Renderer* renderer, NodeTabList& tabs);
-			bool creatingSpritesheet() const noexcept;
+			void show(SDL_Renderer* renderer, Project& project, ErrorPopup& errorPopup);
+			bool isBusy() const noexcept;
 		};
 	}
 }

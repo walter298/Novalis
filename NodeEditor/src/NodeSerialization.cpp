@@ -120,7 +120,7 @@ static void writeChildNodeSizeData(const BufferedNode& node, BufferedNode::TypeM
 }
 
 static void writeLayerData(json& currJsonLayer, const Layer::Objects& objects,
-	BufferedNode::TypeMap<size_t>& objectRegionLengths, ObjectGroupManager& objectGroups)
+	BufferedNode::TypeMap<size_t>& objectRegionLengths, const ObjectGroupManager& objectGroups)
 {
 	auto handleObject = [&]<typename Object>(json & objectGroupJson, const EditedObjectData<Object>&object) {
 		objectGroupJson.push_back(makeObjectJson(object, objectGroups));
@@ -158,7 +158,7 @@ static void writeLayerData(json& currJsonLayer, const Layer::Objects& objects,
 }
 
 static void writeAllLayersData(json& root, const std::vector<Layer>& layers,
-	ObjectGroupManager& objectGroups, BufferedNode::TypeMap<size_t>& objectRegionLengths)
+	const ObjectGroupManager& objectGroups, BufferedNode::TypeMap<size_t>& objectRegionLengths)
 {
 	objectRegionLengths.get<BufferedNode::Layer>() = layers.size() * sizeof(BufferedNode::Layer);
 
@@ -176,7 +176,8 @@ static void writeAllLayersData(json& root, const std::vector<Layer>& layers,
 	}
 }
 
-static void writeObjectSizeOffsetData(json& root, const BufferedNode::TypeMap<size_t>& objectRegionLengths) {
+//returns the total byte count of the node
+static size_t writeObjectSizeOffsetData(json& root, const BufferedNode::TypeMap<size_t>& objectRegionLengths) {
 	using BufferedNodeParser = nlohmann::adl_serializer<BufferedNode>;
 	objectRegionLengths.forEach([&]<typename Object>(size_t size) {
 		root[BufferedNodeParser::typeSizeKey<BufferedObject<Object>>()] = size;
@@ -187,10 +188,13 @@ static void writeObjectSizeOffsetData(json& root, const BufferedNode::TypeMap<si
 		root[BufferedNodeParser::typeOffsetKey<BufferedObject<Object>>()] = offset;
 	});
 
-	root[BYTES_KEY] = offsets.getLast() + objectRegionLengths.getLast();
+	size_t byteCount = offsets.getLast() + objectRegionLengths.getLast();
+	root[BYTES_KEY] = byteCount;
+
+	return byteCount;
 }
 
-static void writeObjectGroupData(json& root, ObjectGroupManager& objectGroups,
+static void writeObjectGroupData(json& root, const ObjectGroupManager& objectGroups,
 	BufferedNode::TypeMap<size_t>& objectRegionLengths)
 {
 	auto& objectGroupNode = root[OBJECT_GROUP_KEY];
@@ -212,19 +216,16 @@ static void writeObjectGroupData(json& root, ObjectGroupManager& objectGroups,
 	}
 }
 
-std::string nv::editor::createNodeJson(const std::vector<Layer>& layers, std::string_view nodeName, 
-	ObjectGroupManager& objectGroups) 
+NodeSerializationResult nv::editor::createNodeJson(const std::vector<Layer>& layers, const ObjectGroupManager& objectGroups) 
 {
 	using namespace nv::detail::json_constants;
 
 	json root;
-	root[NAME_KEY] = nodeName;
-
 	BufferedNode::TypeMap<size_t> objectRegionLengths{ 0 };
 
 	writeObjectGroupData(root, objectGroups, objectRegionLengths);
 	writeAllLayersData(root, layers, objectGroups, objectRegionLengths);
-	writeObjectSizeOffsetData(root, objectRegionLengths);
+	auto byteCount = writeObjectSizeOffsetData(root, objectRegionLengths);
 
-	return root.dump(2);
+	return { root, byteCount };
 }

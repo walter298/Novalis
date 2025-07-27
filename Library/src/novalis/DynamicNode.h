@@ -46,8 +46,22 @@ namespace nv {
 
 	class DynamicNode : public detail::NodeBase<detail::DynamicNodeTraits> {
 	private:
-		DynamicNode() = default;
 	public:
+		DynamicNode() = default;
+		//DynamicNode(const DynamicNode&) = delete; //disallow shallow copying
+
+		//void addLayer(std::string layerName) {
+		//	assert(!m_layerMap.contains(layerName));
+		//	m_layerMap.emplace(std::move(layerName), Layer{});
+		//}
+
+		//template<typename Object>
+		//void addObject(const std::string& layerName, Object&& object) {
+		//	auto& layer = m_layerMap.at(layerName);
+		//	auto& objectStorage = std::get<ObjectStorage<std::remove_cvref_t<Object>>>(layer);
+		//	objectStorage.insert(std::forward<Object>(object));
+		//}
+
 		friend struct nlohmann::adl_serializer<DynamicNode>;
 	};
 }

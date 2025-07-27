@@ -9,26 +9,16 @@ namespace nv {
 	namespace editor {
 		class ObjectGroupManager {
 		private:
+			NameManager m_objectGroupNameManager{ "Object Group " };
 			boost::unordered_flat_map<ID<EditedObjectGroup>, EditedObjectGroup> m_objectGroups;
 			ID<EditedObjectGroup> m_currUniversalObjectGroupID        = ID<EditedObjectGroup>::None();
 			ID<EditedObjectGroup> m_currObjectSpecificObjectGroupID = ID<EditedObjectGroup>::None();
+
+			ID<EditedObjectGroup> addGroupImpl(std::string&& name);
 		public:
-			ID<EditedObjectGroup> addGroup() {
-				auto [it, inserted] = m_objectGroups.emplace(
-					std::piecewise_construct, std::forward_as_tuple(), std::forward_as_tuple()
-				);
-				m_currUniversalObjectGroupID = it->first;
-				it->second.name = "Unnamed group #" + std::to_string(m_currUniversalObjectGroupID);
-				return it->first;
-			}
-			ID<EditedObjectGroup> addGroup(EditedObjectGroup&& objectGroup) {
-				auto [it, inserted] = m_objectGroups.emplace(
-					std::piecewise_construct, std::forward_as_tuple(), std::forward_as_tuple(std::move(objectGroup))
-				);
-				m_currUniversalObjectGroupID = it->first;
-				it->second.name = "Unnamed group #" + std::to_string(m_currUniversalObjectGroupID);
-				return it->first;
-			}
+			ID<EditedObjectGroup> addGroup(std::string name);
+			ID<EditedObjectGroup> addGroup();
+			void editObjectGroupName(ID<EditedObjectGroup> id);
 
 			template<typename Object>
 			void addObjectToGroup(ID<EditedObjectGroup>& groupID, EditedObjectData<Object>& object) {
@@ -36,15 +26,7 @@ namespace nv {
 				m_objectGroups.at(groupID).addObject(&object);
 			}
 
-			void removeGroup(ID<EditedObjectGroup> id) {
-				nv::detail::forEachDataMember([&](auto& objects) {
-					for (auto& object : objects) {
-						object->groupIDs.erase(id);
-					}
-					return nv::detail::STAY_IN_LOOP;
-					}, m_objectGroups.at(id).objects);
-				m_objectGroups.erase(id);
-			}
+			void removeGroup(ID<EditedObjectGroup> id);
 
 			template<typename Object>
 			void removeFromAllObjectGroups(EditedObjectData<Object>& object) {
@@ -145,65 +127,10 @@ namespace nv {
 				return m_objectGroups;
 			}
 		private:
-			void showObjectGroupOptions(EditedObjectGroup& objectGroup) {
-				auto showSyncOption = [](const char* label, EditedObjectGroup::SyncOption& syncOption) {
-					bool temp = syncOption;
-					ImGui::SetNextItemWidth(getInputWidth());
-					if (ImGui::Checkbox(label, &temp)) {
-						syncOption = static_cast<EditedObjectGroup::SyncOption>(temp);
-					}
-				};
-				showSyncOption("Sync position", objectGroup.positionSynced);
-				showSyncOption("Sync rotation", objectGroup.rotationSynced);
-				showSyncOption("Sync scale", objectGroup.scaleSynced);
-				showSyncOption("Sync opacity", objectGroup.opacitySynced);
-			}
-
-			void showDeletionOption() {
-				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::Button("Delete group")) {
-					auto& deletedObjectGroup = m_objectGroups.at(m_currUniversalObjectGroupID);
-					nv::detail::forEachDataMember([this](auto& objects) {
-						objects.clear();
-						return nv::detail::STAY_IN_LOOP;
-					}, deletedObjectGroup.objects);
-					m_objectGroups.erase(m_currUniversalObjectGroupID);
-					m_currUniversalObjectGroupID = ID<EditedObjectGroup>::None();
-				}
-			}
-
-			template<typename Object>
-			ID<EditedObjectGroup> getRandomObjectGroupID(const EditedObjectData<Object>& editedObj) {
-				if (editedObj.groupIDs.empty()) {
-					return ID<EditedObjectGroup>::None();
-				}
-				return *editedObj.groupIDs.begin();
-			}
-
-			void showCurrentObjectGroupOptions(NameManager& objectGroupNameManager) {
-				if (m_currUniversalObjectGroupID != ID<EditedObjectGroup>::None()) {
-					auto& currObjectGroup = m_objectGroups.at(m_currUniversalObjectGroupID);
-					objectGroupNameManager.inputName("Group name", currObjectGroup.name);
-					showObjectGroupOptions(currObjectGroup);
-				} 
-			}
-
-			void showObjectGroupDropdownForAllObjectGroups() {
-				auto previewObjectGroupName = m_currUniversalObjectGroupID == ID<EditedObjectGroup>::None() ?
-					"No Group" : m_objectGroups.at(m_currUniversalObjectGroupID).name.c_str();
-
-				if (ImGui::BeginCombo("Object group", previewObjectGroupName)) {
-					for (const auto& [objectGroupID, objectGroup] : m_objectGroups) {
-						ImGui::SetNextItemWidth(getInputWidth());
-						ImGui::PushID(getUniqueImGuiID());
-						if (ImGui::Selectable(objectGroup.name.c_str(), objectGroupID == m_currUniversalObjectGroupID)) {
-							m_currUniversalObjectGroupID = objectGroupID;
-						}
-						ImGui::PopID();
-					}
-					ImGui::EndCombo();
-				}
-			}
+			void showObjectGroupOptions(EditedObjectGroup& objectGroup);
+			void showDeletionOption();
+			void showCurrentObjectGroupOptions(NameManager& objectGroupNameManager);
+			void showObjectGroupDropdownForAllObjectGroups();
 		public:
 			void showAllObjectGroups(NameManager& objectGroupNameManager) {
 				showObjectGroupDropdownForAllObjectGroups();
@@ -217,7 +144,7 @@ namespace nv {
 
 				if (ImGui::BeginCombo("Object group", previewObjectGroupName)) {
 					for (const auto& objectGroupID : object.groupIDs) {
-						ImGui::PushID(getUniqueImGuiID());
+						ImGui::PushID(getTemporaryImGuiID());
 						if (ImGui::Button("X")) {
 							object.groupIDs.erase(objectGroupID);
 							auto& objectGroup = m_objectGroups.at(objectGroupID);
@@ -229,7 +156,7 @@ namespace nv {
 						ImGui::SameLine();
 						auto& objectGroup = m_objectGroups.at(objectGroupID);
 						ImGui::SetNextItemWidth(getInputWidth());
-						ImGui::PushID(getUniqueImGuiID());
+						ImGui::PushID(getTemporaryImGuiID());
 						if (ImGui::Selectable(objectGroup.name.c_str(), objectGroupID == m_currObjectSpecificObjectGroupID)) {
 							m_currUniversalObjectGroupID = objectGroupID;
 							m_currObjectSpecificObjectGroupID = objectGroupID;
@@ -240,12 +167,7 @@ namespace nv {
 				}
 			}
 
-			void showObjectGroupCreationButton(bool& creatingObjectGroup) {
-				ImGui::SetNextItemWidth(getInputWidth());
-				if (ImGui::Button("New Object Group")) {
-					creatingObjectGroup = true;
-				}
-			}
+			void showObjectGroupCreationButton(bool& creatingObjectGroup);
 		public:
 			template<nv::concepts::RenderableObject Object>
 			void showObjectGroupsOfObject(EditedObjectData<Object>& object, bool& creatingObjectGroup) {

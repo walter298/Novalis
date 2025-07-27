@@ -9,6 +9,7 @@
 #include <novalis/detail/serialization/TextureSerialization.h>
 #include <novalis/BufferedNode.h>
 
+#include "File.h"
 #include "NameManager.h"
 
 namespace nv {
@@ -23,11 +24,6 @@ namespace nv {
 		class EditedObjectDataBase {
 		private:
 			std::string m_name;
-		protected:
-			void loadName(std::string name) {
-				m_name = std::move(name);
-				objectNameManager.makeNewName(m_name);
-			}
 		public:
 			Object obj;
 			uint8_t opacity = 255;
@@ -43,8 +39,13 @@ namespace nv {
 				objectNameManager.makeNewName(m_name);
 			}
 
-			EditedObjectDataBase(const EditedObjectDataBase&) = delete;
+			EditedObjectDataBase(const EditedObjectDataBase&) = default;
 			EditedObjectDataBase(EditedObjectDataBase&&) noexcept = default;
+
+			void loadName(std::string name) {
+				m_name = std::move(name);
+				objectNameManager.makeNewName(m_name);
+			}
 
 			void inputName(NameManager& nameManager) {
 				nameManager.inputName("Object Name", m_name);
@@ -77,6 +78,7 @@ namespace nv {
 		template<>
 		struct EditedObjectData<Texture> : public EditedObjectDataBase<Texture> {
 			std::string texPath;
+			FileID texFile;
 
 			template<typename... Args>
 			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Texture, Args...>)
@@ -87,7 +89,7 @@ namespace nv {
 			static EditedObjectData<Texture> load(const json& objectJson) {
 				EditedObjectData<Texture> ret{ objectJson[OBJECT_KEY].get<Texture>() };
 				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
-				ret.texPath = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<std::string>();
+				ret.texFile = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<FileID>();
 
 				return ret;
 			}
@@ -96,6 +98,7 @@ namespace nv {
 		template<>
 		struct EditedObjectData<Spritesheet> : public EditedObjectDataBase<Spritesheet> {
 			std::string texPath;
+			FileID texFile;
 
 			template<typename... Args>
 			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Spritesheet, Args...>)
@@ -106,7 +109,7 @@ namespace nv {
 			static EditedObjectData<Spritesheet> load(const json& objectJson) {
 				EditedObjectData<Spritesheet> ret{ objectJson[OBJECT_KEY].get<Spritesheet>() };
 				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
-				ret.texPath = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<std::string>();
+				ret.texFile = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<FileID>();
 
 				return ret;
 			}
@@ -123,13 +126,12 @@ namespace nv {
 			}
 
 			static EditedObjectData<BufferedNode> load(const json& objectJson) {
-				std::println("{}", objectJson.dump(2));
 				auto path = objectJson[METADATA_KEY][PATH_KEY].get<std::string>();
 				EditedObjectData<BufferedNode> ret{
 					getGlobalInstance()->registry.loadBufferedNode(path)
 				};
-				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
 				ret.filePath = path;
+				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
 				ret.obj.setOpacity(objectJson[METADATA_KEY][OPACITY_KEY].get<uint8_t>());
 				ret.obj.screenScale(objectJson[METADATA_KEY][SCREEN_SCALE_KEY].get<float>());
 				ret.obj.setScreenPos(objectJson[METADATA_KEY][SCREEN_POS_KEY].get<Point>());

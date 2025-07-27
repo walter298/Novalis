@@ -2,19 +2,23 @@
 
 #include <concepts>
 #include <string>
-
 #include <boost/functional/hash.hpp>
+
+#include "detail/reflection/ClassIteration.h"
 
 namespace nv {
 	template<typename Object>
 	class ID {
-	private:
-		int m_ID = 0;
-
-		constexpr ID(int id) noexcept : m_ID(id) {}
 	public:
+		using IntegerType = int64_t;
+	private:
+		IntegerType m_ID = 0;
+	public:
+		static inline IntegerType IDCount = 0;
+
+		constexpr ID(IntegerType id) noexcept : m_ID(id) {}
+
 		constexpr ID() noexcept {
-			static int IDCount = 0;
 			m_ID = IDCount;
 			IDCount++;
 		}
@@ -23,31 +27,30 @@ namespace nv {
 			return ID{ -1 };
 		}
 
-		operator int() const noexcept {
+		operator IntegerType() const noexcept {
 			return m_ID;
 		}
+
+		MAKE_INTROSPECTION(m_ID)
 	};
-
-	//class Sprite;
-	struct Texture;
-
-	namespace detail {
-		class WorldCoordinates {
-		private:
-			static inline int x = 0;
-			static inline int y = 0;
-		public:
-			//friend class Sprite;
-			friend struct Texture;
-		};
-	}
 }
 
 namespace boost {
 	template<typename T>
 	struct hash<nv::ID<T>> {
 		size_t operator()(nv::ID<T> id) const {
-			return boost::hash<int>()(id.operator int());
+			using Integer = typename nv::ID<T>::IntegerType;
+			return boost::hash<Integer>()(id.operator Integer());
+		}
+	};
+}
+
+namespace std {
+	template<typename T>
+	struct hash<nv::ID<T>> {
+		size_t operator()(nv::ID<T> id) const {
+			using Integer = typename nv::ID<T>::IntegerType;
+			return boost::hash<Integer>()(id.operator Integer());
 		}
 	};
 }

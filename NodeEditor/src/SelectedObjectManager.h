@@ -18,8 +18,6 @@ namespace nv {
 				SelectedObjectData<BufferedNode>
 			>;
 			SelectedObjectVariant m_selectedObject = std::monostate{};
-
-
 		};
 	}
 }

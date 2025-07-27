@@ -17,15 +17,17 @@
 #include "TaskBar.h"
 #include "ToolDisplay.h"
 #include "WindowLayout.h"
+#include "ProjectManager.h"
 
 using namespace nv;
 using namespace nv::editor;
 
 struct AppData {
 	nv::Instance instance{ "Novalis" };
-	NodeTabList tabs;
+	ProjectManager projectManager;
 	TaskBar taskBar;
 	ToolDisplay toolDisplay{ instance.getRenderer() };
+	ErrorPopup errorPopup;
 	bool running = true;
 };
 
@@ -35,6 +37,7 @@ void nv::editor::runApp() {
 	
 	{ //put AppData in a scope such that our containers destruct
 		AppData app;
+		nv::editor::VirtualFilesystem::loadFolderTextures(app.instance.getRenderer());
 
 		auto& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -43,8 +46,8 @@ void nv::editor::runApp() {
 		ImGui_ImplSDLRenderer3_Init(app.instance.getRenderer());
 
 		while (app.running) {
-			resetImGuiIDs();
-
+			resetTemporaryImGuiIDs();
+			
 			constexpr auto FONT_SCALE = 3.0f;
 			ImGui::GetIO().FontGlobalScale = FONT_SCALE;
 
@@ -69,12 +72,19 @@ void nv::editor::runApp() {
 			ImGui_ImplSDL3_NewFrame();
 			ImGui::NewFrame();
 
-			app.toolDisplay.show(
-				app.tabs.currentTab().has_value() && (app.tabs.currentTab()->isBusy() || app.taskBar.isBusy())
-			);
-			app.tabs.show(app.instance.getRenderer(), app.toolDisplay);
-			app.taskBar.show(app.instance.getRenderer(), app.tabs);
+			app.errorPopup.show();
 
+			auto currProject = app.projectManager.getCurrentProject();
+			if (currProject) {
+				if (currProject->getCurrentTab() && !currProject->getCurrentTab()->hasNoLayers()) {
+					app.toolDisplay.show(!currProject->getCurrentTab()->isBusy());
+				}
+				currProject->showTabs();
+				currProject->showFilesystem(app.errorPopup);
+				int x = 0;
+			}
+			app.taskBar.show(app.instance.getRenderer(), app.projectManager, app.errorPopup);
+			
 			const auto now = std::chrono::system_clock::now();
 			if (now < endTime) {
 				std::this_thread::sleep_for(endTime - now);
@@ -85,6 +95,8 @@ void nv::editor::runApp() {
 			ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), app.instance.getRenderer());
 			SDL_RenderPresent(app.instance.getRenderer());
 		}
+
+		nv::editor::VirtualFilesystem::destroyFolderTextures();
 	} 
 
 	ImGui_ImplSDLRenderer3_Shutdown();

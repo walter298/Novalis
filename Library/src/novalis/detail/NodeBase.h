@@ -61,7 +61,7 @@ namespace nv {
 			}
 
 			template<typename Callable>
-			void forEachExcept(this auto&& self, Callable callable, size_t excludedLayer) {
+			void forEachExcept(this auto&& self, Callable callable, size_t excludedLayerIdx) {
 				auto exec = [&](auto& layer) {
 					forEachDataMember([layer, &callable](auto& objHive) {
 						for (auto& obj : objHive) {
@@ -72,10 +72,10 @@ namespace nv {
 						return STAY_IN_LOOP;
 					}, layer);
 				};
-				for (size_t i = 0; i < excludedLayer; i++) {
+				for (size_t i = 0; i < excludedLayerIdx; i++) {
 					exec(self.storage[i]);
 				}
-				for (size_t i = excludedLayer + 1; i < self.storage.size(); i++) {
+				for (size_t i = excludedLayerIdx + 1; i < self.storage.size(); i++) {
 					exec(self.storage[i]);
 				}
 			}
@@ -150,6 +150,11 @@ namespace nv {
 				dest.m_opacity     = src.m_opacity;
 				dest.m_screenPos   = src.m_screenPos;
 				dest.m_worldPos    = src.m_worldPos;
+			}
+			size_t getLayerIndex(std::string_view layerName) {
+				auto layerPtr = &m_layerMap.at(layerName);
+				auto layersBeginPtr = m_objectLayers.storage.data();
+				return static_cast<size_t>(layerPtr - layersBeginPtr);
 			}
 		public:
 			template<typename T, typename StringComp>
@@ -226,12 +231,20 @@ namespace nv {
 			}
 
 			template<typename Func>
-			void forEach(Func f) {
-				m_objectLayers.forEach(f);
+			void forEach(this auto&& self, Func f) {
+				self.m_objectLayers.forEach(f);
 			}
 			template<typename Func>
-			void forEachExcept(Func f, size_t excludedLayer) {
-				m_objectLayers.forEachExcept(f, excludedLayer);
+			void forEach(this auto&& self, Func f, std::string_view layerName) {
+				self.m_objectLayers.forEach(f, self.getLayerIndex(layerName));
+			}
+			template<typename Func>
+			void forEachExcept(this auto&& self, Func f, size_t excludedLayer) {
+				self.m_objectLayers.forEachExcept(f, excludedLayer);
+			}
+			template<typename Callable>
+			void forEachExcept(this auto&& self, Callable callable, std::string_view excludedLayerName) {
+				self.forEachExcept(callable, self.getLayerIndex(excludedLayerName));
 			}
 
 			inline Point getScreenPos() const noexcept {

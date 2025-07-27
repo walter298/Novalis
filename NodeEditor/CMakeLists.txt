@@ -28,7 +28,7 @@ find_package(OpenCV REQUIRED)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.h")
 
-add_executable(${PROJECT_NAME} ${SOURCES}  "src/PolygonBuilder.h" "src/NodeSerialization.h" "src/Layer.h" "src/AsyncWork.h"  "src/tests/NodeFileTests.h" "src/ObjectGroupCreator.h" "src/ObjectGroupManager.h" "src/SelectedObjectManager.h"   "src/NameManager.h" "src/LayerDropdown.h" "src/PolygonOutline.cpp" "src/NodeSerialization.cpp" "src/NodeEditor.cpp" "src/BufferedAlias.h" "src/FileDropdown.h" "src/FileDropdown.cpp" "src/TaskBar.cpp" "src/ObjectDropdown.h" "src/ObjectDropdown.cpp" "src/ToolDisplay.cpp" "src/NameManager.cpp")
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     novalis 

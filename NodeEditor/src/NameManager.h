@@ -22,7 +22,7 @@ namespace nv {
 
 			std::string makeUniqueName();
 			void makeNewName(std::string& newName);
-			void inputName(const char* inputLabel, std::string& name);
+			bool inputName(const char* inputLabel, std::string& name); //returns whether we are finished inputting name
 
 			void deleteName(const std::string& name) {
 				m_takenNames.erase(name);

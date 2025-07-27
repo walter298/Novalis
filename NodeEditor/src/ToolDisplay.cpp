@@ -30,20 +30,17 @@ nv::editor::ToolDisplay::ToolDisplay(SDL_Renderer* renderer) : grabber{ m_currTo
 }
 
 void nv::editor::ToolDisplay::show(bool disabled) noexcept {
-	const ImVec2 winSize{
-		getSideWindowWidth(),
-		getWindowHeight() * 0.3f
-	};
+	auto winSize = getToolWindowSize();
 	const ImVec2 toolButtonSize{
 		winSize.x / 3.3f,
 		winSize.y / 2.5f
 	};
 
-	ImGui::SetNextWindowPos({ 0.0f, getWindowY() });
+	ImGui::SetNextWindowPos(getToolWindowPos());
 	ImGui::SetNextWindowSize(winSize);
 
 	ImGui::BeginDisabled(disabled);
-	ImGui::Begin(TOOL_WINDOW_NAME, nullptr, WINDOW_FLAGS);
+	ImGui::Begin(TOOL_WINDOW_NAME, nullptr, DEFAULT_WINDOW_FLAGS);
 
 	int i = 1;
 	for (const auto& [tool, tex] : m_buttons) {

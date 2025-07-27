@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "NodeTabList.h"
+#include "Project.h"
 
 namespace nv {
 	namespace editor {
@@ -13,29 +13,7 @@ namespace nv {
 
 			void showLayerCreationWindow(NodeEditor& currTab);
 		public:
-			void show(NodeTabList& tabs) {
-				if (!tabs.currentTab() || tabs.currentTab()->isBusy()) {
-					showDisabledMenu("Layer");
-					return;
-				}
-
-				if (m_showingAddNewLayerPopup) {
-					showLayerCreationWindow(*tabs.currentTab());
-				}
-
-				if (ImGui::BeginMenu("Layer")) {
-					if (ImGui::MenuItem("New Layer")) {
-						m_showingAddNewLayerPopup = true;
-					}
-					if (ImGui::MenuItem("Delete Layer")) {
-
-					}
-					if (ImGui::MenuItem("Duplicate Layer")) {
-
-					}
-					ImGui::EndMenu();
-				}
-			}
+			void show(Project& project);
 		};
 	}
 }

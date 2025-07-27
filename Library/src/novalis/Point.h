@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <boost/geometry/core/coordinate_system.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 
