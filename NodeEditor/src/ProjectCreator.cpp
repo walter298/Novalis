@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <novalis/detail/file/File.h>
 
 #include "imgui/imgui.h" //IMGUI_API
@@ -6,7 +7,7 @@
 #include "ProjectCreator.h"
 #include "WindowLayout.h"
 
-bool nv::editor::ProjectCreator::create(ProjectManager& projectManager, ErrorPopup& errorPopup) {
+bool nv::editor::ProjectCreator::create(bool& cancelled, ErrorPopup& errorPopup) {
 	bool created = false;
 
 	ImGui::OpenPopup(PROJECT_CREATION_POPUP_NAME);
@@ -30,11 +31,23 @@ bool nv::editor::ProjectCreator::create(ProjectManager& projectManager, ErrorPop
 			} else if (!std::filesystem::exists(m_directoryLocation)) {
 				errorPopup.add(std::format("Error: {} does not exist", m_directoryLocation));
 			} else {
-				projectManager.addProject(m_directoryLocation, m_projectNameInput);
 				created = true;
 			}
+		}
+
+		ImGui::SetNextItemWidth(getInputWidth());
+		if (ImGui::Button("Cancel")) {
+			cancelled = true;
 		}
 		ImGui::EndPopup();
 	}
 	return created;
+}
+
+const std::string& nv::editor::ProjectCreator::getCurrentDirectory() {
+	return m_directoryLocation;
+}
+
+const std::string& nv::editor::ProjectCreator::getProjectNameInput() {
+	return m_projectNameInput;
 }

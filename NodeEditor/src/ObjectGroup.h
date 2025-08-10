@@ -8,7 +8,7 @@
 namespace nv {
 	namespace editor {
 		template<typename Object>
-		using ObjectLookup = boost::unordered_flat_set<EditedObjectData<Object>*>;
+		using ObjectLookup = boost::unordered_flat_set<ObjectMetadata<Object>*>;
 
 		struct EditedObjectGroup {
 			std::string name;
@@ -37,14 +37,14 @@ namespace nv {
 			EditedObjectGroup(EditedObjectGroup&&) noexcept = default;
 
 			template<typename Object>
-			void addObject(EditedObjectData<Object>* object) {
+			void addObject(ObjectMetadata<Object>* object) {
 				assert(object);
-				std::get<boost::unordered_flat_set<EditedObjectData<Object>*>>(objects).insert(object);
+				std::get<boost::unordered_flat_set<ObjectMetadata<Object>*>>(objects).insert(object);
 			}
 			template<typename Object>
-			void removeObject(EditedObjectData<Object>* object) {
+			void removeObject(ObjectMetadata<Object>* object) {
 				assert(object);
-				std::get<boost::unordered_flat_set<EditedObjectData<Object>*>>(objects).erase(object);
+				std::get<boost::unordered_flat_set<ObjectMetadata<Object>*>>(objects).erase(object);
 			}
 		};
 	}

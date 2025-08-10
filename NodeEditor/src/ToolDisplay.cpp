@@ -4,20 +4,21 @@
 #include <magic_enum/magic_enum.hpp>
 #include <novalis/detail/file/File.h>
 
+#include "NovalisRoot.h"
 #include "ToolDisplay.h"
 
-nv::editor::ToolDisplay::ToolDisplay(SDL_Renderer* renderer) : grabber{ m_currTool } {
-	static constexpr const char* rootDirEnvVar = "NOVALIS_ROOT";
-	auto rootDirPath = std::getenv(rootDirEnvVar);
-	if (!rootDirPath) {
-		std::println(stderr, "Error: {} environment variable not set. Should be set to parent of NodeEditor and Library subdirectories.", rootDirEnvVar);
-		std::exit(EXIT_FAILURE);
-	}
+namespace {
+	using namespace nv;
+	using namespace editor;
 
-	namespace fs = std::filesystem;
-	
-	fs::directory_iterator toolImageDir{
-		fs::path{ rootDirPath } / "NodeEditor/novalis_assets/tool_images"
+	constexpr Point TEXTURE_SIZE = { 160.0f, 160.0f };
+	boost::unordered_flat_map<Tool, nv::detail::TexturePtr> m_buttons;
+	Tool currTool;
+}
+
+void nv::editor::loadToolTextures(SDL_Renderer* renderer) {
+	std::filesystem::directory_iterator toolImageDir{
+		getNovalisRoot() / "NodeEditor/novalis_assets/tool_images"
 	};
 	for (const auto& toolImagePath : toolImageDir) {
 		auto filename = toolImagePath.path().stem().string();
@@ -26,10 +27,15 @@ nv::editor::ToolDisplay::ToolDisplay(SDL_Renderer* renderer) : grabber{ m_currTo
 		nv::detail::TexturePtr tex{ renderer, toolImagePath.path().string().c_str() };
 		m_buttons.emplace(tool.value(), std::move(tex));
 	}
-	grabber.initAfterTextureLoad(m_buttons.at(Tool::ObjectSelect), m_buttons.at(Tool::ObjectGrab));
 }
 
-void nv::editor::ToolDisplay::show(bool disabled) noexcept {
+void nv::editor::destroyToolTextures(SDL_Renderer* renderer) {
+	for (auto& [tool, tex] : m_buttons) {
+		tex.destroy();
+	}
+}
+
+void nv::editor::showToolDisplay(bool disabled) {
 	auto winSize = getToolWindowSize();
 	const ImVec2 toolButtonSize{
 		winSize.x / 3.3f,
@@ -47,7 +53,7 @@ void nv::editor::ToolDisplay::show(bool disabled) noexcept {
 		if (tool == Tool::ObjectGrab) { //only show the object select
 			continue;
 		}
-		const bool highlighted = tool == m_currTool;
+		const bool highlighted = (tool == currTool);
 		if (highlighted) {
 			ImGui::PushStyleColor(ImGuiCol_Button, { 0, 255, 0, 255 });
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0, 255, 0, 255 });
@@ -55,7 +61,7 @@ void nv::editor::ToolDisplay::show(bool disabled) noexcept {
 		}
 		auto strId = std::to_string(i);
 		if (ImGui::ImageButton(strId.c_str(), reinterpret_cast<ImTextureID>(tex.tex), toolButtonSize)) {
-			m_currTool = tool;
+			currTool = tool;
 		}
 		if (highlighted) {
 			ImGui::PopStyleColor();
@@ -69,4 +75,8 @@ void nv::editor::ToolDisplay::show(bool disabled) noexcept {
 	}
 	ImGui::End();
 	ImGui::EndDisabled();
+}
+
+Tool nv::editor::getCurrentTool() {
+	return currTool;
 }

@@ -24,71 +24,20 @@ namespace nv {
 		inline constexpr const char* PROJECT_CREATION_POPUP_NAME = "Create Project";
 		inline constexpr const char* FILESYSTEM_WINDOW_NAME = "Filesystem";
 		inline constexpr const char* FILESYSTEM_DIALOG_POPUP_NAME = "File Dialog";
+		inline constexpr const char* PROJECT_LOAD_POPUP_NAME = "Load Project";
 
 		constexpr ImGuiWindowFlags DEFAULT_WINDOW_FLAGS = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
-		inline void centerNextWindow() {
-			auto center = ImGui::GetMainViewport()->GetCenter();
-			ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2{ 0.5f, 0.5f });
-		}
-
-		inline SDL_FRect getWindowRect(const char* windowName) noexcept {
-			auto win = ImGui::FindWindowByName(windowName);
-			auto pos = win->Pos;
-			auto size = win->Size;
-			return { pos.x,  pos.y, size.x, size.y };
-		}
-
-		inline bool windowContainsCoord(const char* windowName, Point p) noexcept {
-			auto winRect = getWindowRect(windowName);
-			SDL_FPoint sdlP = p;
-			return SDL_PointInRectFloat(&sdlP, &winRect);
-		}
-
-		inline float getInputWidth() noexcept {
-			return ImGui::GetIO().DisplaySize.x * 0.1f;
-		}
-
-		inline Point getViewportAdjustedMouse(SDL_Renderer* renderer, Point mouse, float zoom) noexcept {
-			SDL_Rect viewport;
-			SDL_GetRenderViewport(renderer, &viewport);
-
-			mouse.x -= viewport.x;
-			mouse.y -= viewport.y;
-			mouse.x /= zoom;
-			mouse.y /= zoom;
-
-			return mouse;
-		}
-
-		inline Point toSDLFPoint(ImVec2 p) noexcept {
-			return { p.x, p.y };
-		}
-
-		inline SDL_FRect getScreenDimensions() noexcept {
-			const auto& display = ImGui::GetIO().DisplaySize;
-			return { 0.0f, 0.0f, display.x, display.y };
-		}
-
-		inline void centerNextText(const char* text) noexcept {
-			auto windowWidth = ImGui::GetWindowSize().x;
-			auto textWidth = ImGui::CalcTextSize(text).x;
-			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-		}
-
-		inline void showDisabledMenu(const char* text) noexcept {
-			ImGui::BeginDisabled();
-			if (ImGui::BeginMenu(text)) {
-				ImGui::EndMenu();
-			}
-			ImGui::EndDisabled();
-		}
-
-		inline void clampImVec2(ImVec2& v, ImVec2 maxSize) noexcept {
-			v.x = std::min(v.x, maxSize.x);
-			v.y = std::min(v.y, maxSize.y);
-		}
-
+		void centerNextWindow();
+		SDL_FRect getWindowRect(const char* windowName) noexcept;
+		bool windowContainsCoord(const char* windowName, Point p) noexcept;
+		float getInputWidth() noexcept;
+		Point getViewportAdjustedMouse(SDL_Renderer* renderer, Point mouse, float zoom) noexcept;
+		Point toSDLFPoint(ImVec2 p) noexcept;
+		SDL_FRect getScreenDimensions() noexcept;
+		void centerNextText(const char* text) noexcept;
+		void showDisabledMenu(const char* text) noexcept;
+		void clampImVec2(ImVec2& v, ImVec2 maxSize) noexcept;
 		ImVec2 getFilesystemWindowPos() noexcept;
 		ImVec2 getFilesystemWindowSize() noexcept;
 		ImVec2 getToolWindowPos() noexcept;

@@ -19,7 +19,7 @@ namespace nv {
 			int m_colC = 1;
 		public:
 			void init(nv::detail::TexturePtr tex, FileID fileID);
-			std::optional<EditedObjectData<Spritesheet>> show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
+			std::optional<ObjectMetadata<Spritesheet>> show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
 				bool& cancelled, ErrorPopup& errorPopup);
 		};
 	}

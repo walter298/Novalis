@@ -1,34 +1,30 @@
 #pragma once
 
 #include <optional>
-#include <string>
-#include <thread>
 #include <vector>
 
 #include <novalis/detail/reflection/TypeMap.h>
 
-#include "imgui/imgui.h"
-#include "NodeSerialization.h"
 #include "ObjectGroupManager.h"
 #include "Layer.h"
 #include "ObjectGroupCreator.h"
-#include "PolygonOutline.h"
 #include "PolygonBuilder.h"
-#include "ToolDisplay.h"
-#include "WindowLayout.h"
+#include "NodeLayout.h"
 #include "NodeSerialization.h"
 #include "FileID.h"
 
 namespace nv {
 	namespace editor {
+		class ErrorPopup;
+
 		class NodeEditor {
 		private:
+			using Layers = std::vector<Layer>;
+			Layers m_layers;
 			float m_zoom = 1.0f;
 			float m_worldOffsetX = 0.0;
 			float m_worldOffsetY = 0.0;
 			SDL_FRect m_viewport;
-			std::string m_name;
-			std::string m_lastSavedFilePath;
 			bool m_selectingObject = true;
 			PolygonBuilder m_polygonBuilder;
 			NameManager m_objectNameManager{ "Unnamed Object" };
@@ -36,7 +32,6 @@ namespace nv {
 			NameManager m_layerNameManager{ "Unnamed Layer" };
 			ObjectGroupManager m_objectGroupManager;
 			ObjectGroupCreator m_objectGroupCreator;
-			std::vector<Layer> m_layers;
 			ObjectSearch m_objectSearch;
 			size_t m_currLayerIdx = 0;
 			bool m_draggingObject = true;
@@ -44,10 +39,13 @@ namespace nv {
 			bool m_creatingObjectGroup = false;
 			uint8_t m_externalLayerOpacity = 90;
 			FileID m_id;
-
+			NodeLayout m_layout;
+			using ChildNodeMap = boost::unordered_flat_map<FileID, ObjectMetadata<BufferedNode>*>;
+			ChildNodeMap m_children;
+			
 			template<typename Object>
 			struct SelectedObjectData {
-				EditedObjectData<Object>* obj = nullptr;
+				ObjectMetadata<Object>* obj = nullptr;
 				EditedObjectHive<Object>* objLayer = nullptr;
 				EditedObjectHive<Object>::iterator it;
 			};
@@ -62,7 +60,7 @@ namespace nv {
 			SelectedObjectVariant m_selectedObject = std::monostate{};
 
 			template<typename Object>
-			void showObjectGroupsOfSelectedObject(EditedObjectData<Object>& object) {
+			void showObjectGroupsOfSelectedObject(ObjectMetadata<Object>& object) {
 				bool wasCreatingObjectGroup = m_creatingObjectGroup;
 				m_objectGroupManager.showObjectGroupsOfObject(object, m_creatingObjectGroup);
 				if (!wasCreatingObjectGroup && m_creatingObjectGroup) {
@@ -71,11 +69,10 @@ namespace nv {
 				}
 			}
 
-			void createCollisionOutlines(SDL_Renderer* renderer, ID<EditedObjectGroup> groupID, EditedObjectData<Texture>& editedTex);
-			void showCollisionOutlineOption(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex);
+			void createCollisionOutlines(SDL_Renderer* renderer, ID<EditedObjectGroup> groupID, ObjectMetadata<Texture>& editedTex);
+			void showCollisionOutlineOption(SDL_Renderer* renderer, ObjectMetadata<Texture>& editedTex);
 			void selectObject(SDL_Renderer* renderer, Point mouse);
 			void makeCurrLayerMoreVisible();
-			void editNodeName();
 			void editLayerName();
 			void selectLayer();
 			void showObjectFilterOptions();
@@ -86,25 +83,27 @@ namespace nv {
 			void dragSelectedObject(Point mouse);
 			void editPolygon(SDL_Renderer* renderer, Point mouse);
 			void render(SDL_Renderer* renderer) const noexcept;
-			void editSelectedObject(SDL_Renderer* renderer, Point mouse, ToolDisplay::GrabberTool& grabber);
-			void runCurrentTool(SDL_Renderer* renderer, Point mouse, ToolDisplay& toolDisplay);
+			void editSelectedObject(SDL_Renderer* renderer, Point mouse);
+			void runCurrentTool(SDL_Renderer* renderer, Point mouse);
 			void showObjectGroupCreationWindow();
 			void showNodeWindow(SDL_Renderer* renderer, Point mouse);
 		public:
-			NodeEditor(FileID id, const std::string& name = "")
-				: m_id{ id }, m_name{ name }
+			NodeEditor(FileID id)
+				: m_id{ id }
 			{
 				m_viewport = getViewport(m_zoom);
 			}
 			
-			static std::optional<NodeEditor> load(FileID id);
+			static std::optional<NodeEditor> load(const nlohmann::json& nodeJson, FileID id,
+				ErrorPopup& errorPopup) noexcept;
 
-			void show(SDL_Renderer* renderer, ToolDisplay& toolDisplay);
+			void updateNode(FileID fileID, BufferedNode node);
+			void show(SDL_Renderer* renderer);
 			void addLayer(std::string layerName);
 			NodeSerializationResult serialize() const;
 
 			template<typename Object>
-			EditedObjectData<Object>& transfer(EditedObjectData<Object>&& object) {
+			ObjectMetadata<Object>& transfer(ObjectMetadata<Object>&& object) {
 				object.obj.setScreenPos({ 0.0f, 0.0f });
 				object.obj.setWorldPos({ 0.0f, 0.0f });
 				auto& objects = std::get<EditedObjectHive<Object>>(m_layers[m_currLayerIdx].objects);
@@ -119,37 +118,11 @@ namespace nv {
 					transfer(std::move(object));
 				}
 			}
-
-			void createObjectGroup() {
-				m_creatingObjectGroup = true;
-				m_objectGroupCreator.setNewObjects(m_layers);
-				ImGui::OpenPopup(OBJECT_GROUP_CREATION_WINDOW_NAME);
-			}
-
-			void deselectSelectedObject() noexcept {
-				m_selectedObject = std::monostate{};
-				m_draggingObject = false;
-			}
-
-			bool hasNoLayers() const noexcept {
-				return m_layers.empty();
-			}
-
-			bool isBusy() const noexcept {
-				return m_polygonBuilder.building() || m_creatingObjectGroup;
-			}
-
-			const char* getName() const noexcept {
-				return m_name.c_str();
-			}
-
-			FileID getID() const noexcept {
-				return m_id;
-			}
-
-			void saveAs();
-			
-			void save();
+			void createObjectGroup();
+			void deselectSelectedObject() noexcept;
+			bool hasNoLayers() const noexcept;
+			bool isBusy() const noexcept;
+			FileID getID() const noexcept;
 		};
 	}
 }

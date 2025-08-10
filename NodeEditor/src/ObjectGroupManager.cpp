@@ -10,7 +10,7 @@ nv::ID<nv::editor::EditedObjectGroup> nv::editor::ObjectGroupManager::addGroupIm
 }
 
 nv::ID<nv::editor::EditedObjectGroup> nv::editor::ObjectGroupManager::addGroup(std::string name) {
-	m_objectGroupNameManager.makeNewName(name);
+	m_objectGroupNameManager.makeExistingNameUnique(name);
 	return addGroupImpl(std::move(name));
 }
 

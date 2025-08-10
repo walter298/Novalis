@@ -57,3 +57,8 @@ nv::detail::TexturePtr& nv::detail::TexturePtr::operator=(TexturePtr&& other) no
 	other.tex = nullptr;
 	return *this;
 }
+
+void nv::detail::TexturePtr::destroy() noexcept {
+	release(tex);
+	tex = nullptr;
+}

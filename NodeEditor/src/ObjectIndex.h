@@ -57,10 +57,10 @@ namespace nv {
         };
 
         using UniformObjectVector = Index<
-            EditedObjectData<BufferedNode>,
-            EditedObjectData<DynamicPolygon>,
-            EditedObjectData<Texture>,
-            EditedObjectData<Spritesheet>
+            ObjectMetadata<BufferedNode>,
+            ObjectMetadata<DynamicPolygon>,
+            ObjectMetadata<Texture>,
+            ObjectMetadata<Spritesheet>
         >;
     }
 }

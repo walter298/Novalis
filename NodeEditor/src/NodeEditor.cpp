@@ -2,7 +2,10 @@
 #include <novalis/detail/reflection/TemplateDetection.h>
 
 #include "BufferedAlias.h"
+#include "ErrorPopup.h"
 #include "NodeEditor.h"
+#include "PolygonOutline.h"
+#include "ToolDisplay.h"
 
 //for static methods
 using namespace nv;
@@ -69,11 +72,6 @@ void nv::editor::NodeEditor::makeCurrLayerMoreVisible() {
 	setOpacityImpl(m_layers[m_currLayerIdx].objects, 255);
 }
 
-void nv::editor::NodeEditor::editNodeName() {
-	ImGui::SetNextItemWidth(getInputWidth());
-	ImGui::InputText("Node Name", &m_name);
-}
-
 void nv::editor::NodeEditor::editLayerName() {
 	ImGui::SetNextItemWidth(getInputWidth());
 	auto& currLayerName = m_layers[m_currLayerIdx].name;
@@ -138,7 +136,6 @@ void nv::editor::NodeEditor::showNodeOptions(bool disabled) {
 	ImGui::Begin(NODE_OPTIONS_WINDOW_NAME);
 
 	showObjectFilterOptions();
-	editNodeName();
 	editLayerName();
 	selectLayer();
 	showExternalLayerOpacityOption();
@@ -207,17 +204,18 @@ void nv::editor::NodeEditor::render(SDL_Renderer* renderer) const noexcept {
 	}
 }
 
-void nv::editor::NodeEditor::editSelectedObject(SDL_Renderer* renderer, Point mouse, ToolDisplay::GrabberTool& grabber) {
+void nv::editor::NodeEditor::editSelectedObject(SDL_Renderer* renderer, Point mouse) {
 	auto renderAdjustedMouse = getViewportAdjustedMouse(renderer, mouse, m_zoom);
 	selectObject(renderer, renderAdjustedMouse);
 	dragSelectedObject(renderAdjustedMouse);
 }
 
-void nv::editor::NodeEditor::runCurrentTool(SDL_Renderer* renderer, Point mouse, ToolDisplay& toolDisplay) {
-	if (toolDisplay.getCurrentTool() == Tool::ObjectSelect && m_selectingObject) {
+void nv::editor::NodeEditor::runCurrentTool(SDL_Renderer* renderer, Point mouse) {
+	auto currTool = getCurrentTool();
+	if (currTool == Tool::ObjectSelect && m_selectingObject) {
 		makeCurrLayerMoreVisible();
 	}
-	switch (toolDisplay.getCurrentTool()) {
+	switch (currTool) {
 	case Tool::Move:
 		scroll();
 		break;
@@ -225,7 +223,7 @@ void nv::editor::NodeEditor::runCurrentTool(SDL_Renderer* renderer, Point mouse,
 		editPolygon(renderer, getViewportAdjustedMouse(renderer, mouse, m_zoom));
 		break;
 	case Tool::ObjectSelect:
-		editSelectedObject(renderer, mouse, toolDisplay.grabber);
+		editSelectedObject(renderer, mouse);
 		break;
 	}
 }
@@ -240,7 +238,7 @@ static void moveObjectByMouseDragDelta(auto& editedObj, Point mousePos) {
 
 //use auto because SelectedObjectData is a private class
 template<typename Object>
-static void showObjectRotationOption(EditedObjectData<Object>& editedObj) {
+static void showObjectRotationOption(ObjectMetadata<Object>& editedObj) {
 	ImGui::SetNextItemWidth(getInputWidth());
 	ImGui::Text("Rotation");
 	ImGui::SetNextItemWidth(getInputWidth());
@@ -271,7 +269,7 @@ static void showObjectDuplicationOption(auto& editedObj, NameManager& nameManage
 }
 
 template<typename Object>
-static void showOpacityOption(EditedObjectData<Object>& editedObj, ObjectGroupManager& objectGroupManager) {
+static void showOpacityOption(ObjectMetadata<Object>& editedObj, ObjectGroupManager& objectGroupManager) {
 	ImGui::SetNextItemWidth(getInputWidth());
 	auto opacityInt = static_cast<int>(editedObj.opacity);
 	if (ImGui::SliderInt("Opacity", &opacityInt, 0, 255)) {
@@ -280,7 +278,7 @@ static void showOpacityOption(EditedObjectData<Object>& editedObj, ObjectGroupMa
 }
 
 template<concepts::ScaleableObject Object>
-static void showScaleOption(EditedObjectData<Object>& editedObj, ObjectGroupManager& objectGroupManager) {
+static void showScaleOption(ObjectMetadata<Object>& editedObj, ObjectGroupManager& objectGroupManager) {
 	ImGui::SetNextItemWidth(getInputWidth());
 	if (ImGui::SliderFloat("Scale", &editedObj.scale, 1.0f, 5.0f)) {
 		objectGroupManager.scale(editedObj, editedObj.scale);
@@ -312,18 +310,18 @@ static bool showObjectDeletionOption(auto& editedObj, ObjectGroupManager& object
 }
 
 void nv::editor::NodeEditor::createCollisionOutlines(SDL_Renderer* renderer, ID<EditedObjectGroup> groupID,
-	EditedObjectData<Texture>& editedTex)
+	ObjectMetadata<Texture>& editedTex)
 {
 	m_objectGroupManager.addObjectToGroup(groupID, editedTex);
 	auto collisionOutlines = getPolygonOutlines(renderer, editedTex.obj);
 	for (auto& outline : collisionOutlines) {
-		auto& editedOutline = transfer(EditedObjectData<DynamicPolygon>{ std::move(outline) });
+		auto& editedOutline = transfer(ObjectMetadata<DynamicPolygon>{ std::move(outline) });
 		editedOutline.groupIDs.insert(groupID);
 		m_objectGroupManager.addObjectToGroup(groupID, editedOutline);
 	}
 }
 
-void nv::editor::NodeEditor::showCollisionOutlineOption(SDL_Renderer* renderer, EditedObjectData<Texture>& editedTex) {
+void nv::editor::NodeEditor::showCollisionOutlineOption(SDL_Renderer* renderer, ObjectMetadata<Texture>& editedTex) {
 	ImGui::SetNextItemWidth(getInputWidth());
 	if (ImGui::Button("Create collision outline")) {
 		auto spriteGroupID = m_objectGroupManager.addGroup();
@@ -338,7 +336,7 @@ void nv::editor::NodeEditor::showObjectGroupCreationWindow() {
 }
 
 template<typename Object>
-void showFlipOption(EditedObjectData<Object>& object) {
+void showFlipOption(ObjectMetadata<Object>& object) {
 	ImGui::SetNextItemWidth(getInputWidth());
 	if (ImGui::Button("Flip Horizontally")) {
 		object.obj.flipHorizontally();
@@ -401,47 +399,47 @@ void nv::editor::NodeEditor::showNodeWindow(SDL_Renderer* renderer, Point mouse)
 	ImGui::End();
 }
 
-std::optional<nv::editor::NodeEditor> nv::editor::NodeEditor::load(FileID id) {
-	auto filePath = openFile({ { "node", "nv_node" } });
-	if (!filePath) {
-		return std::nullopt;
-	}
-	std::ifstream file{ *filePath };
-	if (!file.is_open()) {
-		std::println(stderr, "Error: could not open {}", *filePath);
-		return std::nullopt;
-	}
-	auto nodeJson = nlohmann::json::parse(file);
+std::optional<nv::editor::NodeEditor> nv::editor::NodeEditor::load(const nlohmann::json& nodeJson, FileID id, 
+	ErrorPopup& errorPopup) noexcept
+{
+	try {
+		NodeEditor ret{ id };
 
-	NodeEditor ret{ id, fileName(*filePath) };
+		auto& layersJson = nodeJson[LAYERS_KEY];
+		ret.m_layers.reserve(nodeJson.size());
 
-	auto& layersJson = nodeJson[LAYERS_KEY];
-	ret.m_layers.reserve(nodeJson.size());
+		for (const auto& layerJson : nodeJson[LAYERS_KEY]) {
+			auto layerName = layerJson[NAME_KEY].get<std::string>();
+			auto& currLayer = ret.m_layers.emplace_back(layerName);
 
-	for (const auto& layerJson : nodeJson[LAYERS_KEY]) {
-		auto layerName = layerJson[NAME_KEY].get<std::string>();
-		auto& currLayer = ret.m_layers.emplace_back(layerName);
+			nv::detail::forEachDataMember([&layerJson]<typename Object>(EditedObjectHive<Object>&objectGroup) {
+				auto typeName = nv::detail::getTypeName<BufferedObject<Object>>();
+				auto objectGroupJsonIt = layerJson.find(typeName);
 
-		nv::detail::forEachDataMember([&layerJson]<typename Object>(EditedObjectHive<Object>& objectGroup) {
-			auto typeName = nv::detail::getTypeName<BufferedObject<Object>>();
-			auto objectGroupJsonIt = layerJson.find(typeName);
-	
-			if (objectGroupJsonIt == layerJson.end()) {
+				if (objectGroupJsonIt == layerJson.end()) {
+					return nv::detail::STAY_IN_LOOP;
+				}
+
+				auto& objectGroupJson = *objectGroupJsonIt;
+				for (const auto& objectJson : objectGroupJson) {
+					objectGroup.insert(ObjectMetadata<Object>::load(objectJson));
+				}
 				return nv::detail::STAY_IN_LOOP;
-			}
-
-			auto& objectGroupJson = *objectGroupJsonIt;
-			for (const auto& objectJson : objectGroupJson) {
-				objectGroup.insert(EditedObjectData<Object>::load(objectJson));
-			}
-			return nv::detail::STAY_IN_LOOP;
-		}, currLayer.objects);
+			}, currLayer.objects);
+		}
+		return ret;
+	} catch (const nlohmann::json::exception& e) {
+		errorPopup.add(std::format("Error parsing node: {}", e.what()));
 	}
-
-	return ret;
+	return std::nullopt;
 }
 
-void nv::editor::NodeEditor::show(SDL_Renderer* renderer, ToolDisplay& toolDisplay) {
+void nv::editor::NodeEditor::updateNode(FileID fileID, BufferedNode node) {
+	auto& nodeData = *m_children.at(fileID);
+	nodeData.obj = std::move(node);
+}
+
+void nv::editor::NodeEditor::show(SDL_Renderer* renderer) {
 	if (m_layers.empty()) {
 		return;
 	}
@@ -462,7 +460,7 @@ void nv::editor::NodeEditor::show(SDL_Renderer* renderer, ToolDisplay& toolDispl
 	SDL_SetRenderScale(renderer, 1.0f, 1.0f);
 
 	if (windowContainsCoord(TAB_WINDOW_NAME, mouse)) {
-		runCurrentTool(renderer, mouse, toolDisplay);
+		runCurrentTool(renderer, mouse);
 	}
 
 	if (m_creatingObjectGroup) {
@@ -474,7 +472,7 @@ void nv::editor::NodeEditor::show(SDL_Renderer* renderer, ToolDisplay& toolDispl
 }
 
 void nv::editor::NodeEditor::addLayer(std::string layerName) {
-	m_layerNameManager.makeNewName(layerName);
+	m_layerNameManager.makeExistingNameUnique(layerName);
 
 	m_selectedObject = std::monostate{};
 
@@ -489,25 +487,29 @@ NodeSerializationResult nv::editor::NodeEditor::serialize() const {
 	return createNodeJson(m_layers, m_objectGroupManager);
 }
 
-void nv::editor::NodeEditor::saveAs() {
-	try {
-		/*saveNewFile({ { "node", "nv_node" } }, [this](const auto& path) {
-			m_lastSavedFilePath = path;
-			return createNodeJson(m_layers, m_objectGroupManager);
-		});*/
-	} catch (json::exception e) {
-		std::println("{}", e.what());
-	}
+void nv::editor::NodeEditor::createObjectGroup() {
+	m_creatingObjectGroup = true;
+	m_objectGroupCreator.setNewObjects(m_layers);
+	ImGui::OpenPopup(OBJECT_GROUP_CREATION_WINDOW_NAME);
 }
 
-void nv::editor::NodeEditor::save() {
-	if (m_lastSavedFilePath.empty()) {
-		saveAs();
-	} else {
-		try {
-			//saveToExistingFile(m_lastSavedFilePath, createNodeJson(m_layers, m_name, m_objectGroupManager));
-		} catch (json::exception e) {
-			std::println("{}", e.what());
-		}
-	}
+void nv::editor::NodeEditor::deselectSelectedObject() noexcept {
+	m_selectedObject = std::monostate{};
+	m_draggingObject = false;
+}
+
+bool nv::editor::NodeEditor::hasNoLayers() const noexcept {
+	return m_layers.empty();
+}
+
+bool nv::editor::NodeEditor::isBusy() const noexcept {
+	return m_polygonBuilder.building() || m_creatingObjectGroup;
+}
+
+FileID nv::editor::NodeEditor::getID() const noexcept {
+	return m_id;
+}
+
+void foo(nlohmann::json j) {
+	auto s = j.get<Directory>();
 }

@@ -1,13 +1,18 @@
-#include "NodeTabList.h"
-#include "ProjectCreator.h"
-#include "ProjectManager.h"
+#pragma once
 
 namespace nv {
 	namespace editor {
+		class ProjectCreator;
+		class ProjectManager;
+		class ErrorPopup;
+
 		class FileDropdown {
 		private:
-			bool m_creatingProject = false;
-			ProjectCreator m_projectCreator;
+			enum State {
+				None,
+				CreatingProject,
+				SwitchingProject
+			} m_state = None;
 		public:
 			void show(ProjectManager& projectManager, ErrorPopup& errorPopup);
 		};

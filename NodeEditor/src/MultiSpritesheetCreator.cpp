@@ -2,6 +2,7 @@
 #include "MultispritesheetCreator.h"
 #include "SpritesheetDimensionInput.h"
 #include "VirtualFilesystem.h"
+#include "WindowLayout.h"
 
 #include <novalis/detail/ScopeExit.h>
 
@@ -102,7 +103,7 @@ void nv::editor::MultiSpritesheetCreator::showSpriteTable() {
 	}
 }
 
-std::optional<nv::editor::EditedObjectData<nv::Spritesheet>> nv::editor::MultiSpritesheetCreator::concatenateImagesIntoSpritesheet(
+std::optional<nv::editor::ObjectMetadata<nv::Spritesheet>> nv::editor::MultiSpritesheetCreator::concatenateImagesIntoSpritesheet(
 	SDL_Renderer* renderer, VirtualFilesystem& vfs, ErrorPopup& errorPopup)
 {
 	assert(m_images.size() > 1);
@@ -129,7 +130,7 @@ std::optional<nv::editor::EditedObjectData<nv::Spritesheet>> nv::editor::MultiSp
 	}
 	nv::detail::ScopeExit cleanup{ [&] { SDL_DestroySurface(*combinedSurface); } };
 
-	EditedObjectData<Spritesheet> spritesheet{
+	ObjectMetadata<Spritesheet> spritesheet{
 		nv::detail::TexturePtr{ SDL_CreateTextureFromSurface(renderer, *combinedSurface) }, m_rowC, m_colC
 	};
 	spritesheet.texFile = vfs.saveImage(*combinedSurface, m_imageType);
@@ -165,7 +166,7 @@ void nv::editor::MultiSpritesheetCreator::init(SDL_Renderer* renderer,
 	}
 }
 
-std::optional<nv::editor::EditedObjectData<nv::Spritesheet>> nv::editor::MultiSpritesheetCreator::show(
+std::optional<nv::editor::ObjectMetadata<nv::Spritesheet>> nv::editor::MultiSpritesheetCreator::show(
 	SDL_Renderer* renderer, VirtualFilesystem& vfs, bool& cancelled, ErrorPopup& errorPopup)
 {
 	ImGui::OpenPopup(SPRITESHEET_CREATION_POPUP_NAME, ImGuiWindowFlags_HorizontalScrollbar);

@@ -1,16 +1,32 @@
-#include "NodeTabList.h"
 #include "Project.h"
+#include "ToolDisplay.h"
 
-boost::optional<nv::editor::NodeEditor&> nv::editor::Project::getCurrentTab() {
-	return m_nodeManager.getCurrentTab();
+void nv::editor::Project::show(SDL_Renderer* renderer, ErrorPopup& errorPopup) {
+	tabManager.show(renderer, vfs, errorPopup);
+	vfs.show(tabManager, errorPopup);
+
+	auto currTab = tabManager.getCurrentNodeTab();
+	if (currTab && !currTab->hasNoLayers()) {
+		showToolDisplay(currTab->isBusy());
+	}
 }
 
-void nv::editor::Project::showTabs() {
-	m_nodeManager.showTabs(vfs);
-}
+void nv::editor::Project::save(ErrorPopup& errorPopup) {
+	if (!tabManager.saveable(vfs, errorPopup)) {
+		return;
+	}
 
-void nv::editor::Project::showFilesystem(ErrorPopup& errorPopup) {
-	vfs.show(m_nodeManager, errorPopup);
+	auto projectFilePath = m_rootDirectory / "project.json";
+	std::ofstream file{ projectFilePath };
+	if (!file.is_open()) {
+		errorPopup.add("Could not open project file: " + projectFilePath.string());
+	} else {
+		tabManager.save(vfs);
+		auto projectJson = nlohmann::json::object();
+		to_json(projectJson, *this);
+		assert(!projectJson.is_array());
+		file << projectJson.dump(2);
+	}
 }
 
 constexpr const char* ROOT_DIRECTORY_KEY = "Root_Directory";

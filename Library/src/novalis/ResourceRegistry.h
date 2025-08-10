@@ -11,7 +11,7 @@ namespace nv {
 	class ResourceRegistry {
 	public:
 		template<typename Node>
-		using Map = boost::unordered_flat_map<std::string, Node>;
+		using Map = boost::unordered_flat_map<std::filesystem::path, Node>;
 	private:
 		using BufferedNodeMap = Map<std::unique_ptr<BufferedNode>>;
 		using DynamicNodeMap  = Map<std::unique_ptr<DynamicNode>>;
@@ -23,6 +23,7 @@ namespace nv {
 	public:
 		detail::TexturePtr loadTexture(SDL_Renderer* renderer, const std::string& path);
 		BufferedNode loadBufferedNode(const std::string& path);
+		BufferedNode loadBufferedNode(const std::filesystem::path& path, const nlohmann::json& nodeJson);
 		DynamicNode loadDynamicNode(const std::string& path);
 	};
 }

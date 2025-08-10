@@ -62,7 +62,7 @@ static BufferedNode::TypeMap<size_t> calculateObjectRegionOffsets(const Buffered
 	return offsets;
 }
 
-static void writeNodeMetadata(json& metadataJson, const EditedObjectData<BufferedNode>& editedNode) {
+static void writeNodeMetadata(json& metadataJson, const ObjectMetadata<BufferedNode>& editedNode) {
 	metadataJson[PATH_KEY] = editedNode.filePath;
 	metadataJson[OPACITY_KEY] = editedNode.obj.getOpacity();
 	metadataJson[SCREEN_SCALE_KEY] = editedNode.obj.getScreenScale();
@@ -71,12 +71,13 @@ static void writeNodeMetadata(json& metadataJson, const EditedObjectData<Buffere
 }
 
 template<typename Object>
-static void writeTextureDataJson(json& objectJson, const EditedObjectData<Object>& object) {
+static void writeTextureDataJson(json& objectJson, const ObjectMetadata<Object>& object) {
 	objectJson[RENDER_DATA_KEY] = static_cast<nv::detail::TextureRenderData>(object.obj);
 	objectJson[IMAGE_PATH_KEY] = object.texPath;
+	objectJson[IMAGE_FILE_ID_KEY] = object.texFile;
 }
 
-static void writeSpritesheetJson(json& objectJson, const EditedObjectData<Spritesheet>& editedSpritesheet) {
+static void writeSpritesheetJson(json& objectJson, const ObjectMetadata<Spritesheet>& editedSpritesheet) {
 	using S = nlohmann::adl_serializer<Spritesheet>;
 	objectJson[S::ROWS_KEY] = editedSpritesheet.obj.getRowCount();
 	objectJson[S::COLS_KEY] = editedSpritesheet.obj.getColumnCount();
@@ -84,7 +85,7 @@ static void writeSpritesheetJson(json& objectJson, const EditedObjectData<Sprite
 }
 
 template<typename Object>
-static json makeObjectJson(const EditedObjectData<Object>& obj, const ObjectGroupManager& objectGroups) {
+static json makeObjectJson(const ObjectMetadata<Object>& obj, const ObjectGroupManager& objectGroups) {
 	json objectRootJson;
 
 	auto& metadataJson = objectRootJson[METADATA_KEY];
@@ -122,7 +123,7 @@ static void writeChildNodeSizeData(const BufferedNode& node, BufferedNode::TypeM
 static void writeLayerData(json& currJsonLayer, const Layer::Objects& objects,
 	BufferedNode::TypeMap<size_t>& objectRegionLengths, const ObjectGroupManager& objectGroups)
 {
-	auto handleObject = [&]<typename Object>(json & objectGroupJson, const EditedObjectData<Object>&object) {
+	auto handleObject = [&]<typename Object>(json & objectGroupJson, const ObjectMetadata<Object>&object) {
 		objectGroupJson.push_back(makeObjectJson(object, objectGroups));
 
 		//calculate size of the object

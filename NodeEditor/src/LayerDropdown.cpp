@@ -26,13 +26,14 @@ void nv::editor::LayerDropdown::showLayerCreationWindow(NodeEditor& currTab) {
 }
 
 void nv::editor::LayerDropdown::show(Project& project) {
-	if (!project.getCurrentTab() || project.getCurrentTab()->isBusy()) {
+	auto currTab = project.tabManager.getCurrentNodeTab();
+	if (!currTab || currTab->isBusy()) {
 		showDisabledMenu("Layer");
 		return;
 	}
 
 	if (m_showingAddNewLayerPopup) {
-		showLayerCreationWindow(*project.getCurrentTab());
+		showLayerCreationWindow(*currTab);
 	}
 
 	if (ImGui::BeginMenu("Layer")) {

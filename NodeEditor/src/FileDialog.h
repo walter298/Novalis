@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <novalis/Rect.h>
 
@@ -9,26 +10,27 @@
 namespace nv {
 	namespace editor {
 		class FileDialogBase {
-		protected:
-			DirectoryID m_currDialogDirectoryID = DirectoryID::None();
-			FileID m_currClickedFileDialogID = FileID::None();
+		private:
+			DirectoryID m_currClickedDirectoryID = DirectoryID::None();
+			DirectoryID m_currDirectoryID;
+			FileID m_currClickedFileID;
+			std::vector<DirectoryID> m_directoryStack;
 
-			virtual void resetState() = 0;
-			virtual void handleFile(FileID fileID) = 0;
+			void showDirectoryStack(const DirectoryMap& directories);
+			void showFiles(const FileSet& displayedFiles, const FileMap& fileMap, File::Type filter);
+			void showDirectories(const DirectorySet& displayedDirectories, const DirectoryMap& dirMap);
+		protected:
+			FileID getClickedFileID() const noexcept;
+
 			void showFilesAndDirectories(const DirectoryMap& directories,
 				const FileMap& files, File::Type filter);
-			void showCreateButton(bool& clickedCreate);
+			void showCreateButton(bool& clickedCreate, bool disabled);
 			void showCancelButton(bool& cancelled);
 		public:
-			FileDialogBase(DirectoryID rootDirID) : m_currDialogDirectoryID{ rootDirID }
-			{
-			}
+			FileDialogBase(DirectoryID rootDirID);
 		};
 
 		class FileDialog : public FileDialogBase {
-		private:
-			void handleFile(FileID fileID) final override;
-			void resetState() final override;
 		public:
 			using FileDialogBase::FileDialogBase;
 			std::optional<FileID> show(const DirectoryMap& directories, const FileMap& files, File::Type filter, bool& canceled);
@@ -39,15 +41,9 @@ namespace nv {
 			DirectoryID m_currDialogDirectoryID = DirectoryID::None();
 			FileID m_currClickedFileDialogID = FileID::None();
 			FileSet m_currChosenFileIDs;
-			FileSet m_selectedFileIDs;
-			Rect m_selectionRect;
-			bool m_setSelection = false;
-
-			void updateSelectionRect() noexcept;
-			void resetState() final override;
-			void handleFile(FileID fileID) final override;
+			
+			void showSelectedFiles(const FileMap& directories);
 			void showAddButton();
-			void showCurrentlyChosenFileIDs(const FileMap& files);
 		public:
 			using FileDialogBase::FileDialogBase;
 

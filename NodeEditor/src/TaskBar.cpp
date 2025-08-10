@@ -1,3 +1,5 @@
+#include "ErrorPopup.h"
+#include "ProjectManager.h"
 #include "TaskBar.h"
 
 void nv::editor::TaskBar::show(SDL_Renderer* renderer, ProjectManager& projectManager, ErrorPopup& errorPopup) {

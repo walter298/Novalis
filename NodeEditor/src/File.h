@@ -6,6 +6,7 @@
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <boost/unordered/unordered_flat_set.hpp>
 #include <novalis/BufferedNode.h>
+#include <novalis/detail/reflection/ClassIteration.h>
 
 #include "imgui/imgui.h"
 #include "FileID.h"
@@ -14,25 +15,52 @@
 
 namespace nv {
 	namespace editor {
+		void loadFileIcons(SDL_Renderer* renderer);
+		void destroyFileIcons(SDL_Renderer* renderer);
+		
 		struct File;
 
 		using FileMap = std::unordered_map<FileID, File>;
 		using FileSet = std::unordered_set<FileID>;
 
-		struct File {
-			std::string name;
-			FileSet dependencies;
-			FileSet dependants;
-			DirectoryID parent;
-			int imguiID = getPermanentImGuiID();
-			ImTextureID icon = 0;
+		class File {
+		public:
 			enum Type { //make type values powers of two so that we can have correct bitwise ops
 				Image = 1,
 				Font = 2,
 				Node = 4
-			} type{};
-			std::filesystem::path realPath;
+			};
+		private:
+			ImTextureID m_icon{};
+			int m_imguiID = getPermanentImGuiID();
+			Type m_type{};
+			std::filesystem::path m_realPath;
+			std::string m_name;
+		public:
+			File() = default;
+			File(std::filesystem::path realPath, NameManager& parentNameManager, std::string name, File::Type type);
+			File(std::filesystem::path realPath, NameManager& parentNameManager, File::Type type);
+			
+			FileSet dependencies;
+			FileSet dependants;
+			DirectoryID parent;
+
+			void show() noexcept;
+			void show(NameManager& dirNameManager, bool& finishedRenaming) noexcept;
+			void makeNameUnique(NameManager& parentNameManager);
+			const std::string& getName() const noexcept;
+			const std::filesystem::path& getPath() const noexcept;
+			Type getType() const noexcept;
+			ImTextureID getIcon() const noexcept;
+
+			MAKE_INTROSPECTION(m_type, m_realPath, m_name, dependencies, dependants, parent)
+
+			friend void to_json(nlohmann::json& j, const File& file);
+			friend void from_json(const nlohmann::json& j, File& file);
 		};
+
+		void to_json(nlohmann::json& j, const File& file);
+		void from_json(const nlohmann::json& j, File& file);
 
 		inline constexpr ImVec2 FILE_ICON_SIZE{ 35.0f, 40.0f };
 
@@ -41,15 +69,33 @@ namespace nv {
 		using DirectoryMap = std::unordered_map<DirectoryID, Directory>;
 		using DirectorySet = std::unordered_set<DirectoryID>;
 
-		struct Directory {
+		class Directory {
+		private:
+			std::string m_name;
+			int m_imguiID = getPermanentImGuiID();
+		public:
+			static Directory makeRoot();
+
+			Directory() = default;
+			Directory(NameManager& parentNameManager, std::string name);
+			Directory(NameManager& parentNameManager);
+
 			NameManager nameManager{ "file" };
-			std::string name;
 			FileSet files;
 			DirectorySet children;
 			DirectoryID parent;
 			bool open = false;
-			int imguiID = getPermanentImGuiID();
+
+			void showIcon() const noexcept;
+			void inputName(NameManager& parentNameManager, bool& finishedRenaming);
+			void makeNameUnique(NameManager& parentNameManager);
+			const std::string& getName() const noexcept;
+			int getImGuiID();
+
+			MAKE_INTROSPECTION(m_name, m_imguiID, nameManager, files, children, parent, open)
 		};
+
+		ImTextureID getFolderIcon() noexcept;
 
 		inline constexpr ImVec2 DIRECTORY_ICON_SIZE{ 40.0f, 40.0f };
 	}

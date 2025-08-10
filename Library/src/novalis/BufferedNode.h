@@ -267,7 +267,7 @@ namespace nv {
 		BufferedNode(const BufferedNode& other);
 		BufferedNode(BufferedNode&& other) noexcept;
 		BufferedNode& operator=(const BufferedNode&) = delete;
-		BufferedNode& operator=(BufferedNode&&)      = delete;
+		BufferedNode& operator=(BufferedNode&& other) noexcept;
 
 		size_t getSizeBytes() const noexcept {
 			return m_byteC;

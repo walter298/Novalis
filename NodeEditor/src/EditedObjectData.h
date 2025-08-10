@@ -36,7 +36,7 @@ namespace nv {
 			constexpr EditedObjectDataBase(Args&&... args) requires(std::constructible_from<Object, Args...>)
 				: obj{ std::forward<Args>(args)... }
 			{
-				objectNameManager.makeNewName(m_name);
+				objectNameManager.makeExistingNameUnique(m_name);
 			}
 
 			EditedObjectDataBase(const EditedObjectDataBase&) = default;
@@ -44,7 +44,7 @@ namespace nv {
 
 			void loadName(std::string name) {
 				m_name = std::move(name);
-				objectNameManager.makeNewName(m_name);
+				objectNameManager.makeExistingNameUnique(m_name);
 			}
 
 			void inputName(NameManager& nameManager) {
@@ -61,73 +61,74 @@ namespace nv {
 		};
 
 		template<typename Object>
-		struct EditedObjectData : public EditedObjectDataBase<Object> {
+		struct ObjectMetadata : public EditedObjectDataBase<Object> {
 			template<typename... Args>
-			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Object, Args...>)
+			constexpr ObjectMetadata(Args&&... args) requires(std::constructible_from<Object, Args...>)
 				: EditedObjectDataBase<Object>{ std::forward<Args>(args)... }
 			{
 			}
 
-			static EditedObjectData<Object> load(const json& objectJson) {
-				EditedObjectData<Object> ret{ objectJson[OBJECT_KEY].get<Object>()};
+			static ObjectMetadata<Object> load(const json& objectJson) {
+				ObjectMetadata<Object> ret{ objectJson[OBJECT_KEY].get<Object>()};
 				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
 				return ret;
 			}
 		};
 
+		template<typename T>
+		static ObjectMetadata<T> loadImageObject(const json& j) {
+			ObjectMetadata<T> ret{ j[OBJECT_KEY].get<T>() };
+			ret.loadName(j[METADATA_KEY][NAME_KEY].get<std::string>());
+			ret.texPath = j[OBJECT_KEY][IMAGE_PATH_KEY].get<std::string>();
+			ret.texFile = j[OBJECT_KEY][IMAGE_FILE_ID_KEY].get<FileID>();
+			return ret;
+		}
+
 		template<>
-		struct EditedObjectData<Texture> : public EditedObjectDataBase<Texture> {
+		struct ObjectMetadata<Texture> : public EditedObjectDataBase<Texture> {
 			std::string texPath;
 			FileID texFile;
 
 			template<typename... Args>
-			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Texture, Args...>)
+			constexpr ObjectMetadata(Args&&... args) requires(std::constructible_from<Texture, Args...>)
 				: EditedObjectDataBase<Texture>{ std::forward<Args>(args)... }
 			{
 			}
 
-			static EditedObjectData<Texture> load(const json& objectJson) {
-				EditedObjectData<Texture> ret{ objectJson[OBJECT_KEY].get<Texture>() };
-				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
-				ret.texFile = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<FileID>();
-
-				return ret;
+			static ObjectMetadata<Texture> load(const json& objectJson) {
+				return loadImageObject<Texture>(objectJson);
 			}
 		};
 
 		template<>
-		struct EditedObjectData<Spritesheet> : public EditedObjectDataBase<Spritesheet> {
+		struct ObjectMetadata<Spritesheet> : public EditedObjectDataBase<Spritesheet> {
 			std::string texPath;
 			FileID texFile;
 
 			template<typename... Args>
-			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<Spritesheet, Args...>)
+			constexpr ObjectMetadata(Args&&... args) requires(std::constructible_from<Spritesheet, Args...>)
 				: EditedObjectDataBase<Spritesheet>{ std::forward<Args>(args)... }
 			{
 			}
 
-			static EditedObjectData<Spritesheet> load(const json& objectJson) {
-				EditedObjectData<Spritesheet> ret{ objectJson[OBJECT_KEY].get<Spritesheet>() };
-				ret.loadName(objectJson[METADATA_KEY][NAME_KEY].get<std::string>());
-				ret.texFile = objectJson[OBJECT_KEY][IMAGE_PATH_KEY].get<FileID>();
-
-				return ret;
+			static ObjectMetadata<Spritesheet> load(const json& objectJson) {
+				return loadImageObject<Spritesheet>(objectJson);
 			}
 		};
 
 		template<>
-		struct EditedObjectData<BufferedNode> : public EditedObjectDataBase<BufferedNode> {
+		struct ObjectMetadata<BufferedNode> : public EditedObjectDataBase<BufferedNode> {
 			std::string filePath;
 
 			template<typename... Args>
-			constexpr EditedObjectData(Args&&... args) requires(std::constructible_from<BufferedNode, Args...>)
+			constexpr ObjectMetadata(Args&&... args) requires(std::constructible_from<BufferedNode, Args...>)
 				: EditedObjectDataBase<BufferedNode>{ std::forward<Args>(args)... }
 			{
 			}
 
-			static EditedObjectData<BufferedNode> load(const json& objectJson) {
+			static ObjectMetadata<BufferedNode> load(const json& objectJson) {
 				auto path = objectJson[METADATA_KEY][PATH_KEY].get<std::string>();
-				EditedObjectData<BufferedNode> ret{
+				ObjectMetadata<BufferedNode> ret{
 					getGlobalInstance()->registry.loadBufferedNode(path)
 				};
 				ret.filePath = path;
@@ -142,6 +143,6 @@ namespace nv {
 		};
 
 		template<typename Object>
-		using EditedObjectHive = plf::hive<EditedObjectData<Object>>;
+		using EditedObjectHive = plf::hive<ObjectMetadata<Object>>;
 	}
 }

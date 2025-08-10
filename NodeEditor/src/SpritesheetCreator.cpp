@@ -51,7 +51,7 @@ void nv::editor::SpritesheetCreator::init(nv::detail::TexturePtr tex, FileID ima
 	m_fileID = imageFileID;
 }
 
-std::optional<EditedObjectData<Spritesheet>> nv::editor::SpritesheetCreator::show(SDL_Renderer* renderer,
+std::optional<ObjectMetadata<Spritesheet>> nv::editor::SpritesheetCreator::show(SDL_Renderer* renderer,
 	VirtualFilesystem& vfs, bool& cancelled, ErrorPopup& errorPopup) 
 {
 	assert(m_tex.tex);
@@ -66,8 +66,9 @@ std::optional<EditedObjectData<Spritesheet>> nv::editor::SpritesheetCreator::sho
 		because we move from our texture*/
 		ImGui::SetNextItemWidth(getInputWidth());
 		if (ImGui::Button("Create Spritesheet")) {
-			EditedObjectData<Spritesheet> spritesheet{ std::move(m_tex), m_rowC, m_colC };
+			ObjectMetadata<Spritesheet> spritesheet{ std::move(m_tex), m_rowC, m_colC };
 			spritesheet.texFile = m_fileID;
+			spritesheet.texPath = vfs.getFilePath(m_fileID).string();
 			return spritesheet;
 		}
 		ImGui::SetNextItemWidth(getInputWidth());

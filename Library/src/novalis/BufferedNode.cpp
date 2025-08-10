@@ -164,3 +164,20 @@ nv::BufferedNode::BufferedNode(BufferedNode&& other) noexcept :
 
 	other.m_movedFrom = true;
 }
+
+nv::BufferedNode& nv::BufferedNode::operator=(BufferedNode&& other) noexcept {
+	assert(!other.m_movedFrom);
+	
+	if (!m_movedFrom) {
+		this->~BufferedNode();
+	}
+	m_arena = std::move(other.m_arena);
+	m_byteC = other.m_byteC;
+	moveStorageBaseMembers(*this, other);
+	copyTrivialBaseMembers(*this, other);
+
+	m_movedFrom = false;
+	other.m_movedFrom = true;
+
+	return *this;
+}

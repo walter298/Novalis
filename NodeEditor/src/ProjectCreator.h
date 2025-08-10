@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ErrorPopup.h"
-#include "ProjectManager.h"
 
 namespace nv {
 	namespace editor {
@@ -10,7 +9,9 @@ namespace nv {
 			std::string m_projectNameInput;
 			std::string m_directoryLocation = "Directory";
 		public:
-			bool create(ProjectManager& projectManager, ErrorPopup& errorPopup);
+			bool create(bool& cancelled, ErrorPopup& errorPopup);
+			const std::string& getCurrentDirectory();
+			const std::string& getProjectNameInput();
 		};
 	}
 }

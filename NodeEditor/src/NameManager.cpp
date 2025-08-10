@@ -1,3 +1,4 @@
+#include "ImGuiID.h"
 #include "NameManager.h"
 
 std::string nv::editor::NameManager::makeUniqueName() {
@@ -7,7 +8,7 @@ std::string nv::editor::NameManager::makeUniqueName() {
 	return newName;
 }
 
-void nv::editor::NameManager::makeNewName(std::string& newName) {
+void nv::editor::NameManager::makeExistingNameUnique(std::string& newName) {
 	if (m_takenNames.contains(newName)) {
 		newName += (" (Copy) (ID=" + std::to_string(m_uniqueTextNum) + ")");
 		m_uniqueTextNum++;
@@ -20,6 +21,7 @@ void nv::editor::NameManager::makeNewName(std::string& newName) {
 bool nv::editor::NameManager::inputName(const char* inputLabel, std::string& name) {
 	using namespace std::literals;
 
+	ImGui::PushID(getTemporaryImGuiID());
 	auto oldName = name;
 	if (ImGui::InputText(inputLabel, &name)) {
 		m_wasJustInputtingName = true;
@@ -27,9 +29,10 @@ bool nv::editor::NameManager::inputName(const char* inputLabel, std::string& nam
 			m_takenNames.erase(oldName);
 		}
 	}
+	ImGui::PopID();
 
 	if (!ImGui::IsItemActive() && m_wasJustInputtingName) {
-		makeNewName(name);
+		makeExistingNameUnique(name);
 		m_takenNames.insert(name);
 		m_wasJustInputtingName = false;
 		return true;

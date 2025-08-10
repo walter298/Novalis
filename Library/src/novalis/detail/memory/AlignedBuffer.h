@@ -40,6 +40,12 @@ namespace nv {
 				data = allocImpl(n);
 				return *this;
 			}
+			AlignedBuffer& operator=(AlignedBuffer&& other) noexcept {
+				assert(other.data);
+				data = other.data;
+				other.data = nullptr;
+				return *this;
+			}
 
 			~AlignedBuffer() noexcept {
 				if (data) {

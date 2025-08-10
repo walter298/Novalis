@@ -27,12 +27,12 @@ namespace nv {
 			void showImageDropdown();
 			void showSpriteTable();
 			std::optional<SDL_Surface*> combineSurfaces(ErrorPopup& errorPopup) noexcept;
-			std::optional<EditedObjectData<Spritesheet>> concatenateImagesIntoSpritesheet(SDL_Renderer* renderer,
+			std::optional<ObjectMetadata<Spritesheet>> concatenateImagesIntoSpritesheet(SDL_Renderer* renderer,
 				VirtualFilesystem& vfs, ErrorPopup& errorPopup);
 		public:
 			void init(SDL_Renderer* renderer,
 				const std::vector<nv::detail::TexturePtr>& textures, ErrorPopup& errorPopup);
-			std::optional<EditedObjectData<Spritesheet>> show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
+			std::optional<ObjectMetadata<Spritesheet>> show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
 				bool& cancelled, ErrorPopup& errorPopup);
 		};
 	}

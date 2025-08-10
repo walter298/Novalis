@@ -25,6 +25,8 @@ namespace nv {
 			TexturePtr& operator=(const TexturePtr& other) noexcept;
 			TexturePtr& operator=(TexturePtr&& other) noexcept;
 
+			void destroy() noexcept;
+
 			~TexturePtr() noexcept {
 				if (tex) {
 					tex->refcount--;

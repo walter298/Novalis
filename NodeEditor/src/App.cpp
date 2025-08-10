@@ -11,13 +11,11 @@
 
 #include "EditedObjectData.h"
 #include "ImGuiID.h"
-#include "NodeEditor.h"
-#include "NodeTabList.h"
 #include "SpecialPoint.h"
 #include "TaskBar.h"
 #include "ToolDisplay.h"
-#include "WindowLayout.h"
 #include "ProjectManager.h"
+#include "WindowLayout.h"
 
 using namespace nv;
 using namespace nv::editor;
@@ -26,7 +24,6 @@ struct AppData {
 	nv::Instance instance{ "Novalis" };
 	ProjectManager projectManager;
 	TaskBar taskBar;
-	ToolDisplay toolDisplay{ instance.getRenderer() };
 	ErrorPopup errorPopup;
 	bool running = true;
 };
@@ -35,9 +32,12 @@ void nv::editor::runApp() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	
+	initIDs();
+	
 	{ //put AppData in a scope such that our containers destruct
 		AppData app;
-		nv::editor::VirtualFilesystem::loadFolderTextures(app.instance.getRenderer());
+		loadFileIcons(app.instance.getRenderer());
+		loadToolTextures(app.instance.getRenderer());
 
 		auto& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -66,7 +66,7 @@ void nv::editor::runApp() {
 
 			SDL_RenderClear(app.instance.getRenderer());
 
-			static constexpr ImVec4 color{ 0.0f, 0.0f, 0.0f, 1.00f };
+			static constexpr ImVec4 color{ 0.01f, 0.1f, 0.0f, 1.00f };
 
 			ImGui_ImplSDLRenderer3_NewFrame();
 			ImGui_ImplSDL3_NewFrame();
@@ -76,12 +76,7 @@ void nv::editor::runApp() {
 
 			auto currProject = app.projectManager.getCurrentProject();
 			if (currProject) {
-				if (currProject->getCurrentTab() && !currProject->getCurrentTab()->hasNoLayers()) {
-					app.toolDisplay.show(!currProject->getCurrentTab()->isBusy());
-				}
-				currProject->showTabs();
-				currProject->showFilesystem(app.errorPopup);
-				int x = 0;
+				currProject->show(app.instance.getRenderer(), app.errorPopup);
 			}
 			app.taskBar.show(app.instance.getRenderer(), app.projectManager, app.errorPopup);
 			
@@ -96,8 +91,11 @@ void nv::editor::runApp() {
 			SDL_RenderPresent(app.instance.getRenderer());
 		}
 
-		nv::editor::VirtualFilesystem::destroyFolderTextures();
+		destroyFileIcons(app.instance.getRenderer());
+		destroyToolTextures(app.instance.getRenderer());
 	} 
+
+	saveIDs();
 
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();

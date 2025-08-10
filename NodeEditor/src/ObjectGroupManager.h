@@ -21,7 +21,7 @@ namespace nv {
 			void editObjectGroupName(ID<EditedObjectGroup> id);
 
 			template<typename Object>
-			void addObjectToGroup(ID<EditedObjectGroup>& groupID, EditedObjectData<Object>& object) {
+			void addObjectToGroup(ID<EditedObjectGroup>& groupID, ObjectMetadata<Object>& object) {
 				object.groupIDs.insert(groupID);
 				m_objectGroups.at(groupID).addObject(&object);
 			}
@@ -29,7 +29,7 @@ namespace nv {
 			void removeGroup(ID<EditedObjectGroup> id);
 
 			template<typename Object>
-			void removeFromAllObjectGroups(EditedObjectData<Object>& object) {
+			void removeFromAllObjectGroups(ObjectMetadata<Object>& object) {
 				for (const auto& groupID : object.groupIDs) {
 					auto& group = m_objectGroups.at(groupID);
 					group.removeObject(&object);
@@ -38,7 +38,7 @@ namespace nv {
 			}
 		private:
 			template<typename Object>
-			EditedObjectGroup::Objects getActedOnObjects(EditedObjectData<Object>& object, EditedObjectGroup::SyncOption EditedObjectGroup::* syncOption) {
+			EditedObjectGroup::Objects getActedOnObjects(ObjectMetadata<Object>& object, EditedObjectGroup::SyncOption EditedObjectGroup::* syncOption) {
 				EditedObjectGroup::Objects actedOnObjects;
 				boost::unordered_flat_set<ID<EditedObjectGroup>> syncedObjectGroups;
 				std::queue<ID<EditedObjectGroup>> unsyncedObjectGroups;
@@ -57,7 +57,7 @@ namespace nv {
 					}
 
 					nv::detail::forEachDataMember([&]<typename Object>(ObjectLookup<Object>& objects) { //objects is a pointer
-						for (EditedObjectData<Object>* object : objects) {
+						for (ObjectMetadata<Object>* object : objects) {
 							//if object has been acted on already, continue
 							auto& actedOnObjectLookup = std::get<ObjectLookup<Object>>(actedOnObjects);
 							if (actedOnObjectLookup.contains(object)) {
@@ -80,7 +80,7 @@ namespace nv {
 			}
 		public:
 			template<typename Object>
-			void scale(EditedObjectData<Object>& scaledObject, float scale) {
+			void scale(ObjectMetadata<Object>& scaledObject, float scale) {
 				auto actedOnObjects = getActedOnObjects(scaledObject, &EditedObjectGroup::scaleSynced);
 
 				nv::detail::forEachDataMember([&](auto& objects) {
@@ -97,7 +97,7 @@ namespace nv {
 				//});
 			}
 			template<typename Object>
-			void move(EditedObjectData<Object>& movedObject, Point delta) {
+			void move(ObjectMetadata<Object>& movedObject, Point delta) {
 				auto actedOnObjects = getActedOnObjects(movedObject, &EditedObjectGroup::positionSynced);
 				nv::detail::forEachDataMember([&](auto& objects) {
 					for (auto object : objects) { //object is a pointer, so no copy
@@ -109,7 +109,7 @@ namespace nv {
 			}
 
 			template<typename Object>
-			void setOpacity(EditedObjectData<Object>& opacifiedObject, uint8_t opacity) {
+			void setOpacity(ObjectMetadata<Object>& opacifiedObject, uint8_t opacity) {
 				auto actedOnObjects = getActedOnObjects(opacifiedObject, &EditedObjectGroup::opacitySynced);
 				nv::detail::forEachDataMember([&](auto& objects) {
 					for (auto object : objects) { //object is a pointer, so no copy
@@ -138,7 +138,7 @@ namespace nv {
 			}
 		private:
 			template<typename Object>
-			void showObjectGroupDropdownForObject(EditedObjectData<Object>& object) {
+			void showObjectGroupDropdownForObject(ObjectMetadata<Object>& object) {
 				auto previewObjectGroupName = m_currObjectSpecificObjectGroupID == ID<EditedObjectGroup>::None() ?
 					"No Group" : m_objectGroups.at(m_currObjectSpecificObjectGroupID).name.c_str();
 
@@ -170,7 +170,7 @@ namespace nv {
 			void showObjectGroupCreationButton(bool& creatingObjectGroup);
 		public:
 			template<nv::concepts::RenderableObject Object>
-			void showObjectGroupsOfObject(EditedObjectData<Object>& object, bool& creatingObjectGroup) {
+			void showObjectGroupsOfObject(ObjectMetadata<Object>& object, bool& creatingObjectGroup) {
 				showObjectGroupDropdownForObject(object);
 				showObjectGroupCreationButton(creatingObjectGroup);
 			}

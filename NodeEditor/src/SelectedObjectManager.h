@@ -6,7 +6,7 @@ namespace nv {
 		private:
 			template<typename Object>
 			struct SelectedObjectData {
-				EditedObjectData<Object>* obj = nullptr;
+				ObjectMetadata<Object>* obj = nullptr;
 				EditedObjectHive<Object>* objLayer = nullptr;
 				EditedObjectHive<Object>::iterator it;
 			};

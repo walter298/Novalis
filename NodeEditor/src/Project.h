@@ -1,16 +1,15 @@
 #pragma once
 
-#include "NodeManager.h"
-#include "ProjectGraph.h"
+#include "TabManager.h"
 #include "VirtualFilesystem.h"
 
 namespace nv {
 	namespace editor {
 		class Project {
 		private:
-			NodeManager m_nodeManager;
 			std::filesystem::path m_rootDirectory;
 		public:
+			TabManager tabManager;
 			VirtualFilesystem vfs;
 			std::string name;
 
@@ -22,15 +21,13 @@ namespace nv {
 			Project(const Project&) = delete;
 			Project(Project&&)      = default;
 
-			boost::optional<NodeEditor&> getCurrentTab();
-
 			const std::filesystem::path& getRootDirectory() const noexcept {
 				return m_rootDirectory;
 			}
 
-			void showTabs();
-			void showFilesystem(ErrorPopup& errorPopup);
-
+			void show(SDL_Renderer* renderer, ErrorPopup& errorPopup);
+			void save(ErrorPopup& errorPopup);
+		
 			friend void to_json(nlohmann::json& j, const Project& project);
 			friend void from_json(const nlohmann::json& j, Project& project);
 		};

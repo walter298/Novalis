@@ -15,6 +15,7 @@ namespace nv {
 			inline constexpr const char* IS_WORLD_HITBOX_KEY = "Is_World_Hitbox";
 			inline constexpr const char* IS_SCREEN_HITBOX_KEY = "Is_Screen_Hitbox";
 			inline constexpr const char* IMAGE_PATH_KEY = "Image_Path";
+			inline constexpr const char* IMAGE_FILE_ID_KEY = "Image_File_ID";
 			inline constexpr const char* RENDER_DATA_KEY = "Render_Data";
 			inline constexpr const char* METADATA_KEY = "Metadata";
 			inline constexpr const char* OBJECT_GROUP_KEY = "Object_Group";
