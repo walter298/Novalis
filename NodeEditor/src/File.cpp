@@ -1,3 +1,4 @@
+#include <magic_enum/magic_enum.hpp>
 #include <novalis/detail/file/File.h>
 #include <novalis/detail/reflection/ClassMemberFilter.h>
 #include <novalis/detail/serialization/AutoSerialization.h>
@@ -15,7 +16,7 @@ namespace {
 	nv::detail::TexturePtr jpgFileIconTex;
 	nv::detail::TexturePtr bmpFileIconTex;
 
-	ImTextureID parseIcon(const std::filesystem::path& path) {
+	ImTextureID getFileIcon(const std::filesystem::path& extension) {
 		static boost::unordered_flat_map<std::string, SDL_Texture*> fileIcons{
 			{ ".json", nodeFileIconTex.tex },
 			{ ".avif", avifFileIconTex.tex },
@@ -23,12 +24,11 @@ namespace {
 			{ ".jpg", jpgFileIconTex.tex },
 			{ ".bmp", bmpFileIconTex.tex }
 		};
-		auto fileExtension = path.extension().string();
-		assert(!fileExtension.empty());
-		for (auto& chr : fileExtension) {
+		auto extensionStr = extension.string();
+		for (auto& chr : extensionStr) {
 			chr = tolower(chr);
 		}
-		return reinterpret_cast<ImTextureID>(fileIcons.at(fileExtension));
+		return reinterpret_cast<ImTextureID>(fileIcons.at(extensionStr));
 	}
 }
 
@@ -81,21 +81,22 @@ void nv::editor::from_json(const nlohmann::json& j, File& file) {
 		member = serializedMember;
 		return nv::detail::STAY_IN_LOOP;
 	}, members, serializedData);
-	file.m_icon = parseIcon(file.m_realPath);
+
+	file.m_icon = getFileIcon(file.parseExtension());
 }
 
 ImTextureID nv::editor::getFolderIcon() noexcept {
 	return reinterpret_cast<ImTextureID>(closedFolderTex.tex);
 }
 
-nv::editor::File::File(std::filesystem::path realPath, NameManager& parentNameManager, std::string name, File::Type type)
-	: m_realPath{ std::move(realPath) }, m_name{ std::move(name) }, m_type{ type }
+nv::editor::File::File(NameManager& parentNameManager, std::string name, File::Type type)
+	: m_name{ std::move(name) }, m_type{ type }
 {
-	m_icon = parseIcon(m_realPath);
+	m_icon = getFileIcon(parseExtension());
 }
 
-nv::editor::File::File(std::filesystem::path realPath, NameManager& parentNameManager, File::Type type)
-	: File{ std::move(realPath), parentNameManager, "", type }
+nv::editor::File::File(NameManager& parentNameManager, File::Type type)
+	: File{ parentNameManager, "", type }
 {
 }
 
@@ -123,8 +124,13 @@ const std::string& nv::editor::File::getName() const noexcept {
 	return m_name;
 }
 
-const std::filesystem::path& nv::editor::File::getPath() const noexcept {
-	return m_realPath;
+std::string nv::editor::File::parseExtension() const {
+	if (m_type == File::Type::Node) {
+		return ".json";
+	}
+	auto enumName = magic_enum::enum_name(m_type);
+	assert(!enumName.empty());
+	return "." + std::string{ enumName.data(), enumName.size() };
 }
 
 nv::editor::File::Type nv::editor::File::getType() const noexcept {

@@ -26,20 +26,24 @@ namespace nv {
 		class File {
 		public:
 			enum Type { //make type values powers of two so that we can have correct bitwise ops
-				Image = 1,
+				None = 0,
 				Font = 2,
-				Node = 4
+				Node = 4,
+				JPG = 8,
+				PNG = 16,
+				AVIF = 32,
+				BMP = 64,
+				Image = JPG | PNG | AVIF | BMP
 			};
 		private:
 			ImTextureID m_icon{};
 			int m_imguiID = getPermanentImGuiID();
 			Type m_type{};
-			std::filesystem::path m_realPath;
 			std::string m_name;
 		public:
 			File() = default;
-			File(std::filesystem::path realPath, NameManager& parentNameManager, std::string name, File::Type type);
-			File(std::filesystem::path realPath, NameManager& parentNameManager, File::Type type);
+			File(NameManager& parentNameManager, std::string name, File::Type type);
+			File(NameManager& parentNameManager, File::Type type);
 			
 			FileSet dependencies;
 			FileSet dependants;
@@ -49,11 +53,11 @@ namespace nv {
 			void show(NameManager& dirNameManager, bool& finishedRenaming) noexcept;
 			void makeNameUnique(NameManager& parentNameManager);
 			const std::string& getName() const noexcept;
-			const std::filesystem::path& getPath() const noexcept;
+			std::string parseExtension() const;
 			Type getType() const noexcept;
 			ImTextureID getIcon() const noexcept;
 
-			MAKE_INTROSPECTION(m_type, m_realPath, m_name, dependencies, dependants, parent)
+			MAKE_INTROSPECTION(m_type, m_name, dependencies, dependants, parent)
 
 			friend void to_json(nlohmann::json& j, const File& file);
 			friend void from_json(const nlohmann::json& j, File& file);
@@ -67,7 +71,7 @@ namespace nv {
 		struct Directory;
 
 		using DirectoryMap = std::unordered_map<DirectoryID, Directory>;
-		using DirectorySet = std::unordered_set<DirectoryID>;
+		using DirectorySet = boost::unordered_flat_set<DirectoryID>;
 
 		class Directory {
 		private:

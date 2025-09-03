@@ -102,7 +102,7 @@ namespace nv {
 
 		template<>
 		struct ObjectMetadata<Spritesheet> : public EditedObjectDataBase<Spritesheet> {
-			std::string texPath;
+			std::filesystem::path texPath;
 			FileID texFile;
 
 			template<typename... Args>

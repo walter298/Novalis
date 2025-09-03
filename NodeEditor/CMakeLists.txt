@@ -5,12 +5,8 @@ project(novalis_editor VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#include_directories(../Library/src)
 add_library(novalis STATIC IMPORTED)
-# set_target_properties(novalis PROPERTIES
-#     IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../Library/build/Release/novalis.lib
-#     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/../Library/src
-# )
+
 set_target_properties(novalis PROPERTIES
     IMPORTED_CONFIGURATIONS "Debug;Release"
     IMPORTED_LOCATION_RELEASE "${CMAKE_SOURCE_DIR}/../Library/build/Release/novalis.lib"
@@ -28,7 +24,7 @@ find_package(OpenCV REQUIRED)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "src/*.h")
 
-add_executable(${PROJECT_NAME} ${SOURCES} "src/Tab.h" "src/ObjectMetadataSerialization.h" "src/ObjectSearch.cpp")
+add_executable(${PROJECT_NAME} ${SOURCES} "src/ProjectFileManager.h" "src/ProjectFileManager.cpp")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     novalis 

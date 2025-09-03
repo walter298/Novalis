@@ -15,9 +15,9 @@ namespace nv {
 					if (path.is_directory()) {
 						continue;
 					}
-					auto pathStr = path.path().string();
-					auto isCorrect = isNodeFileCorrect(pathStr);
-					std::println("{} is correct: {}", nv::fileName(pathStr), isCorrect);
+					auto pathStr = path.path();
+					auto isCorrect = isNodeFileCorrect(pathStr.string());
+					std::println("{} is correct: {}", pathStr.string(), isCorrect);
 				}
 			}
 		}

@@ -9,175 +9,164 @@
 using namespace nv;
 using namespace editor;
 
-constexpr ImVec2 SPRITESHEET_CREATION_WINDOW_SIZE{ 500.0f, 500.0f };
+namespace {
+	enum State {
+		CreatingSpritesheetFromMultipleImages,
+		CreatingSpritesheetFromSingleImage,
+		OpeningSingleSpritesheet,
+		OpeningMultispritesheet,
+		OpeningTextures,
+		UploadingNode,
+		None
+	};
+	State objectDropdownState = None;
+	SpritesheetCreator spritesheetCreator;
+	MultiSpritesheetCreator multiSpritesheetCreator;
 
-static std::optional<ObjectMetadata<BufferedNode>> uploadNode() noexcept {
-	auto filePath = openFile({ { "node", "nv_node" } });
-	if (!filePath) {
-		return std::nullopt;
-	}
-	std::ifstream file{ filePath->c_str() };
-	if (!file.is_open()) {
-		std::println(stderr, "Error: could not open {}", *filePath);
-		return std::nullopt;
-	}
-	try {
-		auto nodeJson = json::parse(file);
-		ObjectMetadata<BufferedNode> ret{ nodeJson.get<BufferedNode>() };
-		ret.obj.resetWorld();
-		return ret;
-	} catch (const std::exception& e) {
-		std::println(stderr, "{}", e.what());
-		return std::nullopt;
-	}
-}
-
-static std::optional<nv::detail::TexturePtr> uploadTexture(SDL_Renderer* renderer, std::string& texPath) noexcept {
-	auto texPathRes = openFile({ {"images", "png" } });
-	if (!texPathRes) {
-		return std::nullopt;
-	}
-	try {
-		nv::detail::TexturePtr ret{ renderer, texPathRes->c_str() };
-		texPath = std::move(*texPathRes);
-		return ret;
-	} catch (const std::exception& e) {
-		std::println("{}", e.what());
-		return std::nullopt;
-	}
-}
-
-static std::optional<std::vector<ObjectMetadata<Texture>>> uploadTextures(SDL_Renderer* renderer) noexcept {
-	auto texPaths = openMultipleFiles({ { "images", "png" } });
-	if (!texPaths) {
-		return std::nullopt;
-	}
-
-	std::vector<ObjectMetadata<Texture>> textures;
-
-	for (const auto& texPath : *texPaths) {
-		nv::detail::TexturePtr tex{ renderer, texPath.c_str() };
-		if (tex.tex == nullptr) {
-			std::println(stderr, "{}", SDL_GetError());
-			continue;
+	template<typename DialogHandler, typename Func>
+	void handleFileDialog(const ProjectFileManager& pfm, VirtualFilesystem& vfs, DialogHandler fileDialog, File::Type filter,
+		Func f) 
+	{
+		bool cancelled = false;
+		auto res = std::invoke(fileDialog, vfs, pfm, filter, cancelled);
+		if (cancelled) {
+			objectDropdownState = None;
 		}
-		auto& editedTex = textures.emplace_back(std::move(tex));
+		if (res) {
+			f(*res);
+		}
 	}
 
-	return textures;
+	void showSingleImageDialog(const ProjectFileManager& pfm, VirtualFilesystem& vfs, ErrorPopup& errorPopup) {
+		auto init = [&](FileID id) {
+			try {
+				auto texPath = pfm.getSharedAssetPath(id);
+				auto instance = nv::getGlobalInstance();
+				auto tex = instance->registry.loadTexture(instance->getRenderer(), texPath);
+				spritesheetCreator.init(std::move(tex), id);
+			} catch (const std::exception& e) {
+				errorPopup.add(e.what());
+				objectDropdownState = None;
+				return;
+			}
+			objectDropdownState = CreatingSpritesheetFromSingleImage;
+		};
+		handleFileDialog(pfm, vfs, &VirtualFilesystem::showFileDialog, File::Type::Image, init);
+	}
+	void openMultipleImagesForSpritesheet(SDL_Renderer* renderer, const ProjectFileManager& pfm, 
+		VirtualFilesystem& vfs, ErrorPopup& errorPopup) 
+	{
+		auto init = [&](const FileSet& imageIDs) {
+			try {
+				std::vector textures{
+					std::from_range, imageIDs | std::views::transform([&](FileID id) {
+						auto path = pfm.getSharedAssetPath(id).string();
+						return nv::detail::TexturePtr{ renderer, path.c_str() };
+					})
+				};
+				multiSpritesheetCreator.init(renderer, textures, errorPopup);
+				objectDropdownState = CreatingSpritesheetFromMultipleImages;
+			} catch (const std::exception& e) {
+				errorPopup.add(e.what());
+			}
+		};
+		handleFileDialog(pfm, vfs, &VirtualFilesystem::showMultipleFileDialog, File::Type::Image, init);
+	}
+	void uploadNode(Project& project, ErrorPopup& errorPopup) {
+		auto init = [&](FileID childID) {
+			auto& currTab = *project.tabManager.getCurrentNodeTab();
+			if (project.vfs.createDependency(currTab.getID(), childID)) {
+				auto nodePath = project.pfm.getSharedAssetPath(childID);
+				auto node = project.tabManager.getNodeTab(project.pfm, project.getCurrentVersion(), 
+					childID, errorPopup);
+				if (node) {
+					ObjectMetadata<BufferedNode> nodeData{ *node->node };
+					nodeData.filePath = nodePath.string();
+					currTab.transfer(childID, std::move(nodeData));
+				}
+			} else {
+				errorPopup.add("Error: cannot create circular dependency");
+			}
+			objectDropdownState = None;
+		};
+		handleFileDialog(project.pfm, project.vfs, &VirtualFilesystem::showFileDialog, File::Type::Node, init);
+	}
+	void openTextures(SDL_Renderer* renderer, Project& project) {
+		auto init = [&](const FileSet& imageIDs) {
+			std::vector textures{
+				std::from_range, imageIDs | std::views::transform([&](FileID id) {
+					auto path = project.pfm.getSharedAssetPath(id).string();
+					nv::detail::TexturePtr tex{ renderer, path.c_str() };
+					ObjectMetadata<Texture> ret{ std::move(tex) };
+					ret.texFile = id;
+					ret.texPath = std::move(path);
+					return ret;
+				})
+			};
+			project.tabManager.getCurrentNodeTab()->transfer(textures);
+			objectDropdownState = None;
+		};
+		handleFileDialog(project.pfm, project.vfs, &VirtualFilesystem::showMultipleFileDialog, File::Type::Image, init);
+	}
+
+	template<typename SpritesheetCreator>
+	void createSpritesheet(SDL_Renderer* renderer, Project& project, SpritesheetCreator& spritesheetCreator,
+		ErrorPopup& errorPopup) 
+	{
+		bool cancelled = false;
+		auto spritesheetRes = spritesheetCreator.show(renderer, project.pfm, cancelled, errorPopup);
+		if (cancelled) {
+			objectDropdownState = None;
+		}
+		if (spritesheetRes) {
+			auto& currTab = *project.tabManager.getCurrentNodeTab();
+			project.vfs.createDependency(currTab.getID(), spritesheetRes->texFile);
+			currTab.transfer(std::move(*spritesheetRes));
+			objectDropdownState = None;
+		}
+	}
 }
 
-static bool createTexturesFromImages(SDL_Renderer* renderer, NodeEditor& currTab) {
-	auto texturesRes = uploadTextures(renderer);
-	if (!texturesRes) {
-		return false;
-	}
-	currTab.transfer(*texturesRes);
-	return true;
-}
-
-static void insertNodeFromFile(NodeEditor& currTab) {
-	auto node = uploadNode();
-	if (node) {
-		currTab.transfer(std::move(*node));
-	}
-}
-
-void nv::editor::ObjectDropdown::openImageDialog(VirtualFilesystem& vfs) {
-	bool cancelled = false;
-	auto imageFileIDRes = vfs.showFileDialog(File::Type::Image, cancelled);
-	if (cancelled) {
-		m_state = None;
-	}
-	if (imageFileIDRes) {
-		m_spritesheetCreator.init(vfs.getTexture(*imageFileIDRes), *imageFileIDRes);
-		m_state = CreatingSpritesheetFromSingleImage;
-	}
-}
-
-void nv::editor::ObjectDropdown::show(SDL_Renderer* renderer, Project& project, ErrorPopup& errorPopup) {
+void nv::editor::showObjectDropdown(SDL_Renderer* renderer, Project& project, ErrorPopup& errorPopup) {
 	auto currTab = project.tabManager.getCurrentNodeTab();
 	if (!currTab || currTab->hasNoLayers() || currTab->isBusy()) {
 		showDisabledMenu("Object");
 		return;
 	}
 
-	auto makeSpritesheet = [&, this](auto& spritesheetCreator) {
-		bool cancelled = false;
-		auto spritesheetRes = spritesheetCreator.show(renderer, project.vfs, cancelled, errorPopup);
-		if (cancelled) {
-			m_state = None;
-		}
-		if (spritesheetRes) {
-			auto& currTab = *project.tabManager.getCurrentNodeTab();
-			project.vfs.createDependency(currTab.getID(), spritesheetRes->texFile);
-			currTab.transfer(std::move(*spritesheetRes));
-			m_state = None;
-		}
-	};
-	auto handleImageIDs = [&, this](std::invocable<FileSet> auto func) {
-		bool cancelled = false;
-		auto images = project.vfs.showMultipleFileDialog(File::Type::Image, cancelled);
-		if (cancelled) {
-			m_state = None;
-		}
-		if (images) {
-			func(*images);
-		}
-	};
-
-	switch (m_state) {
+	switch (objectDropdownState) {
 	case CreatingSpritesheetFromMultipleImages:
-		makeSpritesheet(m_multiSpritesheetCreator);
+		createSpritesheet(renderer, project, multiSpritesheetCreator, errorPopup);
 		break;
 	case CreatingSpritesheetFromSingleImage:
-		makeSpritesheet(m_spritesheetCreator);
+		createSpritesheet(renderer, project, spritesheetCreator, errorPopup);
 		break;
 	case OpeningSingleSpritesheet:
-		openImageDialog(project.vfs);
+		showSingleImageDialog(project.pfm, project.vfs, errorPopup);
 		break;
 	case OpeningMultispritesheet:
-		handleImageIDs([&, this](const FileSet& imageIDs) {
-			std::vector textures{
-				std::from_range, imageIDs | std::views::transform([&](FileID id) {
-					auto path = project.vfs.getFilePath(id).string();
-					return nv::detail::TexturePtr{ renderer, path.c_str() };
-				})
-			};
-			m_multiSpritesheetCreator.init(renderer, textures, errorPopup);
-			m_state = CreatingSpritesheetFromMultipleImages;
-		});
+		openMultipleImagesForSpritesheet(renderer, project.pfm, project.vfs, errorPopup);
+		break;
+	case UploadingNode:
+		uploadNode(project, errorPopup);
 		break;
 	case OpeningTextures:
-		handleImageIDs([&, this](const FileSet& imageIDs) {
-			std::vector textures{
-				std::from_range, imageIDs | std::views::transform([&](FileID id) {
-					auto path = project.vfs.getFilePath(id).string();
-					nv::detail::TexturePtr tex{ renderer, path.c_str() };
-					ObjectMetadata<Texture> ret{ std::move(tex) };
-					ret.texFile = id;
-					ret.texPath = project.vfs.getFilePath(id).string();
-					return ret;
-				})
-			};
-			project.tabManager.getCurrentNodeTab()->transfer(textures);
-			m_state = None;
-		});
+		openTextures(renderer, project);
 		break;
-	};
+	}
 
-	ImGui::BeginDisabled(isBusy());
+	ImGui::BeginDisabled(isObjectDropdownBusy());
 
 	if (ImGui::BeginMenu("Object")) {
 		if (ImGui::MenuItem("Create Textures From Images")) {
-			m_state = OpeningTextures;
+			objectDropdownState = OpeningTextures;
 		}
 		ImGui::Separator();
 		if (ImGui::MenuItem("Create Spritesheet From Single Image")) {
-			m_state = OpeningSingleSpritesheet;
+			objectDropdownState = OpeningSingleSpritesheet;
 		}
 		if (ImGui::MenuItem("Create Spritesheet From Multiple Images")) {
-			m_state = OpeningMultispritesheet;
+			objectDropdownState = OpeningMultispritesheet;
 		}
 		ImGui::Separator();
 		if (ImGui::MenuItem("Create Text")) {
@@ -189,7 +178,7 @@ void nv::editor::ObjectDropdown::show(SDL_Renderer* renderer, Project& project, 
 		}
 		ImGui::Separator();
 		if (ImGui::MenuItem("Upload Node(s)")) {
-			insertNodeFromFile(*currTab);
+			objectDropdownState = UploadingNode;
 		}
 		ImGui::Separator();
 		if (ImGui::MenuItem("Create Object Group")) {
@@ -201,6 +190,6 @@ void nv::editor::ObjectDropdown::show(SDL_Renderer* renderer, Project& project, 
 	ImGui::EndDisabled();
 }
 
-bool nv::editor::ObjectDropdown::isBusy() const noexcept {
-	return m_state != None;
+bool nv::editor::isObjectDropdownBusy() noexcept {
+	return objectDropdownState != None;
 }

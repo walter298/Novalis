@@ -21,10 +21,10 @@ namespace nv {
 		DynamicNodeMap m_dynamicNodeMap;
 		TextureMap m_textureMap;
 	public:
-		detail::TexturePtr loadTexture(SDL_Renderer* renderer, const std::string& path);
-		BufferedNode loadBufferedNode(const std::string& path);
+		detail::TexturePtr loadTexture(SDL_Renderer* renderer, const std::filesystem::path& path);
+		BufferedNode loadBufferedNode(const std::filesystem::path& path);
 		BufferedNode loadBufferedNode(const std::filesystem::path& path, const nlohmann::json& nodeJson);
-		DynamicNode loadDynamicNode(const std::string& path);
+		DynamicNode loadDynamicNode(const std::filesystem::path& path);
 	};
 }
 

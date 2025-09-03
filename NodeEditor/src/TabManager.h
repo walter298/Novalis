@@ -8,18 +8,20 @@
 
 namespace nv {
 	namespace editor {
-		class VirtualFilesystem;
+		class ProjectFileManager;
 		class ErrorPopup;
+		class VirtualFilesystem;
 
 		class TabManager {
-		private:
-			struct NodeData {
+		public:
+			struct NodeTab {
 				NodeEditor editor;
 				std::optional<BufferedNode> node;
 				nlohmann::json nodeJson;
 				bool saved = false;
 			};
-			std::unordered_map<FileID, NodeData> m_nodeTabs; //use node map since NodeEditors are gigantic
+		private:
+			std::unordered_map<FileID, NodeTab> m_nodeTabs; //use node map since NodeEditors are gigantic
 			std::unordered_map<FileID, nv::detail::TexturePtr> m_texTabs;
 			Tab m_currTab;
 			FileID m_switchedToInvalidTabID = FileID::None();
@@ -27,24 +29,33 @@ namespace nv {
 			nv::detail::TexturePtr* m_currTexTab = nullptr;
 			boost::unordered_flat_set<Tab> m_tabs;
 
-			void switchTabs(const Tab& tab, VirtualFilesystem& vfs, ErrorPopup& errorPopup);
+			void switchTabs(const Tab& tab, ProjectFileManager& pfm, size_t projectIndex, ErrorPopup& errorPopup);
 			void showCurrentTab(SDL_Renderer* renderer);
-			void saveImpl(NodeData& nodeData, VirtualFilesystem& vfs);
-			bool loadNode(VirtualFilesystem& vfs, FileID fileID, ErrorPopup& errorPopup);
-			bool switchToNodeTab(VirtualFilesystem& vfs, FileID fileID, ErrorPopup& errorPopup);
-			bool loadTexture(VirtualFilesystem& vfs, FileID fileID, ErrorPopup& errorPopup);
-			bool switchToTextureTab(VirtualFilesystem& vfs, FileID fileID, ErrorPopup& errorPopup);
+			bool loadNode(const ProjectFileManager& vfs, size_t projectIndex, FileID fileID, ErrorPopup& errorPopup);
+			bool switchToNodeTab(ProjectFileManager& vfs, size_t projectIndex, FileID fileID, ErrorPopup& errorPopup);
+			bool loadTexture(ProjectFileManager& vfs, FileID fileID, ErrorPopup& errorPopup);
+			bool switchToTextureTab(ProjectFileManager& vfs, FileID fileID, ErrorPopup& errorPopup);
 			void showImage();
-			void showTabs(VirtualFilesystem& vfs, ErrorPopup& errorPopup);
-			void updateCurrentTab(VirtualFilesystem& vfs, ErrorPopup& errorPopup);
+			void showTabs(VirtualFilesystem& vfs, ProjectFileManager& pfm,size_t projectIndex, ErrorPopup& errorPopup);
+			void updateCurrentTab(VirtualFilesystem& vfs, ProjectFileManager& pfm, 
+				size_t projectIndex, ErrorPopup& errorPopup);
 		public:
 			bool saveable(const VirtualFilesystem& vfs, ErrorPopup& errorPopup) const noexcept;
-			void addNode(VirtualFilesystem& vfs, FileID id, ErrorPopup& errorPopup);
+			void addNode(ProjectFileManager& vfs, size_t projectIndex, FileID id, ErrorPopup& errorPopup);
+			boost::optional<NodeTab&> getNodeTab(const ProjectFileManager& pfm, size_t projectIndex,
+				FileID id, ErrorPopup& errorPopup);
 			void removeNode(FileID id);
-			void save(VirtualFilesystem& vfs);
-			void show(SDL_Renderer* renderer, VirtualFilesystem& vfs, ErrorPopup& errorPopup);
+			void show(SDL_Renderer* renderer, VirtualFilesystem& vfs, ProjectFileManager& pfm, size_t projectIndex, ErrorPopup& errorPopup);
+			void clear() noexcept;
 
 			boost::optional<NodeEditor&> getCurrentNodeTab();
+
+			auto begin(this auto&& self) {
+				return self.m_nodeTabs.begin();
+			}
+			auto end(this auto&& self) {
+				return self.m_nodeTabs.end();
+			}
 		};
 	}
 }

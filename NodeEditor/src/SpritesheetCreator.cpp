@@ -3,9 +3,9 @@
 #include <novalis/detail/file/File.h>
 
 #include "Enum.h"
+#include "ProjectFileManager.h"
 #include "SpritesheetCreator.h"
 #include "SpritesheetDimensionInput.h"
-#include "VirtualFilesystem.h"
 #include "WindowLayout.h"
 
 //for static methods
@@ -52,7 +52,7 @@ void nv::editor::SpritesheetCreator::init(nv::detail::TexturePtr tex, FileID ima
 }
 
 std::optional<ObjectMetadata<Spritesheet>> nv::editor::SpritesheetCreator::show(SDL_Renderer* renderer,
-	VirtualFilesystem& vfs, bool& cancelled, ErrorPopup& errorPopup) 
+	const ProjectFileManager& pfm, bool& cancelled, ErrorPopup& errorPopup) 
 {
 	assert(m_tex.tex);
 
@@ -68,7 +68,7 @@ std::optional<ObjectMetadata<Spritesheet>> nv::editor::SpritesheetCreator::show(
 		if (ImGui::Button("Create Spritesheet")) {
 			ObjectMetadata<Spritesheet> spritesheet{ std::move(m_tex), m_rowC, m_colC };
 			spritesheet.texFile = m_fileID;
-			spritesheet.texPath = vfs.getFilePath(m_fileID).string();
+			spritesheet.texPath = pfm.getSharedAssetPath(m_fileID);
 			return spritesheet;
 		}
 		ImGui::SetNextItemWidth(getInputWidth());

@@ -17,6 +17,7 @@
 namespace nv {
 	namespace editor {
 		class TabManager;
+		class ProjectFileManager;
 
 		class VirtualFilesystem {
 		private:
@@ -31,21 +32,19 @@ namespace nv {
 			FileID m_draggedFileID = FileID::None();
 			DirectoryID m_deletedDirectoryID = DirectoryID::None();
 			FileID m_deletedFileID = FileID::None();
-			std::filesystem::path m_projectRootDirectoryPath;
-
+			
 			void showFile(FileID fileID, File& file, NameManager& parentNameManager);
 			void deleteQueuedItems(TabManager& nodeManager, ErrorPopup& errorPopup);
-			std::filesystem::path getInternalDirectoryPath() const;
-			std::filesystem::path getAssetDirectoryPath() const;
-			std::filesystem::path getNodeDirectoryPath() const;
-			void uploadImage(DirectoryID parentDirID, Directory& parentDir, ErrorPopup& errorPopup);
+			void uploadImage(DirectoryID parentDirID, Directory& parentDir, ProjectFileManager& pfm, ErrorPopup& errorPopup);
 			FileID createNodeFile(DirectoryID parentDirID, Directory& parentDir);
 			void createDirectory(DirectoryID parentDirID, Directory& parentDir);
 			void renameDirectory(Directory& dir);
 			void showFileRightClickMenu(FileID fileID, File& file, TabManager& nodeManager, ErrorPopup& errorPopup);
-			void showDirectoryRightClickMenu(DirectoryID dirID, Directory& dir, TabManager& nodeManager, 
-				bool& deleted, ErrorPopup& errorPopup) noexcept;
-			void showImpl(DirectoryID dirID, TabManager& nodeManager, ErrorPopup& errorPopup);
+			void showDirectoryRightClickMenu(DirectoryID dirID, Directory& dir,
+				TabManager& tabManager, ProjectFileManager& pfm, size_t projectIndex, bool& deleted,
+				ErrorPopup& errorPopup) noexcept;
+			void showImpl(DirectoryID dirID, TabManager& nodeManager, ProjectFileManager& pfm, 
+				size_t projectIndex, ErrorPopup& errorPopup);
 			void setCurrentlyRenamedDirectory(DirectoryID dirID);
 			void setCurrentlyRenamedFile(FileID fileID);
 			void dragFile(FileID draggedFileID, File& draggedFile);
@@ -58,24 +57,26 @@ namespace nv {
 			bool isSubdirectory(DirectoryID childDirID, DirectoryID parentDirID) const;
 		public:
 			VirtualFilesystem();
-			VirtualFilesystem(std::filesystem::path projectRootDirectoryPath);
+			
+			//disable copying because there should only be one fs state at a time
+			VirtualFilesystem(const VirtualFilesystem&) = delete;
+			VirtualFilesystem& operator=(const VirtualFilesystem&) = delete;
+
+			VirtualFilesystem(VirtualFilesystem&&) = default;
+			VirtualFilesystem& operator=(VirtualFilesystem&&) = default;
 
 			const FileSet& getDependantFiles(FileID fileID);
 			FileID createNodeFile(const std::string& path);
-			void show(TabManager& nodeManager, ErrorPopup& errorPopup); //returns a deleted file ID
+			void show(TabManager& nodeManager, ProjectFileManager& pfm, size_t projectIndex, ErrorPopup& errorPopup); //returns a deleted file ID
 			const std::string& getFilename(FileID fileID) const noexcept;
-			const std::filesystem::path& getFilePath(FileID fileID) const noexcept;
-			std::optional<FileID> showFileDialog(File::Type filter, bool& cancelled);
-			std::optional<FileSet> showMultipleFileDialog(File::Type filter, bool& cancelled);
-			nv::detail::TexturePtr getTexture(FileID fileID);
-			FileID saveImage(SDL_Surface* surface, ImageType imageType);
-			void dumpFileContents(FileID fileID, const std::string& text);
-			void createDependency(FileID fileID, FileID dependencyFileID);
-
+			std::optional<FileID> showFileDialog(const ProjectFileManager& pfm, File::Type filter, bool& cancelled);
+			std::optional<FileSet> showMultipleFileDialog(const ProjectFileManager& pfm, File::Type filter, bool& cancelled);
+			bool isTransitiveDependency(FileID parentID, FileID childID) const;
+			bool createDependency(FileID fileID, FileID dependencyFileID);
+			const File& getFile(FileID fileID) const;
 			std::optional<Tab> getSelectedFile() const noexcept;
-			std::filesystem::path getNodePath(FileID fileID) const;
-
-			MAKE_INTROSPECTION(m_rootDirectoryID, m_files, m_directories, m_projectRootDirectoryPath)
+			
+			MAKE_INTROSPECTION(m_files, m_directories, m_rootDirectoryID)
 		};
 	}
 }

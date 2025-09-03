@@ -10,48 +10,65 @@
 using namespace nv;
 using namespace editor;
 
-static void saveProject(Project& project, ErrorPopup& errorPopup) {
-	std::ofstream file{ project.getRootDirectory() / "project.json" };
-	if (!file.is_open()) {
-		errorPopup.add("Could not open project file: " + project.getRootDirectory().string());
-	} else {
-		file << nlohmann::json{ project }.dump(2);
+namespace {
+	enum FileDropdownState {
+		None,
+		CreatingProject,
+		SwitchingProject,
+		SwitchingProjectVersion
+	};
+	FileDropdownState state = None;
+
+	void executeState(ProjectManager& projectManager, ErrorPopup& errorPopup) {
+		bool cancelled = false;
+		switch (state) {
+		case SwitchingProject:
+			if (projectManager.switchProject(cancelled, errorPopup) || cancelled) {
+				state = None;
+			}
+			break;
+		case CreatingProject:
+			if (projectManager.createProject(cancelled, errorPopup) || cancelled) {
+				state = None;
+			}
+			break;
+		case SwitchingProjectVersion:
+			if (projectManager.getCurrentProject()->switchVersion(cancelled, errorPopup) || cancelled) {
+				state = None;
+			} 
+			break;
+		}
+	}
+	void showDropdown(ProjectManager& projectManager, ErrorPopup& errorPopup) {
+		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("New Project")) {
+				state = CreatingProject;
+			}
+
+			ImGui::Separator();
+			if (ImGui::MenuItem("Open Project")) {
+				projectManager.tryLoadProject(errorPopup);
+			}
+			if (ImGui::MenuItem("Switch Project")) {
+				state = SwitchingProject;
+			}
+			
+			auto currProject = projectManager.getCurrentProject();
+			if (currProject) {
+				ImGui::Separator();
+				if (ImGui::MenuItem("Save Project")) {
+					currProject->save(errorPopup);
+				}
+				if (ImGui::MenuItem("Switch Project Version")) {
+					state = SwitchingProjectVersion;
+				}
+			}
+			ImGui::EndMenu();
+		}
 	}
 }
 
-void nv::editor::FileDropdown::show(ProjectManager& projectManager, ErrorPopup& errorPopup) {
-	switch (m_state) {
-	case SwitchingProject:
-		if (projectManager.switchProject()) {
-			m_state = None;
-		}
-		break;
-	case CreatingProject:
-		bool cancelled = false;
-		if (projectManager.createProject(cancelled, errorPopup) || cancelled) {
-			m_state = None;
-		}
-		break;
-	}
-
-	if (ImGui::BeginMenu("File")) {
-		if (ImGui::MenuItem("New Project")) {
-			m_state = CreatingProject;
-		}
-		if (ImGui::MenuItem("Open Project")) {
-			projectManager.tryLoadProject(errorPopup);
-		}
-		if (ImGui::MenuItem("Switch Project")) {
-			m_state = SwitchingProject;
-		}
-
-		auto currProject = projectManager.getCurrentProject();
-		ImGui::Separator();
-		ImGui::BeginDisabled(!currProject.has_value());
-		if (ImGui::MenuItem("Save Project")) {
-			currProject->save(errorPopup);
-		}
-		ImGui::EndDisabled();
-		ImGui::EndMenu();
-	}
+void nv::editor::showFileDropdown(ProjectManager& projectManager, ErrorPopup& errorPopup) {
+	showDropdown(projectManager, errorPopup);
+	executeState(projectManager, errorPopup);
 }

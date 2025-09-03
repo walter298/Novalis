@@ -3,10 +3,13 @@
 #include "detail/serialization/BufferedNodeSerialization.h"
 #include "detail/serialization/DynamicNodeSerialization.h"
 
-nv::detail::TexturePtr nv::ResourceRegistry::loadTexture(SDL_Renderer* renderer, const std::string& path) {
+nv::detail::TexturePtr nv::ResourceRegistry::loadTexture(SDL_Renderer* renderer, 
+	const std::filesystem::path& path) 
+{
 	auto texIt = m_textureMap.find(path);
 	if (texIt == m_textureMap.end()) {
-		detail::TexturePtr tex{ renderer, path.c_str() };
+		auto pathStr = path.string();
+		detail::TexturePtr tex{ renderer, pathStr.c_str() };
 		m_textureMap.emplace(path, tex);
 		return tex;
 	} else {
@@ -32,7 +35,7 @@ namespace {
 	}
 }
 
-nv::BufferedNode nv::ResourceRegistry::loadBufferedNode(const std::string& path) {
+nv::BufferedNode nv::ResourceRegistry::loadBufferedNode(const std::filesystem::path& path) {
 	return loadNodeImpl(m_bufferedNodeMap, path);
 }
 
@@ -45,6 +48,6 @@ nv::BufferedNode nv::ResourceRegistry::loadBufferedNode(const std::filesystem::p
 	return node;
 }
 
-nv::DynamicNode nv::ResourceRegistry::loadDynamicNode(const std::string& path) {
+nv::DynamicNode nv::ResourceRegistry::loadDynamicNode(const std::filesystem::path& path) {
 	return loadNodeImpl(m_dynamicNodeMap, path);
 }

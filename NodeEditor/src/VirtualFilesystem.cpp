@@ -4,6 +4,7 @@
 #include <novalis/detail/serialization/AutoSerialization.h>
 #include <novalis/detail/ScopeExit.h>
 
+#include "ProjectFileManager.h"
 #include "TabManager.h"
 #include "VirtualFilesystem.h"
 #include "imgui/imgui.h"
@@ -13,22 +14,11 @@
 using namespace nv;
 using namespace editor;
 
-nv::editor::VirtualFilesystem::VirtualFilesystem() :
-	m_fileDialog{ m_rootDirectoryID }, m_multiFileDialog{ m_rootDirectoryID }
+nv::editor::VirtualFilesystem::VirtualFilesystem()
+	: m_fileDialog{ m_rootDirectoryID }, m_multiFileDialog{ m_rootDirectoryID }
 {
-}
-
-nv::editor::VirtualFilesystem::VirtualFilesystem(std::filesystem::path projectRootDirectoryPath)
-	: m_projectRootDirectoryPath{ std::move(projectRootDirectoryPath) }, m_fileDialog{ m_rootDirectoryID },
-	m_multiFileDialog{ m_rootDirectoryID }
-{
-	//create root directory
-	auto it = m_directories.emplace(m_rootDirectoryID, Directory::makeRoot());
-	
-	//generate project sub-directories
-	std::filesystem::create_directory(getInternalDirectoryPath());
-	std::filesystem::create_directory(getAssetDirectoryPath());
-	std::filesystem::create_directory(getNodeDirectoryPath());
+	m_directories.emplace(m_rootDirectoryID, Directory::makeRoot());
+	assert(DirectoryID::IDCount != m_rootDirectoryID.get());
 }
 
 const FileSet& nv::editor::VirtualFilesystem::getDependantFiles(FileID fileID) {
@@ -77,61 +67,44 @@ void nv::editor::VirtualFilesystem::deleteQueuedItems(TabManager& nodeManager, E
 	}
 }
 
-std::filesystem::path nv::editor::VirtualFilesystem::getInternalDirectoryPath() const {
-	return m_projectRootDirectoryPath / "internal";
-}
-
-std::filesystem::path nv::editor::VirtualFilesystem::getAssetDirectoryPath() const {
-	return getInternalDirectoryPath() / "assets";
-}
-
-std::filesystem::path nv::editor::VirtualFilesystem::getNodeDirectoryPath() const {
-	return getInternalDirectoryPath() / "nodes";
-}
-
 void nv::editor::VirtualFilesystem::uploadImage(DirectoryID parentDirID, Directory& parentDir, 
-	ErrorPopup& errorPopup) 
+	ProjectFileManager& pfm, ErrorPopup& errorPopup) 
 {
 	auto filePathRes = openFile({ { "PNG's", "PNG" }, { "AVIF's", "AVIF" }, { "BMP's", "BMP" }, { "JPG's", "JPG" } });
 	if (!filePathRes) {
 		return;
 	}
-	std::ifstream originalFile{ *filePathRes, std::ios::binary };
-	if (!originalFile.is_open()) {
-		errorPopup.add(std::format("Error: can't open {}", *filePathRes));
-		return;
-	}
 	
-	//create unique file path based off image ID in the assets directory
-	FileID imageFileID;
-	auto fileExtensionRes = parseFileExtension(*filePathRes);
-	assert(fileExtensionRes);
-	auto copyPath = getAssetDirectoryPath() / (std::to_string(imageFileID) + '.' + *fileExtensionRes);
+	FileID fileID;
 
-	std::ofstream fileCopy{ copyPath, std::ios::binary };
-	if (!fileCopy.is_open()) {
-		errorPopup.add(std::format("Error: can't open {}", copyPath.string()));
+	try {
+		pfm.uploadSharedResource(fileID, *filePathRes);
+	} catch (const std::filesystem::filesystem_error& e) {
+		errorPopup.add(std::format("Error: {}", e.what()));
 		return;
 	}
 
-	fileCopy << originalFile.rdbuf();
+	auto fileExtension = filePathRes->extension().string();
+	fileExtension.erase(fileExtension.begin()); //remove the dot before file extension
 
-	
+	//parse the image type
+	auto imageType = magic_enum::enum_cast<File::Type>(fileExtension, magic_enum::case_insensitive);
+	assert(imageType && (*imageType & File::Type::Image));
+
 	//create image file
-	File file{ copyPath, parentDir.nameManager, nv::fileName(*filePathRes), File::Type::Image };
+	File file{ parentDir.nameManager, filePathRes->filename().string(), *imageType};
 	file.parent = parentDirID;
 
 	//finally add the image in
-	parentDir.files.insert(imageFileID);
-	m_files.emplace(imageFileID, std::move(file));
+	parentDir.files.insert(fileID);
+	m_files.emplace(fileID, std::move(file));
 }
 
 FileID nv::editor::VirtualFilesystem::createNodeFile(DirectoryID parentDirID, Directory& parentDir) {
 	FileID nodeFileID;
 	parentDir.files.insert(nodeFileID);
 
-	auto realPath = getNodeDirectoryPath() / (std::to_string(nodeFileID) + ".json");
-	File file{ realPath, parentDir.nameManager, File::Type::Node };
+	File file{ parentDir.nameManager, File::Type::Node };
 	file.parent = parentDirID;
 	m_files.emplace(nodeFileID, std::move(file));
 	setCurrentlyRenamedFile(nodeFileID);
@@ -182,7 +155,8 @@ void nv::editor::VirtualFilesystem::showFileRightClickMenu(FileID fileID, File& 
 }
 
 void nv::editor::VirtualFilesystem::showDirectoryRightClickMenu(DirectoryID dirID, Directory& dir, 
-	TabManager& tabManager, bool& deleted, ErrorPopup& errorPopup) noexcept
+	TabManager& tabManager, ProjectFileManager& pfm, size_t projectIndex, bool& deleted, 
+	ErrorPopup& errorPopup) noexcept
 {
 	assert(!deleted);
 
@@ -198,10 +172,10 @@ void nv::editor::VirtualFilesystem::showDirectoryRightClickMenu(DirectoryID dirI
 
 	if (ImGui::MenuItem("New Node")) {
 		auto fileID = createNodeFile(dirID, dir);
-		tabManager.addNode(*this, fileID, errorPopup);
+		tabManager.addNode(pfm, projectIndex, fileID, errorPopup);
 	}
 	if (ImGui::MenuItem("Upload Image")) {
-		uploadImage(dirID, dir, errorPopup);
+		uploadImage(dirID, dir, pfm, errorPopup);
 	}
 	//disallow renaming of the root directory because there is no parent name manager
 	if (dirID != m_rootDirectoryID && ImGui::MenuItem("Rename")) {
@@ -215,7 +189,9 @@ void nv::editor::VirtualFilesystem::showDirectoryRightClickMenu(DirectoryID dirI
 	ImGui::EndPopup();
 }
 
-void nv::editor::VirtualFilesystem::showImpl(DirectoryID dirID, TabManager& tabManager, ErrorPopup& errorPopup) {
+void nv::editor::VirtualFilesystem::showImpl(DirectoryID dirID, TabManager& tabManager, 
+	ProjectFileManager& pfm, size_t projectIndex, ErrorPopup& errorPopup) 
+{
 	auto ret = FileID::None();
 
 	auto& dir = m_directories.at(dirID);
@@ -243,7 +219,7 @@ void nv::editor::VirtualFilesystem::showImpl(DirectoryID dirID, TabManager& tabM
 
 		dir.open = true;
 		bool dirDeleted = false;
-		showDirectoryRightClickMenu(dirID, dir, tabManager, dirDeleted, errorPopup);
+		showDirectoryRightClickMenu(dirID, dir, tabManager, pfm, projectIndex, dirDeleted, errorPopup);
 		if (dirDeleted) {
 			return;
 		}
@@ -257,7 +233,7 @@ void nv::editor::VirtualFilesystem::showImpl(DirectoryID dirID, TabManager& tabM
 		}
 
 		for (const auto& childDirID : dir.children) {
-			showImpl(childDirID, tabManager, errorPopup);
+			showImpl(childDirID, tabManager, pfm, projectIndex, errorPopup);
 		}
 	} else {
 		dir.open = false;
@@ -400,60 +376,45 @@ bool nv::editor::VirtualFilesystem::isSubdirectory(DirectoryID childDirID, Direc
 	return isSubdirectory(m_directories.at(childDirID).parent, parentDirID);
 }
 
-std::optional<FileID> nv::editor::VirtualFilesystem::showFileDialog(File::Type filter, bool& cancelled) {
-	return m_fileDialog.show(m_directories, m_files, filter, cancelled);
+std::optional<FileID> nv::editor::VirtualFilesystem::showFileDialog(const ProjectFileManager& pfm, 
+	File::Type filter, bool& cancelled) 
+{
+	return m_fileDialog.show(pfm, m_directories, m_files, filter, cancelled);
 }
 
-std::optional<FileSet> nv::editor::VirtualFilesystem::showMultipleFileDialog(File::Type filter, bool& cancelled) {
-	return m_multiFileDialog.show(m_directories, m_files, filter, cancelled);
+std::optional<FileSet> nv::editor::VirtualFilesystem::showMultipleFileDialog(const ProjectFileManager& pfm, 
+	File::Type filter, bool& cancelled) 
+{
+	return m_multiFileDialog.show(pfm, m_directories, m_files, filter, cancelled);
 }
 
-nv::detail::TexturePtr nv::editor::VirtualFilesystem::getTexture(FileID fileID) {
-	auto& file = m_files.at(fileID);
-	assert(file.getType() == File::Type::Image);
-
-	auto instance = getGlobalInstance();
-	auto tex = instance->registry.loadTexture(instance->getRenderer(), file.getPath().string());
-
-	return tex;
+bool nv::editor::VirtualFilesystem::isTransitiveDependency(FileID fileID, FileID dependencyID) const {
+	auto& dependencies = m_files.at(fileID).dependencies;
+	for (const auto& currDependencyID : dependencies) {
+		if (dependencies.contains(dependencyID) || isTransitiveDependency(currDependencyID, dependencyID)) {
+			return true;
+		}
+	}
+	return false;
 }
 
-FileID nv::editor::VirtualFilesystem::saveImage(SDL_Surface* surface, ImageType imageType) {
-	FileID id;
-	auto enumName = magic_enum::enum_name(imageType);
-	auto path = getAssetDirectoryPath() / (std::to_string(id) + "." + std::string{ enumName.data(), enumName.size() });
-
-	switch (imageType) {
-	case PNG:
-		IMG_SavePNG(surface, path.string().c_str());
-		break;
-	case JPG:
-		IMG_SaveJPG(surface, path.string().c_str(), 100);
-		break;
-	case BMP:
-		SDL_SaveBMP(surface, path.string().c_str());
-		break;
-	case AVIF:
-		IMG_SaveAVIF(surface, path.string().c_str(), 100);
-		break;
+bool nv::editor::VirtualFilesystem::createDependency(FileID fileID, FileID dependencyFileID) {
+	//prevent circular dependencies
+	if (isTransitiveDependency(dependencyFileID, fileID)) {
+		return false;
 	}
 
-	return id;
-}
-
-void nv::editor::VirtualFilesystem::dumpFileContents(FileID fileID, const std::string& text) {
-	auto& virtualFile = m_files.at(fileID);
-	std::ofstream file{ virtualFile.getPath() };
-	assert(file.is_open());
-	file << text;
-}
-
-void nv::editor::VirtualFilesystem::createDependency(FileID fileID, FileID dependencyFileID) {
 	auto& file = m_files.at(fileID);
 	file.dependencies.insert(dependencyFileID);
 
 	auto& dependencyFile = m_files.at(dependencyFileID);
 	dependencyFile.dependants.insert(fileID);
+
+	return true;
+}
+
+const File& nv::editor::VirtualFilesystem::getFile(FileID fileID) const {
+	return m_files.at(fileID);
 }
 
 std::optional<nv::editor::Tab> nv::editor::VirtualFilesystem::getSelectedFile() const noexcept {
@@ -464,16 +425,14 @@ std::optional<nv::editor::Tab> nv::editor::VirtualFilesystem::getSelectedFile() 
 	return Tab{ m_selectedFileID, file.getType() };
 }
 
-std::filesystem::path nv::editor::VirtualFilesystem::getNodePath(FileID fileID) const {
-	return getNodeDirectoryPath() / (std::to_string(fileID) + ".json");
-}
-
-void nv::editor::VirtualFilesystem::show(TabManager& nodeManager, ErrorPopup& errorPopup) {
+void nv::editor::VirtualFilesystem::show(TabManager& nodeManager, ProjectFileManager& pfm, 
+	size_t projectIndex, ErrorPopup& errorPopup) 
+{
 	ImGui::SetNextWindowPos(getFilesystemWindowPos());
 	ImGui::SetNextWindowSize(getFilesystemWindowSize());
 	ImGui::Begin(FILESYSTEM_WINDOW_NAME, nullptr, DEFAULT_WINDOW_FLAGS);
 
-	showImpl(m_rootDirectoryID, nodeManager, errorPopup);
+	showImpl(m_rootDirectoryID, nodeManager, pfm, projectIndex, errorPopup);
 	deleteQueuedItems(nodeManager, errorPopup);
 
 	ImGui::End();
@@ -481,8 +440,4 @@ void nv::editor::VirtualFilesystem::show(TabManager& nodeManager, ErrorPopup& er
 
 const std::string& nv::editor::VirtualFilesystem::getFilename(FileID fileID) const noexcept {
 	return m_files.at(fileID).getName();
-}
-
-const std::filesystem::path& nv::editor::VirtualFilesystem::getFilePath(FileID fileID) const noexcept {
-	return m_files.at(fileID).getPath();
 }

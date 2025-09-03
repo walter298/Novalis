@@ -9,7 +9,7 @@
 
 namespace nv {
 	namespace editor {
-		class VirtualFilesystem;
+		class ProjectFileManager;
 
 		class MultiSpritesheetCreator {
 		private:
@@ -18,7 +18,7 @@ namespace nv {
 				SDL_Texture* imagePreview = nullptr; //store an extra SDL_Texture* to pass to ImGui::Image
 				size_t originalIdx = 0; //index of the image in the original vector of images, used to restore order
 			};
-			ImageType m_imageType{};
+			File::Type m_imageType{ File::Type::PNG };
 			std::vector<Image> m_images;
 			std::string m_enumBuff;
 			int m_rowC = 1;
@@ -28,12 +28,12 @@ namespace nv {
 			void showSpriteTable();
 			std::optional<SDL_Surface*> combineSurfaces(ErrorPopup& errorPopup) noexcept;
 			std::optional<ObjectMetadata<Spritesheet>> concatenateImagesIntoSpritesheet(SDL_Renderer* renderer,
-				VirtualFilesystem& vfs, ErrorPopup& errorPopup);
+				ProjectFileManager& pfm, ErrorPopup& errorPopup);
 		public:
 			void init(SDL_Renderer* renderer,
 				const std::vector<nv::detail::TexturePtr>& textures, ErrorPopup& errorPopup);
-			std::optional<ObjectMetadata<Spritesheet>> show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
-				bool& cancelled, ErrorPopup& errorPopup);
+			std::optional<ObjectMetadata<Spritesheet>> show(SDL_Renderer* renderer, 
+				ProjectFileManager& pfm, bool& cancelled, ErrorPopup& errorPopup);
 		};
 	}
 }

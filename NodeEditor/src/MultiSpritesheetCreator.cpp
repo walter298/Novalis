@@ -1,7 +1,7 @@
 #include "Enum.h"
 #include "MultispritesheetCreator.h"
 #include "SpritesheetDimensionInput.h"
-#include "VirtualFilesystem.h"
+#include "ProjectFileManager.h"
 #include "WindowLayout.h"
 
 #include <novalis/detail/ScopeExit.h>
@@ -9,9 +9,16 @@
 void nv::editor::MultiSpritesheetCreator::showImageDropdown() {
 	ImGui::SetNextItemWidth(getInputWidth());
 
+	static std::array imageTypes{
+		File::Type::PNG,
+		File::Type::JPG,
+		File::Type::BMP,
+		File::Type::AVIF
+	};
+
 	getEnumName(m_enumBuff, m_imageType);
 	if (ImGui::BeginCombo("Image Type", m_enumBuff.c_str())) {
-		for (const auto& imageType : magic_enum::enum_values<ImageType>()) {
+		for (const auto& imageType : imageTypes) {
 			getEnumName(m_enumBuff, m_imageType);
 			if (ImGui::Selectable(m_enumBuff.c_str(), m_imageType == imageType)) {
 				m_imageType = imageType;
@@ -104,7 +111,7 @@ void nv::editor::MultiSpritesheetCreator::showSpriteTable() {
 }
 
 std::optional<nv::editor::ObjectMetadata<nv::Spritesheet>> nv::editor::MultiSpritesheetCreator::concatenateImagesIntoSpritesheet(
-	SDL_Renderer* renderer, VirtualFilesystem& vfs, ErrorPopup& errorPopup)
+	SDL_Renderer* renderer, ProjectFileManager& pfm, ErrorPopup& errorPopup)
 {
 	assert(m_images.size() > 1);
 	if (static_cast<size_t>(m_rowC * m_colC) < m_images.size()) {
@@ -133,7 +140,7 @@ std::optional<nv::editor::ObjectMetadata<nv::Spritesheet>> nv::editor::MultiSpri
 	ObjectMetadata<Spritesheet> spritesheet{
 		nv::detail::TexturePtr{ SDL_CreateTextureFromSurface(renderer, *combinedSurface) }, m_rowC, m_colC
 	};
-	spritesheet.texFile = vfs.saveImage(*combinedSurface, m_imageType);
+	spritesheet.texFile = pfm.createImage(*combinedSurface, m_imageType);
 
 	//reset spritesheet state
 	for (const auto& [surface, imagePreview, idx] : m_images) {
@@ -167,7 +174,7 @@ void nv::editor::MultiSpritesheetCreator::init(SDL_Renderer* renderer,
 }
 
 std::optional<nv::editor::ObjectMetadata<nv::Spritesheet>> nv::editor::MultiSpritesheetCreator::show(
-	SDL_Renderer* renderer, VirtualFilesystem& vfs, bool& cancelled, ErrorPopup& errorPopup)
+	SDL_Renderer* renderer, ProjectFileManager& pfm, bool& cancelled, ErrorPopup& errorPopup)
 {
 	ImGui::OpenPopup(SPRITESHEET_CREATION_POPUP_NAME, ImGuiWindowFlags_HorizontalScrollbar);
 	if (ImGui::BeginPopup(SPRITESHEET_CREATION_POPUP_NAME)) {
@@ -186,7 +193,7 @@ std::optional<nv::editor::ObjectMetadata<nv::Spritesheet>> nv::editor::MultiSpri
 
 		ImGui::SetNextItemWidth(getInputWidth());
 		if (ImGui::Button("Create Spritesheet")) {
-			return concatenateImagesIntoSpritesheet(renderer, vfs, errorPopup);
+			return concatenateImagesIntoSpritesheet(renderer, pfm, errorPopup);
 		}
 
 		ImGui::SetNextItemWidth(getInputWidth());

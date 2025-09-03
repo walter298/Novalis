@@ -39,7 +39,7 @@ namespace nv {
 			bool m_creatingObjectGroup = false;
 			uint8_t m_externalLayerOpacity = 90;
 			FileID m_id;
-			NodeLayout m_layout;
+			
 			using ChildNodeMap = boost::unordered_flat_map<FileID, ObjectMetadata<BufferedNode>*>;
 			ChildNodeMap m_children;
 			
@@ -102,8 +102,9 @@ namespace nv {
 			void addLayer(std::string layerName);
 			NodeSerializationResult serialize() const;
 
+		private:
 			template<typename Object>
-			ObjectMetadata<Object>& transfer(ObjectMetadata<Object>&& object) {
+			ObjectMetadata<Object>& transferImpl(ObjectMetadata<Object>&& object) {
 				object.obj.setScreenPos({ 0.0f, 0.0f });
 				object.obj.setWorldPos({ 0.0f, 0.0f });
 				auto& objects = std::get<EditedObjectHive<Object>>(m_layers[m_currLayerIdx].objects);
@@ -111,6 +112,14 @@ namespace nv {
 				m_selectedObject = SelectedObjectData{ &(*insertedObjectIt), &objects, insertedObjectIt };
 				return *insertedObjectIt;
 			}
+		public:
+			template<typename Object>
+			ObjectMetadata<Object>& transfer(ObjectMetadata<Object>&& object) 
+				requires(!std::same_as<Object, BufferedNode>) 
+			{
+				return transferImpl(std::move(object));
+			}
+			ObjectMetadata<BufferedNode>& transfer(FileID childID, ObjectMetadata<BufferedNode>&& node);
 
 			template<ranges::viewable_range Objects>
 			void transfer(Objects& objects) {

@@ -1,10 +1,6 @@
-#include "TabManager.h"
-#include "TabManager.h"
-#include "TabManager.h"
-#include "TabManager.h"
-#include "TabManager.h"
 #include <novalis/detail/serialization/BufferedNodeSerialization.h>
 
+#include "ProjectFileManager.h"
 #include "TabManager.h"
 #include "VirtualFilesystem.h"
 
@@ -12,59 +8,40 @@
 using namespace nv;
 using namespace editor;
 
-void nv::editor::TabManager::switchTabs(const Tab& tab, VirtualFilesystem& vfs, ErrorPopup& errorPopup) {
-	switch (tab.type) {
-	case File::Type::Node:
-		if (switchToNodeTab(vfs, tab.id, errorPopup)) {
+void nv::editor::TabManager::switchTabs(const Tab& tab, ProjectFileManager& pfm, size_t projectIndex, 
+	ErrorPopup& errorPopup) 
+{
+	if (tab.type & File::Type::Image) {
+		if (switchToTextureTab(pfm, tab.id, errorPopup)) {
 			m_currTab = tab;
 		} else {
 			m_switchedToInvalidTabID = tab.id;
 		}
-		break;
-	case File::Type::Image:
-		if (switchToTextureTab(vfs, tab.id, errorPopup)) {
+	} else if (tab.type & File::Type::Node) {
+		if (switchToNodeTab(pfm, projectIndex, tab.id, errorPopup)) {
 			m_currTab = tab;
 		} else {
 			m_switchedToInvalidTabID = tab.id;
 		}
-		break;
-	}
+	} 
 }
 
 void nv::editor::TabManager::showCurrentTab(SDL_Renderer* renderer) {
 	if (m_currTab.id == FileID::None()) {
 		return;
 	}
-	switch (m_currTab.type) {
-	case File::Type::Node:
+	if (m_currTab.type == File::Type::Node) {
 		m_currNodeTab->show(renderer);
-		break;
-	case File::Type::Image:
+	} else if (m_currTab.type & File::Type::Image) {
 		showImage();
-		break;
 	}
 }
 
-void nv::editor::TabManager::saveImpl(NodeData& child, VirtualFilesystem& vfs) {
-	auto [json, byteCount] = child.editor.serialize();
-	child.node = json.get<BufferedNode>();
-	child.nodeJson = std::move(json);
-	child.saved = true;
-	vfs.dumpFileContents(child.editor.getID(), child.nodeJson.dump(2));
-
-	const auto& dependantFileIDs = vfs.getDependantFiles(child.editor.getID());
-	for (const auto& depFileID : dependantFileIDs) {
-		auto& parent = m_nodeTabs.at(depFileID);
-		parent.editor.updateNode(child.editor.getID(), *child.node);
-		saveImpl(parent, vfs);
-	}
-}
-
-bool nv::editor::TabManager::loadNode(VirtualFilesystem& vfs, FileID fileID,
+bool nv::editor::TabManager::loadNode(const ProjectFileManager& pfm, size_t projectIndex, FileID fileID,
 	ErrorPopup& errorPopup)
 {
 	try {
-		auto path = vfs.getNodePath(fileID);
+		auto path = pfm.getNodePath(projectIndex, fileID);
 		if (!std::filesystem::exists(path)) {
 			auto& [id, tab] = *m_nodeTabs.emplace(
 				std::piecewise_construct, std::forward_as_tuple(fileID), std::forward_as_tuple(fileID)
@@ -94,7 +71,7 @@ bool nv::editor::TabManager::loadNode(VirtualFilesystem& vfs, FileID fileID,
 	return false;
 }
 
-bool nv::editor::TabManager::switchToNodeTab(VirtualFilesystem& vfs, FileID fileID, 
+bool nv::editor::TabManager::switchToNodeTab(ProjectFileManager& pfm, size_t projectIndex, FileID fileID, 
 	ErrorPopup& errorPopup) 
 {
 	auto currNodeIt = m_nodeTabs.find(fileID);
@@ -102,14 +79,17 @@ bool nv::editor::TabManager::switchToNodeTab(VirtualFilesystem& vfs, FileID file
 		m_currNodeTab = &currNodeIt->second.editor;
 		return true;
 	} else {
-		return loadNode(vfs, fileID, errorPopup);
+		return loadNode(pfm, projectIndex, fileID, errorPopup);
 	}
 }
 
-bool nv::editor::TabManager::loadTexture(VirtualFilesystem& vfs, FileID fileID, ErrorPopup& errorPopup) {
+bool nv::editor::TabManager::loadTexture(ProjectFileManager& pfm, FileID fileID, 
+	ErrorPopup& errorPopup) 
+{
 	auto instance = getGlobalInstance();
 	try {
-		auto tex = instance->registry.loadTexture(instance->getRenderer(), vfs.getFilePath(fileID).string());
+		auto path = pfm.getSharedAssetPath(fileID);
+		auto tex = instance->registry.loadTexture(instance->getRenderer(), path);
 		auto [it, tab] = m_texTabs.emplace(fileID, std::move(tex));
 		m_currTexTab = &it->second;
 		return true;
@@ -119,7 +99,7 @@ bool nv::editor::TabManager::loadTexture(VirtualFilesystem& vfs, FileID fileID, 
 	return false;
 }
 
-bool nv::editor::TabManager::switchToTextureTab(VirtualFilesystem& vfs, FileID fileID, 
+bool nv::editor::TabManager::switchToTextureTab(ProjectFileManager& pfm, FileID fileID, 
 	ErrorPopup& errorPopup)
 {
 	auto currNodeIt = m_texTabs.find(fileID);
@@ -127,7 +107,7 @@ bool nv::editor::TabManager::switchToTextureTab(VirtualFilesystem& vfs, FileID f
 		m_currTexTab = &currNodeIt->second;
 		return true;
 	} else {
-		return loadTexture(vfs, fileID, errorPopup);
+		return loadTexture(pfm, fileID, errorPopup);
 	}
 }
 
@@ -142,8 +122,21 @@ bool nv::editor::TabManager::saveable(const VirtualFilesystem& vfs, ErrorPopup& 
 	return true; 
 }
 
-void nv::editor::TabManager::addNode(VirtualFilesystem& vfs, FileID id, ErrorPopup& errorPopup) {
-	switchToNodeTab(vfs, id, errorPopup);
+void nv::editor::TabManager::addNode(ProjectFileManager& pfm, size_t projectIndex, FileID id, ErrorPopup& errorPopup) {
+	switchToNodeTab(pfm, projectIndex, id, errorPopup);
+}
+
+boost::optional<nv::editor::TabManager::NodeTab&> nv::editor::TabManager::getNodeTab(const ProjectFileManager& pfm, size_t projectIndex,
+	FileID id, ErrorPopup& errorPopup)
+{
+	auto nodeIt = m_nodeTabs.find(id);
+	if (nodeIt == m_nodeTabs.end()) {
+		if (!loadNode(pfm, projectIndex, id, errorPopup)) {
+			return boost::none;
+		}
+		return m_nodeTabs.at(id);
+	} 
+	return nodeIt->second;
 }
 
 void nv::editor::TabManager::removeNode(FileID id) {
@@ -153,7 +146,9 @@ void nv::editor::TabManager::removeNode(FileID id) {
 	m_nodeTabs.erase(id);
 }
 
-void nv::editor::TabManager::showTabs(VirtualFilesystem& vfs, ErrorPopup& errorPopup) {
+void nv::editor::TabManager::showTabs(VirtualFilesystem& vfs, ProjectFileManager& pfm, 
+	size_t projectIndex, ErrorPopup& errorPopup) 
+{
 	if (ImGui::BeginTabBar("Tabs")) {
 		for (auto& [id, type] : m_tabs) {
 			ImGui::PushID(getTemporaryImGuiID());
@@ -161,10 +156,10 @@ void nv::editor::TabManager::showTabs(VirtualFilesystem& vfs, ErrorPopup& errorP
 			if (ImGui::BeginTabItem(vfs.getFilename(id).c_str())) {
 				switch (type) {
 				case File::Type::Node:
-					switchToNodeTab(vfs, id, errorPopup);
+					switchToNodeTab(pfm, projectIndex, id, errorPopup);
 					break;
 				case File::Type::Image:
-					switchToTextureTab(vfs, id, errorPopup);
+					switchToTextureTab(pfm, id, errorPopup);
 					break;
 				}
 				ImGui::EndTabItem();
@@ -175,7 +170,9 @@ void nv::editor::TabManager::showTabs(VirtualFilesystem& vfs, ErrorPopup& errorP
 	}
 }
 
-void nv::editor::TabManager::updateCurrentTab(VirtualFilesystem& vfs, ErrorPopup& errorPopup) {
+void nv::editor::TabManager::updateCurrentTab(VirtualFilesystem& vfs, ProjectFileManager& pfm, 
+	size_t projectIndex, ErrorPopup& errorPopup) 
+{
 	auto selectedTab = vfs.getSelectedFile();
 	if (!selectedTab) {
 		m_currTexTab = nullptr;
@@ -183,13 +180,7 @@ void nv::editor::TabManager::updateCurrentTab(VirtualFilesystem& vfs, ErrorPopup
 		return;
 	}
 	if (selectedTab->id != m_currTab.id && selectedTab->id != m_switchedToInvalidTabID) {
-		switchTabs(*selectedTab, vfs, errorPopup);
-	}
-}
-
-void nv::editor::TabManager::save(VirtualFilesystem& vfs) {
-	for (auto& [id, tab] : m_nodeTabs) {
-		saveImpl(tab, vfs);
+		switchTabs(*selectedTab, pfm, projectIndex, errorPopup);
 	}
 }
 
@@ -203,7 +194,7 @@ void nv::editor::TabManager::showImage() {
 }
 
 void nv::editor::TabManager::show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
-	ErrorPopup& errorPopup) 
+	ProjectFileManager& pfm, size_t projectIndex, ErrorPopup& errorPopup) 
 {
 	auto tabWindowPos = getTabWindowPos();
 	auto tabWindowSize = getTabWindowSize();
@@ -214,13 +205,21 @@ void nv::editor::TabManager::show(SDL_Renderer* renderer, VirtualFilesystem& vfs
 
 	ImGui::Begin(TAB_WINDOW_NAME, nullptr, DEFAULT_WINDOW_FLAGS);
 
-	showTabs(vfs, errorPopup);
-	updateCurrentTab(vfs, errorPopup);
+	showTabs(vfs, pfm, projectIndex, errorPopup);
+	updateCurrentTab(vfs, pfm, projectIndex, errorPopup);
 	showCurrentTab(renderer);
 
 	ImGui::PopStyleColor();
 
 	ImGui::End();
+}
+
+void nv::editor::TabManager::clear() noexcept {
+	m_tabs.clear();
+	m_currNodeTab = nullptr;
+	m_currTexTab = nullptr;
+	m_switchedToInvalidTabID = FileID::None();
+	m_currTab = { FileID::None(), File::Type::None };
 }
 
 boost::optional<nv::editor::NodeEditor&> nv::editor::TabManager::getCurrentNodeTab() {

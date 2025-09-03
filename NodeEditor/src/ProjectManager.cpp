@@ -1,4 +1,5 @@
 #include <novalis/detail/file/File.h>
+#include <novalis/detail/ScopeExit.h>
 
 #include "ProjectManager.h"
 #include "WindowLayout.h"
@@ -25,31 +26,49 @@ bool nv::editor::ProjectManager::createProject(bool& cancelled, ErrorPopup& erro
 			errorPopup.add(std::format("Error: another project named {} is currently loaded", projectName));
 			return false;
 		}
+
+		auto oldIDCount = FileID::IDCount;
+		auto oldDirIDCount = DirectoryID::IDCount;
+		FileID::IDCount = 0;
+		DirectoryID::IDCount = 0;
+
 		try {
 			m_currProject = &(*m_projects.emplace(m_projectCreator.getCurrentDirectory(), projectName));
 			m_projectNames.insert(projectName);
 			return true;
 		} catch (const std::filesystem::filesystem_error& e) {
+			FileID::IDCount = oldIDCount;
+			DirectoryID::IDCount = oldDirIDCount;
 			errorPopup.add(std::format("Error creating project : {}", e.what()));
 		}
 	}
 	return false;
 }
 
-bool nv::editor::ProjectManager::switchProject() noexcept {
+bool nv::editor::ProjectManager::switchProject(bool& cancelled, ErrorPopup& errorPopup) noexcept {
 	ImGui::SetNextWindowSize({ 800.0f, 800.0f });
 	centerNextWindow();
 	ImGui::OpenPopup(PROJECT_LOAD_POPUP_NAME);
 	if (ImGui::BeginPopup(PROJECT_LOAD_POPUP_NAME, DEFAULT_WINDOW_FLAGS)) {
+		nv::detail::ScopeExit endPopup{ []() { ImGui::EndPopup(); } }; //popup cleanup
 		for (auto& project : m_projects) {
 			ImGui::SetNextItemWidth(getInputWidth());
-			if (ImGui::Button(project.name.c_str())) {
+			if (ImGui::Button(project.getName().c_str())) {
+				//EXTREMELY IMPORTANT: update the ID counts!!
+				if (!m_currProject->save(errorPopup)) {
+					cancelled = true;
+					return false;
+				}
 				m_currProject = &project;
-				ImGui::EndPopup();
+				FileID::IDCount = project.getFileIDOffset();
+				DirectoryID::IDCount = project.getDirectoryIDOffset();
 				return true;
 			}
 		}
-		ImGui::EndPopup();
+		ImGui::SetNextItemWidth(getInputWidth());
+		if (ImGui::Button("Cancel")) {
+			cancelled = true;
+		}
 	}
 	return false;
 }

@@ -26,13 +26,18 @@ namespace nv {
 		static consteval ID None() noexcept {
 			return ID{ -1 };
 		}
-
-		operator IntegerType() const noexcept {
+		
+		IntegerType get() const noexcept {
 			return m_ID;
 		}
 
 		MAKE_INTROSPECTION(m_ID)
 	};
+
+	template<typename T>
+	bool operator==(ID<T> a, ID<T> b) noexcept {
+		return a.get() == b.get();
+	}
 }
 
 namespace boost {
@@ -40,7 +45,7 @@ namespace boost {
 	struct hash<nv::ID<T>> {
 		size_t operator()(nv::ID<T> id) const {
 			using Integer = typename nv::ID<T>::IntegerType;
-			return boost::hash<Integer>()(id.operator Integer());
+			return boost::hash<Integer>()(id.get());
 		}
 	};
 }
@@ -50,7 +55,7 @@ namespace std {
 	struct hash<nv::ID<T>> {
 		size_t operator()(nv::ID<T> id) const {
 			using Integer = typename nv::ID<T>::IntegerType;
-			return boost::hash<Integer>()(id.operator Integer());
+			return boost::hash<Integer>()(id.get());
 		}
 	};
 }

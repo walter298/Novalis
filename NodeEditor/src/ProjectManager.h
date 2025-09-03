@@ -16,7 +16,7 @@ namespace nv {
 		public:
 			void tryLoadProject(ErrorPopup& errorPopup);
 			bool createProject(bool& cancelled, ErrorPopup& errorPopup);
-			bool switchProject() noexcept; 
+			bool switchProject(bool& cancelled, ErrorPopup& errorPopup) noexcept; 
 			boost::optional<Project&> getCurrentProject();
 		};
 	}

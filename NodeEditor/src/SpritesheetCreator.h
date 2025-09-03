@@ -9,7 +9,7 @@
 
 namespace nv {
 	namespace editor {
-		class VirtualFilesystem;
+		class ProjectFileManager;
 
 		class SpritesheetCreator {
 		private:
@@ -19,7 +19,7 @@ namespace nv {
 			int m_colC = 1;
 		public:
 			void init(nv::detail::TexturePtr tex, FileID fileID);
-			std::optional<ObjectMetadata<Spritesheet>> show(SDL_Renderer* renderer, VirtualFilesystem& vfs, 
+			std::optional<ObjectMetadata<Spritesheet>> show(SDL_Renderer* renderer, const ProjectFileManager& pfm, 
 				bool& cancelled, ErrorPopup& errorPopup);
 		};
 	}

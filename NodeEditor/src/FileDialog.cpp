@@ -2,6 +2,8 @@
 #include <novalis/detail/ScopeExit.h>
 
 #include "FileDialog.h"
+#include "ProjectFileManager.h"
+#include "VirtualFilesystem.h"
 #include "WindowLayout.h"
 
 //for static methods
@@ -48,10 +50,11 @@ namespace {
 		return res;
 	}
 
-	ImTextureID getFileTex(const File& file) {
+	ImTextureID getFileTex(FileID fileID, const File& file, const ProjectFileManager& pfm) {
 		if (static_cast<int>((file.getType() & File::Type::Image)) != 0) {
 			auto instance = getGlobalInstance();
-			auto tex = instance->registry.loadTexture(instance->getRenderer(), file.getPath().string());
+			auto filePath = pfm.getSharedAssetPath(fileID).string();
+			auto tex = instance->registry.loadTexture(instance->getRenderer(), filePath);
 			return reinterpret_cast<ImTextureID>(tex.tex);
 		} else {
 			return file.getIcon();
@@ -79,7 +82,7 @@ void nv::editor::FileDialogBase::showDirectoryStack(const DirectoryMap& director
 	}
 }
 
-void nv::editor::FileDialogBase::showFiles(const FileSet& displayedFiles, const FileMap& fileMap, 
+void nv::editor::FileDialogBase::showFiles(const ProjectFileManager& pfm, const FileSet& displayedFiles, const FileMap& fileMap, 
 	File::Type filter) 
 {
 	for (const auto& fileID : displayedFiles) {
@@ -88,7 +91,7 @@ void nv::editor::FileDialogBase::showFiles(const FileSet& displayedFiles, const 
 			continue;
 		}
 
-		showIcon(getFileTex(file), file.getName(), FILE_ICON_SIZE, fileID == m_currClickedFileID);
+		showIcon(getFileTex(fileID, file, pfm), file.getName(), FILE_ICON_SIZE, fileID == m_currClickedFileID);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
 			m_currClickedFileID = fileID;
 		}
@@ -115,14 +118,14 @@ FileID nv::editor::FileDialogBase::getClickedFileID() const noexcept {
 	return m_currClickedFileID;
 }
 
-void nv::editor::FileDialogBase::showFilesAndDirectories(const DirectoryMap& dirMap, const FileMap& fileMap,
-	File::Type filter) 
+void nv::editor::FileDialogBase::showFilesAndDirectories(const ProjectFileManager& pfm,
+	const DirectoryMap& dirMap, const FileMap& fileMap, File::Type filter) 
 {
 	showDirectoryStack(dirMap);
 	ImGui::NewLine();
 
 	const auto& directory = dirMap.at(m_currDirectoryID);
-	showFiles(directory.files, fileMap, filter);
+	showFiles(pfm, directory.files, fileMap, filter);
 	showDirectories(directory.children, dirMap);
 }
 
@@ -142,12 +145,12 @@ void nv::editor::FileDialogBase::showCancelButton(bool& cancelled) {
 	}
 }
 
-nv::editor::FileDialogBase::FileDialogBase(DirectoryID rootDirID) : m_currDirectoryID{ rootDirID }
-{
-	m_directoryStack.push_back(rootDirID);
+nv::editor::FileDialogBase::FileDialogBase() {
+	m_directoryStack.emplace_back(0); //root directory ID is always 0
 }
 
-std::optional<nv::editor::FileID> nv::editor::FileDialog::show(const DirectoryMap& directories,
+std::optional<nv::editor::FileID> nv::editor::FileDialog::show(const ProjectFileManager& pfm,
+	const DirectoryMap& directories,
 	const FileMap& files, File::Type filter, bool& cancelled)
 {
 	bool clickedCreate = false;
@@ -159,7 +162,7 @@ std::optional<nv::editor::FileID> nv::editor::FileDialog::show(const DirectoryMa
 	
 	ImGui::OpenPopup(FILESYSTEM_DIALOG_POPUP_NAME); //scope exit cleans up ImGui::ClosePopup
 	if (ImGui::BeginPopup(FILESYSTEM_DIALOG_POPUP_NAME)) {
-		showFilesAndDirectories(directories, files, filter);
+		showFilesAndDirectories(pfm, directories, files, filter);
 		showCreateButton(clickedCreate, getClickedFileID() == FileID::None());
 		showCancelButton(cancelled);
 	}
@@ -200,7 +203,8 @@ void nv::editor::MultipleFileDialog::showAddButton() {
 	ImGui::EndDisabled();
 }
 
-std::optional<FileSet> nv::editor::MultipleFileDialog::show(const DirectoryMap& directories, const FileMap& files,
+std::optional<FileSet> nv::editor::MultipleFileDialog::show(const ProjectFileManager& pfm,
+	const DirectoryMap& directories, const FileMap& files,
 	File::Type filter, bool& cancelled)
 {
 	bool clickedCreate = false;
@@ -212,7 +216,7 @@ std::optional<FileSet> nv::editor::MultipleFileDialog::show(const DirectoryMap& 
 	
 	ImGui::OpenPopup(FILESYSTEM_DIALOG_POPUP_NAME);
 	if (ImGui::BeginPopup(FILESYSTEM_DIALOG_POPUP_NAME)) {
-		showFilesAndDirectories(directories, files, filter);
+		showFilesAndDirectories(pfm, directories, files, filter);
 		showCreateButton(clickedCreate, m_currChosenFileIDs.empty());
 		showCancelButton(cancelled);
 		showAddButton();
@@ -224,4 +228,35 @@ std::optional<FileSet> nv::editor::MultipleFileDialog::show(const DirectoryMap& 
 	} else {
 		return std::nullopt;
 	}
+}
+
+struct nv::editor::FileDialogSerializer {
+	static constexpr const char* ROOT_DIRECTORY_ID = "Root_Directory_ID";
+
+	template<typename FileDialog>
+	static void fromJsonImpl(const nlohmann::json& j, FileDialog& dialog) {
+		auto rootDirID = j[ROOT_DIRECTORY_ID].get<DirectoryID>();
+		dialog.m_currDirectoryID = rootDirID;
+		dialog.m_directoryStack.push_back(rootDirID);
+	}
+	template<typename FileDialog>
+	static void toJsonImpl(nlohmann::json& j, const FileDialog& dialog) {
+		j[ROOT_DIRECTORY_ID] = dialog.m_directoryStack.front();
+	}
+};
+
+void nv::editor::from_json(const nlohmann::json& j, FileDialog& dialog) {
+	FileDialogSerializer::fromJsonImpl(j, dialog);
+}
+
+void nv::editor::to_json(nlohmann::json& j, const FileDialog& dialog) {
+	FileDialogSerializer::toJsonImpl(j, dialog);
+}
+
+void nv::editor::from_json(const nlohmann::json& j, MultipleFileDialog& dialog) {
+	FileDialogSerializer::fromJsonImpl(j, dialog);
+}
+
+void nv::editor::to_json(nlohmann::json& j, const MultipleFileDialog& dialog) {
+	FileDialogSerializer::toJsonImpl(j, dialog);
 }

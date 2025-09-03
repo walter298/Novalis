@@ -487,6 +487,12 @@ NodeSerializationResult nv::editor::NodeEditor::serialize() const {
 	return createNodeJson(m_layers, m_objectGroupManager);
 }
 
+ObjectMetadata<BufferedNode>& nv::editor::NodeEditor::transfer(FileID childID, ObjectMetadata<BufferedNode>&& node) {
+	auto& nodeRef = transferImpl(std::move(node));
+	m_children.emplace(childID, &nodeRef);
+	return nodeRef;
+}
+
 void nv::editor::NodeEditor::createObjectGroup() {
 	m_creatingObjectGroup = true;
 	m_objectGroupCreator.setNewObjects(m_layers);
@@ -508,8 +514,4 @@ bool nv::editor::NodeEditor::isBusy() const noexcept {
 
 FileID nv::editor::NodeEditor::getID() const noexcept {
 	return m_id;
-}
-
-void foo(nlohmann::json j) {
-	auto s = j.get<Directory>();
 }

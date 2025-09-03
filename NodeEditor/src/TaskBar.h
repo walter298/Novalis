@@ -11,9 +11,7 @@ namespace nv {
 
 		class TaskBar {
 		private:
-			ObjectDropdown m_objectLoader;
-			LayerDropdown m_layerCreator;
-			FileDropdown m_fileDropdown;
+			LayerDropdown m_layerCreator; //todo: make functional
 		public:
 			void show(SDL_Renderer* renderer, ProjectManager& projectManager, ErrorPopup& errorPopup);
 			bool isBusy() const noexcept;

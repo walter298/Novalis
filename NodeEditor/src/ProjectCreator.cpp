@@ -17,7 +17,8 @@ bool nv::editor::ProjectCreator::create(bool& cancelled, ErrorPopup& errorPopup)
 		ImGui::InputText("Project Name", &m_projectNameInput);
 
 		ImGui::SetNextItemWidth(getInputWidth());
-		if (ImGui::Button(m_directoryLocation.c_str())) {
+		auto directoryStr = m_directoryLocation.string();
+		if (ImGui::Button(directoryStr.c_str())) {
 			auto projectLocationRes = nv::openDirectory();
 			if (projectLocationRes) {
 				m_directoryLocation = std::move(*projectLocationRes);
@@ -29,7 +30,7 @@ bool nv::editor::ProjectCreator::create(bool& cancelled, ErrorPopup& errorPopup)
 			if (m_projectNameInput.empty()) {
 				errorPopup.add("Error: project name can't be empty");
 			} else if (!std::filesystem::exists(m_directoryLocation)) {
-				errorPopup.add(std::format("Error: {} does not exist", m_directoryLocation));
+				errorPopup.add(std::format("Error: {} does not exist", directoryStr));
 			} else {
 				created = true;
 			}
@@ -44,7 +45,7 @@ bool nv::editor::ProjectCreator::create(bool& cancelled, ErrorPopup& errorPopup)
 	return created;
 }
 
-const std::string& nv::editor::ProjectCreator::getCurrentDirectory() {
+const std::filesystem::path& nv::editor::ProjectCreator::getCurrentDirectory() {
 	return m_directoryLocation;
 }
 
