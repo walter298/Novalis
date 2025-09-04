@@ -10,5 +10,4 @@
 **/vcpkg-properties.json
 **/.vs/
 **/build-benchmarks
-Redmane/
 test/

@@ -1,0 +1,24 @@
+{
+  "Directory_ID_Offset": 8,
+  "File_ID_Offset": 4,
+  "File_Manager": [
+    "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project",
+    "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project\\internal\\shared_assets",
+    "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project\\internal\\versions",
+    [
+      "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project\\internal\\versions\\0",
+      "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project\\internal\\versions\\1"
+    ],
+    0,
+    0,
+    [
+      [
+        [
+          1
+        ],
+        "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project\\internal\\shared_assets\\1.PNG"
+      ]
+    ]
+  ],
+  "Name": "ff"
+}

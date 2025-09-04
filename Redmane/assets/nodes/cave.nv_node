@@ -1,0 +1,453 @@
+{
+  "Bytes": 4096,
+  "Layers": [
+    {
+      "Name": "background",
+      "nv::BufferedNode": [],
+      "nv::Spritesheet": [],
+      "nv::Texture": [
+        {
+          "Metadata": {
+            "Name": "background",
+            "Object_Group": []
+          },
+          "Object": {
+            "Image_Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\images\\backgrounds\\cave_1.png",
+            "Render_Data": [
+              [
+                [
+                  594.0,
+                  1695.0
+                ],
+                [
+                  10920.0,
+                  10076.0
+                ],
+                1.0
+              ],
+              [
+                [
+                  594.0,
+                  1695.0
+                ],
+                [
+                  10920.0,
+                  10076.0
+                ],
+                1.0
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              0
+            ]
+          }
+        }
+      ],
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >": []
+    },
+    {
+      "Name": "ground_polygons",
+      "nv::BufferedNode": [],
+      "nv::Spritesheet": [],
+      "nv::Texture": [],
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >": [
+        {
+          "Metadata": {
+            "Name": "Unnamed Object#0 (Copy) (ID=13)",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  597.0,
+                  2279.0
+                ],
+                [
+                  598.0,
+                  2651.0
+                ],
+                [
+                  2054.0,
+                  2691.0
+                ],
+                [
+                  2033.0,
+                  2291.0
+                ],
+                [
+                  597.0,
+                  2279.0
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  597.0,
+                  2279.0
+                ],
+                [
+                  598.0,
+                  2651.0
+                ],
+                [
+                  2054.0,
+                  2691.0
+                ],
+                [
+                  2033.0,
+                  2291.0
+                ],
+                [
+                  597.0,
+                  2279.0
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "Metadata": {
+            "Name": "Unnamed Object#1 (Copy) (ID=3)",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 2.500000476837158,
+              "Screen_Points": [
+                [
+                  553.0,
+                  3322.2509765625
+                ],
+                [
+                  5259.251953125,
+                  4366.0009765625
+                ],
+                [
+                  5259.251953125,
+                  3328.5009765625
+                ],
+                [
+                  553.0,
+                  3322.2509765625
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 2.500000476837158,
+              "Screen_Points": [
+                [
+                  553.0,
+                  3322.2509765625
+                ],
+                [
+                  5259.251953125,
+                  4366.0009765625
+                ],
+                [
+                  5259.251953125,
+                  3328.5009765625
+                ],
+                [
+                  553.0,
+                  3322.2509765625
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "Metadata": {
+            "Name": "Unnamed Object#2 (Copy) (ID=16)",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.6666669845581055,
+              "Screen_Points": [
+                [
+                  5252.0,
+                  4351.0009765625
+                ],
+                [
+                  7254.779296875,
+                  4951.0
+                ],
+                [
+                  5260.333984375,
+                  3326.0
+                ],
+                [
+                  5257.5556640625,
+                  3328.77783203125
+                ],
+                [
+                  5252.0,
+                  4351.0009765625
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.6666669845581055,
+              "Screen_Points": [
+                [
+                  5252.0,
+                  4351.0009765625
+                ],
+                [
+                  7254.779296875,
+                  4951.0
+                ],
+                [
+                  5260.333984375,
+                  3326.0
+                ],
+                [
+                  5257.5556640625,
+                  3328.77783203125
+                ],
+                [
+                  5252.0,
+                  4351.0009765625
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "Metadata": {
+            "Name": "Unnamed Object#3 (Copy) (ID=5)",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.6666669845581055,
+              "Screen_Points": [
+                [
+                  6640.22216796875,
+                  6634.22265625
+                ],
+                [
+                  9406.8896484375,
+                  6767.556640625
+                ],
+                [
+                  9501.333984375,
+                  4970.333984375
+                ],
+                [
+                  7237.44482421875,
+                  4934.22265625
+                ],
+                [
+                  6640.22216796875,
+                  6634.22265625
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.6666669845581055,
+              "Screen_Points": [
+                [
+                  6640.22216796875,
+                  6634.22265625
+                ],
+                [
+                  9406.8896484375,
+                  6767.556640625
+                ],
+                [
+                  9501.333984375,
+                  4970.333984375
+                ],
+                [
+                  7237.44482421875,
+                  4934.22265625
+                ],
+                [
+                  6640.22216796875,
+                  6634.22265625
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Name": "animate_objects",
+      "nv::BufferedNode": [
+        {
+          "Metadata": {
+            "Name": "player",
+            "Object_Group": [],
+            "Opacity": 255,
+            "Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\nodes\\player.nv_node",
+            "Render_Pos": [
+              457.1943359375,
+              1329.1112060546875
+            ],
+            "Screen_Scale": 1.1699999570846558,
+            "World_Pos": [
+              457.1943359375,
+              1329.1112060546875
+            ]
+          },
+          "Object": null
+        },
+        {
+          "Metadata": {
+            "Name": "knight1",
+            "Object_Group": [
+              "knights"
+            ],
+            "Opacity": 255,
+            "Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\nodes\\knight.nv_node",
+            "Render_Pos": [
+              2309.677978515625,
+              2092.857421875
+            ],
+            "Screen_Scale": 1.0,
+            "World_Pos": [
+              2309.677978515625,
+              2092.857421875
+            ]
+          },
+          "Object": null
+        },
+        {
+          "Metadata": {
+            "Name": "knight2",
+            "Object_Group": [
+              "knights"
+            ],
+            "Opacity": 255,
+            "Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\nodes\\knight.nv_node",
+            "Render_Pos": [
+              4118.25,
+              2123.571533203125
+            ],
+            "Screen_Scale": 1.0,
+            "World_Pos": [
+              4118.25,
+              2123.571533203125
+            ]
+          },
+          "Object": null
+        },
+        {
+          "Metadata": {
+            "Name": "knight3",
+            "Object_Group": [
+              "knights"
+            ],
+            "Opacity": 255,
+            "Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\nodes\\knight.nv_node",
+            "Render_Pos": [
+              7444.49658203125,
+              3791.0712890625
+            ],
+            "Screen_Scale": 1.0,
+            "World_Pos": [
+              7444.49658203125,
+              3791.0712890625
+            ]
+          },
+          "Object": null
+        },
+        {
+          "Metadata": {
+            "Name": "knight4",
+            "Object_Group": [
+              "knights"
+            ],
+            "Opacity": 255,
+            "Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\nodes\\knight.nv_node",
+            "Render_Pos": [
+              8439.49609375,
+              3721.0712890625
+            ],
+            "Screen_Scale": 1.0,
+            "World_Pos": [
+              8439.49609375,
+              3721.0712890625
+            ]
+          },
+          "Object": null
+        }
+      ],
+      "nv::Spritesheet": [],
+      "nv::Texture": [],
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >": []
+    }
+  ],
+  "Name": "cave",
+  "Object_Group": [
+    {
+      "Name": "knights",
+      "nv::BufferedNode*_Count": 4,
+      "nv::Spritesheet*_Count": 0,
+      "nv::Texture*_Count": 0,
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Count": 0
+    }
+  ],
+  "__cdecl nv::detail::getTypeName<char_Offset": 8,
+  "__cdecl nv::detail::getTypeName<char_Size": 213,
+  "nv::BufferedNode*_Offset": 1816,
+  "nv::BufferedNode*_Size": 72,
+  "nv::BufferedNode_Offset": 896,
+  "nv::BufferedNode_Size": 920,
+  "nv::Point_Offset": 224,
+  "nv::Point_Size": 304,
+  "nv::Spritesheet*_Offset": 1888,
+  "nv::Spritesheet*_Size": 0,
+  "nv::Spritesheet_Offset": 1888,
+  "nv::Spritesheet_Size": 0,
+  "nv::Texture*_Offset": 608,
+  "nv::Texture*_Size": 0,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> >_Offset": 3400,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> >_Size": 192,
+  "nv::Texture_Offset": 528,
+  "nv::Texture_Size": 80,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Offset": 3752,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Size": 160,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::Spritesheet *>::Entry_Offset": 3912,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::Spritesheet *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet *,-1> > >::Entry_Offset": 3912,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet *,-1> > >::Entry_Size": 88,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> > *>::Entry_Offset": 4000,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> > *>::Entry_Size": 96,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Offset": 3592,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Size": 32,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Offset": 3624,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Size": 128,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Offset": 896,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Size": 0,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Offset": 608,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Size": 288,
+  "std::byte_Offset": 1888,
+  "std::byte_Size": 1512
+}

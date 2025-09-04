@@ -1,0 +1,161 @@
+{
+  "Bytes": 456,
+  "Layers": [
+    {
+      "Name": "main",
+      "nv::BufferedNode": [],
+      "nv::Spritesheet": [
+        {
+          "Metadata": {
+            "Name": "Unnamed Object#0",
+            "Object_Group": []
+          },
+          "Object": {
+            "Cols": 7,
+            "Image_Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\Project\\internal\\assets\\4.PNG",
+            "Render_Data": [
+              [
+                [
+                  287.0,
+                  49.0
+                ],
+                [
+                  1000.0,
+                  1300.0
+                ],
+                1.0
+              ],
+              [
+                [
+                  287.0,
+                  49.0
+                ],
+                [
+                  1000.0,
+                  1300.0
+                ],
+                1.0
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              0
+            ],
+            "Rows": 3
+          }
+        }
+      ],
+      "nv::Texture": [],
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >": [
+        {
+          "Metadata": {
+            "Name": "hitbox",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  772.0,
+                  371.0
+                ],
+                [
+                  783.0,
+                  1116.0
+                ],
+                [
+                  887.0,
+                  1102.0
+                ],
+                [
+                  841.0,
+                  380.0
+                ],
+                [
+                  772.0,
+                  371.0
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  772.0,
+                  371.0
+                ],
+                [
+                  783.0,
+                  1116.0
+                ],
+                [
+                  887.0,
+                  1102.0
+                ],
+                [
+                  841.0,
+                  380.0
+                ],
+                [
+                  772.0,
+                  371.0
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "Object_Group": null,
+  "__cdecl nv::detail::getTypeName<char_Offset": 8,
+  "__cdecl nv::detail::getTypeName<char_Size": 26,
+  "nv::BufferedNode*_Offset": 192,
+  "nv::BufferedNode*_Size": 0,
+  "nv::BufferedNode_Offset": 192,
+  "nv::BufferedNode_Size": 0,
+  "nv::Point_Offset": 36,
+  "nv::Point_Size": 80,
+  "nv::Spritesheet*_Offset": 296,
+  "nv::Spritesheet*_Size": 0,
+  "nv::Spritesheet_Offset": 192,
+  "nv::Spritesheet_Size": 104,
+  "nv::Texture*_Offset": 120,
+  "nv::Texture*_Size": 0,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> >_Offset": 296,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> >_Size": 64,
+  "nv::Texture_Offset": 120,
+  "nv::Texture_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Offset": 392,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::Spritesheet *>::Entry_Offset": 392,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::Spritesheet *>::Entry_Size": 32,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet *,-1> > >::Entry_Offset": 424,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet *,-1> > >::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> > *>::Entry_Offset": 424,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> > *>::Entry_Size": 32,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Offset": 360,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Offset": 360,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Size": 32,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Offset": 192,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Size": 0,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Offset": 120,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Size": 72,
+  "std::byte_Offset": 296,
+  "std::byte_Size": 0
+}

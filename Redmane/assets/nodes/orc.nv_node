@@ -1,0 +1,230 @@
+{
+  "Bytes": 664,
+  "Layers": [
+    {
+      "Name": "Unnamed Layer#0",
+      "nv::BufferedNode": [],
+      "nv::Spritesheet": [
+        {
+          "Metadata": {
+            "Name": "spritesheet",
+            "Object_Group": []
+          },
+          "Object": {
+            "Cols": 7,
+            "Image_Path": "C:\\Users\\walte\\OneDrive\\Desktop\\Code_Libraries\\Novalis_CMake_Build\\Redmane\\assets\\images\\orc\\spritesheet.png",
+            "Render_Data": [
+              [
+                [
+                  367.0,
+                  507.0
+                ],
+                [
+                  894.0,
+                  819.0
+                ],
+                1.0
+              ],
+              [
+                [
+                  367.0,
+                  507.0
+                ],
+                [
+                  894.0,
+                  819.0
+                ],
+                1.0
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                0.0,
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              0
+            ],
+            "Rows": 1
+          }
+        }
+      ],
+      "nv::Texture": [],
+      "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >": [
+        {
+          "Metadata": {
+            "Name": "hitbox",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  710.0,
+                  842.0
+                ],
+                [
+                  763.0,
+                  1105.0
+                ],
+                [
+                  830.0,
+                  1092.0
+                ],
+                [
+                  848.0,
+                  883.0
+                ],
+                [
+                  869.0,
+                  553.0
+                ],
+                [
+                  808.0,
+                  546.0
+                ],
+                [
+                  710.0,
+                  842.0
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  710.0,
+                  842.0
+                ],
+                [
+                  763.0,
+                  1105.0
+                ],
+                [
+                  830.0,
+                  1092.0
+                ],
+                [
+                  848.0,
+                  883.0
+                ],
+                [
+                  869.0,
+                  553.0
+                ],
+                [
+                  808.0,
+                  546.0
+                ],
+                [
+                  710.0,
+                  842.0
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "Metadata": {
+            "Name": "sword",
+            "Object_Group": []
+          },
+          "Object": {
+            "Ren": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  438.0,
+                  793.0
+                ],
+                [
+                  643.0,
+                  755.0
+                ],
+                [
+                  631.0,
+                  734.0
+                ],
+                [
+                  438.0,
+                  793.0
+                ]
+              ]
+            },
+            "World": {
+              "Angle": 0.0,
+              "Scale": 1.0,
+              "Screen_Points": [
+                [
+                  438.0,
+                  793.0
+                ],
+                [
+                  643.0,
+                  755.0
+                ],
+                [
+                  631.0,
+                  734.0
+                ],
+                [
+                  438.0,
+                  793.0
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "Name": "orc",
+  "Object_Group": null,
+  "__cdecl nv::detail::getTypeName<char_Offset": 8,
+  "__cdecl nv::detail::getTypeName<char_Size": 37,
+  "nv::BufferedNode*_Offset": 368,
+  "nv::BufferedNode*_Size": 0,
+  "nv::BufferedNode_Offset": 368,
+  "nv::BufferedNode_Size": 0,
+  "nv::Point_Offset": 48,
+  "nv::Point_Size": 176,
+  "nv::Spritesheet*_Offset": 472,
+  "nv::Spritesheet*_Size": 0,
+  "nv::Spritesheet_Offset": 368,
+  "nv::Spritesheet_Size": 104,
+  "nv::Texture*_Offset": 224,
+  "nv::Texture*_Size": 0,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> >_Offset": 472,
+  "nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> >_Size": 64,
+  "nv::Texture_Offset": 224,
+  "nv::Texture_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Offset": 600,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::BufferedNode *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::Spritesheet *>::Entry_Offset": 600,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class nv::Spritesheet *>::Entry_Size": 32,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet *,-1> > >::Entry_Offset": 632,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture *,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet *,-1> > >::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> > *>::Entry_Offset": 632,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,class std::tuple<class std::span<struct nv::Texture,-1>,class std::span<struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >,-1>,class std::span<class nv::BufferedNode *,-1>,class std::span<class nv::Spritesheet,-1> > *>::Entry_Size": 32,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Offset": 536,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::Texture *>::Entry_Size": 0,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Offset": 536,
+  "nv::detail::BufferedObjectMap<struct nv::detail::BufferedString,struct nv::detail::PolygonNode<class std::span<struct nv::Point,-1> > *>::Entry_Size": 64,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Offset": 368,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >*_Size": 0,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Offset": 224,
+  "nv::detail::PolygonNode<class std::span<struct nv::Point,-1> >_Size": 144,
+  "std::byte_Offset": 472,
+  "std::byte_Size": 0
+}
